@@ -1490,13 +1490,13 @@ MTY_EXPORT MTY_GFXState
 MTY_WindowGFXState(MTY_App *app, MTY_Window window);
 
 
-// @module gl
+// @module app-misc
 
 MTY_EXPORT void *
 MTY_GLGetProcAddress(const char *name);
 
-
-// @module platform
+MTY_EXPORT void
+MTY_ProtocolHandler(const char *uri, void *token);
 
 MTY_EXPORT void *
 MTY_JNIEnv(void);

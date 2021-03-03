@@ -673,6 +673,13 @@ const MTY_WEB_API = {
 		Crypto.getRandomValues(buf);
 	},
 
+	// app-misc
+	MTY_ProtocolHandler: function(uri, token) {
+		MTY_SetAction(() => {
+			window.open(MTY_StrToJS(uri), '_blank');
+		});
+	},
+
 	// unistd
 	gethostname: function(cbuf, size) {
 		MTY_StrToC(location.hostname, cbuf);

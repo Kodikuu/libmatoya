@@ -11,6 +11,7 @@
 #include <string.h>
 #include <math.h>
 #include <limits.h>
+#include <errno.h>
 
 #include <unistd.h>
 
@@ -1295,6 +1296,21 @@ void *MTY_GLGetProcAddress(const char *name)
 		return NULL;
 
 	return glXGetProcAddress((const GLubyte *) name);
+}
+
+void MTY_ProtocolHandler(const char *uri, void *token)
+{
+	const char *fmt = "xdg-open \"%s\" 2> /dev/null &";
+
+	size_t size = snprintf(NULL, 0, fmt, uri) + 1;
+
+	char *cmd = MTY_Alloc(size, 1);
+	snprintf(cmd, size, fmt, uri);
+
+	if (system(cmd) == -1)
+		MTY_Log("'system' failed with errno %d", errno);
+
+	MTY_Free(cmd);
 }
 
 

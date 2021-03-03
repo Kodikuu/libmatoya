@@ -1081,7 +1081,15 @@ void *mty_window_get_native(MTY_App *app, MTY_Window window)
 }
 
 
-// Unimplemented / stubs
+// Misc
+
+void MTY_ProtocolHandler(const char *uri, void *token)
+{
+	app_void_method(app, "openURI", "(Ljava/lang/String;)V", app_jni_strdup(&CTX, uri));
+}
+
+
+// Unimplemented
 
 void MTY_AppControllerRumble(MTY_App *app, uint32_t id, uint16_t low, uint16_t high)
 {

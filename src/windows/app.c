@@ -11,6 +11,7 @@
 
 #include <windows.h>
 #include <windowsx.h>
+#include <userenv.h>
 #include <shellapi.h>
 #include <shellscalingapi.h>
 
@@ -1841,6 +1842,53 @@ void *MTY_GLGetProcAddress(const char *name)
 		p = GetProcAddress(GetModuleHandleA("opengl32.dll"), name);
 
 	return p;
+}
+
+void MTY_ProtocolHandler(const char *uri, void *token)
+{
+	VOID *env = NULL;
+
+	if (token) {
+		if (!CreateEnvironmentBlock(&env, token, FALSE)) {
+			MTY_Log("'CreateEnvironmentBlock' failed with error 0x%X", GetLastError());
+			return;
+		}
+	}
+
+	WCHAR *wuri = MTY_MultiToWideD(uri);
+	WCHAR *cmd = MTY_Alloc(MAX_PATH, 1);
+	_snwprintf_s(cmd, MAX_PATH, _TRUNCATE, L"rundll32 url.dll,FileProtocolHandler %s", wuri);
+
+	STARTUPINFO si = {0};
+	si.cb = sizeof(STARTUPINFO);
+	si.lpDesktop = L"winsta0\\default";
+
+	PROCESS_INFORMATION pi = {0};
+	DWORD flags = NORMAL_PRIORITY_CLASS | CREATE_NEW_CONSOLE | CREATE_UNICODE_ENVIRONMENT;
+
+	BOOL success = FALSE;
+
+	if (token) {
+		success = CreateProcessAsUser(token, NULL, cmd, NULL, NULL, FALSE, flags, env, NULL, &si, &pi);
+		if (!success)
+			MTY_Log("'CreateProcessAsUser' failed with error 0x%X", GetLastError());
+
+	} else {
+		success = CreateProcess(NULL, cmd, NULL, NULL, FALSE, flags, env, NULL, &si, &pi);
+		if (!success)
+			MTY_Log("'CreateProcess' failed with error 0x%X", GetLastError());
+	}
+
+	if (success) {
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+	}
+
+	MTY_Free(wuri);
+	MTY_Free(cmd);
+
+	if (env)
+		DestroyEnvironmentBlock(env);
 }
 
 
