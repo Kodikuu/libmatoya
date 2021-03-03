@@ -666,7 +666,7 @@ const MTY_WEB_API = {
 	},
 
 	// crypto
-	MTY_CryptoHash: function(algo, input, inputSize, key, keySize, output, outputSize) {
+	MTY_CryptoHash: function (algo, input, inputSize, key, keySize, output, outputSize) {
 	},
 	MTY_RandomBytes: function (cbuf, size) {
 		const buf = new Uint8Array(mem(), size);
@@ -674,17 +674,17 @@ const MTY_WEB_API = {
 	},
 
 	// app-misc
-	MTY_ProtocolHandler: function(uri, token) {
+	MTY_ProtocolHandler: function (uri, token) {
 		MTY_SetAction(() => {
 			window.open(MTY_StrToJS(uri), '_blank');
 		});
 	},
 
 	// unistd
-	gethostname: function(cbuf, size) {
+	gethostname: function (cbuf, size) {
 		MTY_StrToC(location.hostname, cbuf);
 	},
-	flock: function(fd, flags) {
+	flock: function (fd, flags) {
 		return 0;
 	},
 
