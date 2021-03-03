@@ -1496,21 +1496,13 @@ void *mty_window_get_native(MTY_App *app, MTY_Window window)
 
 void MTY_ProtocolHandler(const char *uri, void *token)
 {
+	NSString *nsuri = [NSString stringWithUTF8String:uri];
+
 	if (strstr(uri, "http") == uri) {
-		[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:[NSString stringWithUTF8String:uri]]];
+		[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:nsuri]];
 
 	} else {
-		const char *fmt = "open -a TextEdit \"%s\"";
-
-		size_t size = snprintf(NULL, 0, fmt, uri) + 1;
-
-		char *cmd = MTY_Alloc(size, 1);
-		snprintf(cmd, size, fmt, uri);
-
-		if (system(cmd) == -1)
-			MTY_Log("'system' failed with errno %d", errno);
-
-		MTY_Free(cmd);
+		[[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:nsuri]];
 	}
 }
 
