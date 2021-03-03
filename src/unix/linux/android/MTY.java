@@ -22,6 +22,7 @@ import android.text.InputType;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.content.Context;
+import android.content.Intent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.pm.ActivityInfo;
@@ -31,6 +32,7 @@ import android.util.DisplayMetrics;
 import android.util.Base64;
 import android.widget.Scroller;
 import android.os.Vibrator;
+import android.net.Uri;
 
 public class MTY extends SurfaceView implements
 	SurfaceHolder.Callback,
@@ -526,6 +528,11 @@ public class MTY extends SurfaceView implements
 
 
 	// Misc
+
+	public void openURI(String uri) {
+		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+		this.activity.startActivity(intent);
+	}
 
 	public float getDisplayDensity() {
 		return this.displayDensity;

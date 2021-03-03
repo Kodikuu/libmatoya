@@ -1085,7 +1085,7 @@ void *mty_window_get_native(MTY_App *app, MTY_Window window)
 
 void MTY_ProtocolHandler(const char *uri, void *token)
 {
-	app_void_method(app, "openURI", "(Ljava/lang/String;)V", app_jni_strdup(&CTX, uri));
+	app_void_method(&CTX, "openURI", "(Ljava/lang/String;)V", app_jni_strdup(&CTX, uri));
 }
 
 
