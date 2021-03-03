@@ -1504,15 +1504,13 @@ MTY_WindowGFXState(MTY_App *app, MTY_Window window);
 
 // @module app-misc
 
-typedef enum {
-	MTY_OS_WINDOWS = 0x01000000,
-	MTY_OS_MACOS   = 0x02000000,
-	MTY_OS_ANDROID = 0x04000000,
-	MTY_OS_LINUX   = 0x08000000,
-	MTY_OS_WEB     = 0x10000000,
-	MTY_OS_IOS     = 0x20000000,
-	MTY_OS_TVOS    = 0x40000000,
-} MTY_OS;
+#define MTY_OS_WINDOWS 0x01000000
+#define MTY_OS_MACOS   0x02000000
+#define MTY_OS_ANDROID 0x04000000
+#define MTY_OS_LINUX   0x08000000
+#define MTY_OS_WEB     0x10000000
+#define MTY_OS_IOS     0x20000000
+#define MTY_OS_TVOS    0x40000000
 
 MTY_EXPORT void *
 MTY_GLGetProcAddress(const char *name);
