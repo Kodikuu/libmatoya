@@ -490,6 +490,14 @@ void *mty_window_get_native(MTY_App *app, MTY_Window window)
 }
 
 
+// Misc
+
+uint32_t MTY_GetPlatform(void)
+{
+	return MTY_OS_WEB;
+}
+
+
 // Unimplemented
 
 void MTY_AppDetach(MTY_App *app, MTY_Detach type)

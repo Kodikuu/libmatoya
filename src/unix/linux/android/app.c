@@ -113,11 +113,6 @@ static JNIEnv *app_jni_env(MTY_App *ctx)
 	return env;
 }
 
-void *MTY_JNIEnv(void)
-{
-	return app_jni_env(&CTX);
-}
-
 static void app_void_method(MTY_App *ctx, const char *name, const char *sig, ...)
 {
 	JNIEnv *env = app_jni_env(ctx);
@@ -1086,6 +1081,22 @@ void *mty_window_get_native(MTY_App *app, MTY_Window window)
 void MTY_ProtocolHandler(const char *uri, void *token)
 {
 	app_void_method(&CTX, "openURI", "(Ljava/lang/String;)V", app_jni_strdup(&CTX, uri));
+}
+
+uint32_t MTY_GetPlatform(void)
+{
+	uint32_t v = MTY_OS_ANDROID;
+
+	int32_t level = android_get_device_api_level();
+
+	v |= (uint32_t) level << 8;
+
+	return v;
+}
+
+void *MTY_JNIEnv(void)
+{
+	return app_jni_env(&CTX);
 }
 
 

@@ -1313,6 +1313,11 @@ void MTY_ProtocolHandler(const char *uri, void *token)
 	MTY_Free(cmd);
 }
 
+uint32_t MTY_GetPlatform(void)
+{
+	return MTY_OS_LINUX;
+}
+
 
 // Unimplemented
 

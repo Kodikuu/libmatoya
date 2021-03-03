@@ -1506,6 +1506,19 @@ void MTY_ProtocolHandler(const char *uri, void *token)
 	}
 }
 
+uint32_t MTY_GetPlatform(void)
+{
+	uint32_t v = MTY_OS_MACOS;
+
+	NSProcessInfo *pInfo = [NSProcessInfo processInfo];
+	NSOperatingSystemVersion version = [pInfo operatingSystemVersion];
+
+	v |= (uint32_t) version.majorVersion << 8;
+	v |= (uint32_t) version.minorVersion;
+
+	return v;
+}
+
 
 // Unimplemented
 

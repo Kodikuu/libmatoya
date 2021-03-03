@@ -497,6 +497,18 @@ MTY_MultiToWideD(const char *src);
 MTY_EXPORT char *
 MTY_Strtok(char *str, const char *delim, char **saveptr);
 
+MTY_EXPORT const char *
+MTY_OSString(uint32_t platform);
+
+MTY_EXPORT const char *
+MTY_VersionString(uint32_t platform);
+
+MTY_EXPORT bool
+MTY_TLSIsHandshake(const void *buf, size_t size);
+
+MTY_EXPORT bool
+MTY_TLSIsApplicationData(const void *buf, size_t size);
+
 #define MTY_Align16(v) \
 	((v) + 0xF & ~((uintptr_t) 0xF))
 
@@ -1492,11 +1504,24 @@ MTY_WindowGFXState(MTY_App *app, MTY_Window window);
 
 // @module app-misc
 
+typedef enum {
+	MTY_OS_WINDOWS = 0x01000000,
+	MTY_OS_MACOS   = 0x02000000,
+	MTY_OS_ANDROID = 0x04000000,
+	MTY_OS_LINUX   = 0x08000000,
+	MTY_OS_WEB     = 0x10000000,
+	MTY_OS_IOS     = 0x20000000,
+	MTY_OS_TVOS    = 0x40000000,
+} MTY_OS;
+
 MTY_EXPORT void *
 MTY_GLGetProcAddress(const char *name);
 
 MTY_EXPORT void
 MTY_ProtocolHandler(const char *uri, void *token);
+
+MTY_EXPORT uint32_t
+MTY_GetPlatform(void);
 
 MTY_EXPORT void *
 MTY_JNIEnv(void);
@@ -1607,12 +1632,6 @@ MTY_TLSEncrypt(MTY_TLS *ctx, const void *in, size_t inSize, void *out, size_t ou
 
 MTY_EXPORT bool
 MTY_TLSDecrypt(MTY_TLS *ctx, const void *in, size_t inSize, void *out, size_t outSize, size_t *read);
-
-MTY_EXPORT bool
-MTY_TLSIsHandshake(const void *buf, size_t size);
-
-MTY_EXPORT bool
-MTY_TLSIsApplicationData(const void *buf, size_t size);
 
 
 #ifdef __cplusplus

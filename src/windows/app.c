@@ -1834,6 +1834,8 @@ void *mty_window_get_native(MTY_App *app, MTY_Window window)
 
 // Misc
 
+typedef _Return_type_success_(return >= 0) LONG NTSTATUS;
+
 void *MTY_GLGetProcAddress(const char *name)
 {
 	void *p = wglGetProcAddress(name);
@@ -1889,6 +1891,29 @@ void MTY_ProtocolHandler(const char *uri, void *token)
 
 	if (env)
 		DestroyEnvironmentBlock(env);
+}
+
+uint32_t MTY_GetPlatform(void)
+{
+	uint32_t v = MTY_OS_WINDOWS;
+
+	HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
+	if (ntdll) {
+		NTSTATUS (WINAPI *RtlGetVersion)(RTL_OSVERSIONINFOW *info) =
+			(void *) GetProcAddress(ntdll, "RtlGetVersion");
+
+		if (RtlGetVersion) {
+			RTL_OSVERSIONINFOW info = {0};
+			info.dwOSVersionInfoSize = sizeof(RTL_OSVERSIONINFOW);
+
+			RtlGetVersion(&info);
+
+			v |= (uint32_t) info.dwMajorVersion << 8;
+			v |= (uint32_t) info.dwMinorVersion;
+		}
+	}
+
+	return v;
 }
 
 

@@ -7,9 +7,14 @@
 #include "matoya.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <wchar.h>
+
+#include "tlocal.h"
+
+static MTY_TLOCAL char MEMORY_VER[32];
 
 void *MTY_Alloc(size_t nelem, size_t elsize)
 {
@@ -87,6 +92,39 @@ wchar_t *MTY_MultiToWideD(const char *src)
 	MTY_MultiToWide(src, dst, len);
 
 	return dst;
+}
+
+
+// Platform parsing
+
+const char *MTY_OSString(uint32_t platform)
+{
+	switch (platform & 0xFF000000) {
+		case MTY_OS_WINDOWS: return "Windows";
+		case MTY_OS_MACOS:   return "macOS";
+		case MTY_OS_ANDROID: return "Android";
+		case MTY_OS_LINUX:   return "Linux";
+		case MTY_OS_WEB:     return "Web";
+		case MTY_OS_IOS:     return "iOS";
+		case MTY_OS_TVOS:    return "tvOS";
+	}
+
+	return "Unknown";
+}
+
+const char *MTY_VersionString(uint32_t platform)
+{
+	uint8_t major = (platform & 0xFF00) >> 8;
+	uint8_t minor = platform & 0xFF;
+
+	if (minor > 0) {
+		snprintf(MEMORY_VER, 32, "%u.%u", major, minor);
+
+	} else {
+		snprintf(MEMORY_VER, 32, "%u", major);
+	}
+
+	return MEMORY_VER;
 }
 
 
