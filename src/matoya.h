@@ -511,9 +511,6 @@ MTY_EXPORT char *
 MTY_Strtok(char *str, const char *delim, char **saveptr);
 
 MTY_EXPORT const char *
-MTY_OSString(uint32_t platform);
-
-MTY_EXPORT const char *
 MTY_VersionString(uint32_t platform);
 
 MTY_EXPORT bool
