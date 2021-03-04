@@ -9,6 +9,8 @@
 #include "matoya.h"
 
 bool web_has_focus(void);
+void web_alert(const char *title, const char *msg);
+void web_platform(char *platform, size_t size);
 void web_set_fullscreen(bool fullscreen);
 bool web_get_fullscreen(void);
 bool web_get_key(MTY_Key key, char *str, size_t len);

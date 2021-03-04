@@ -96,12 +96,11 @@ function MTY_StrToJS(ptr) {
 	return char_to_js(new Uint8Array(mem(), ptr));
 }
 
-function MTY_StrToC(js_str, ptr) {
+function MTY_StrToC(js_str, ptr, size) {
 	const view = new Uint8Array(mem(), ptr);
 
-	// FIXME No bounds checking!
 	let len = 0;
-	for (; len < js_str.length; len++)
+	for (; len < js_str.length && len < size - 1; len++)
 		view[len] = js_str.charCodeAt(len);
 
 	// '\0' character
@@ -553,8 +552,8 @@ const MTY_WEB_API = {
 			const url_obj = new URL(url);
 			const path = url_obj.pathname + url_obj.search;
 
-			MTY_StrToC(url_obj.host, host_c_out);
-			MTY_StrToC(path, path_c_out);
+			MTY_StrToC(url_obj.host, host_c_out, host_size);
+			MTY_StrToC(path, path_c_out, path_size);
 
 			return true;
 
@@ -566,7 +565,7 @@ const MTY_WEB_API = {
 	},
 	MTY_HttpEncodeUrl: function(src, dst, dst_len) {
 		// No-op, automatically converted in fetch
-		MTY_StrToC(MTY_StrToJS(src), dst);
+		MTY_StrToC(MTY_StrToJS(src), dst, dst_len);
 	},
 	MTY_HttpAsyncRequest: function(index, chost, secure, cmethod,
 		cpath, cheaders, cbody, bodySize, timeout, func)
@@ -682,13 +681,19 @@ const MTY_WEB_API = {
 
 	// unistd
 	gethostname: function (cbuf, size) {
-		MTY_StrToC(location.hostname, cbuf);
+		MTY_StrToC(location.hostname, cbuf, size);
 	},
 	flock: function (fd, flags) {
 		return 0;
 	},
 
 	// browser
+	web_alert: function (title, msg) {
+		alert(MTY_StrToJS(title) + '\n\n' + MTY_StrToJS(msg));
+	},
+	web_platform: function (platform, size) {
+		MTY_StrToC(navigator.platform, platform, size);
+	},
 	web_set_fullscreen: function (fullscreen) {
 		if (fullscreen && !document.fullscreenElement) {
 			if (navigator.keyboard)
@@ -727,12 +732,12 @@ const MTY_WEB_API = {
 			if (_MTY.kbMap) {
 				const text = _MTY.kbMap.get(code);
 				if (text) {
-					MTY_StrToC(text.toUpperCase(), cbuf);
+					MTY_StrToC(text.toUpperCase(), cbuf, len);
 					return true;
 				}
 			}
 
-			MTY_StrToC(code, cbuf);
+			MTY_StrToC(code, cbuf, len);
 			return true;
 		}
 
@@ -771,8 +776,9 @@ const MTY_WEB_API = {
 		CLIPBOARD.select();
 		document.execCommand('paste');
 
-		const text_c = MTY_Alloc(CLIPBOARD.value.length * 4);
-		MTY_StrToC(CLIPBOARD.value, text_c);
+		const size = CLIPBOARD.value.length * 4;
+		const text_c = MTY_Alloc(size);
+		MTY_StrToC(CLIPBOARD.value, text_c, size);
 
 		return text_c;
 	},
@@ -920,7 +926,7 @@ const MTY_WEB_API = {
 			const key = KEYS[ev.code];
 
 			if (key != undefined) {
-				const text = ev.key.length == 1 ? MTY_StrToC(ev.key, _MTY.cbuf) : 0;
+				const text = ev.key.length == 1 ? MTY_StrToC(ev.key, _MTY.cbuf, 1024) : 0;
 
 				if (MTY_CFunc(keyboard)(app, true, key, text, get_mods(ev)))
 					ev.preventDefault();
@@ -963,7 +969,7 @@ const MTY_WEB_API = {
 							let buf = new Uint8Array(reader.result);
 							let cmem = MTY_Alloc(buf.length);
 							MTY_Memcpy(cmem, buf);
-							MTY_CFunc(drop)(app, MTY_StrToC(file.name, _MTY.cbuf), cmem, buf.length);
+							MTY_CFunc(drop)(app, MTY_StrToC(file.name, _MTY.cbuf, 1024), cmem, buf.length);
 							MTY_Free(cmem);
 						}
 					});
@@ -1044,7 +1050,7 @@ const WASI_API = {
 	args_get: function (argv, argv_buf) {
 		const args = arg_list();
 		for (let x = 0; x < args.length; x++) {
-			MTY_StrToC(args[x], argv_buf);
+			MTY_StrToC(args[x], argv_buf, 32 * 1024); // FIXME what is the real size of this buffer
 			MTY_SetUint32(argv + x * 4, argv_buf);
 			argv_buf += args[x].length + 1;
 		}
@@ -1065,7 +1071,7 @@ const WASI_API = {
 	},
 	fd_prestat_dir_name: function (fd, path, path_len) {
 		if (!FD_PREOPEN) {
-			MTY_StrToC('/', path);
+			MTY_StrToC('/', path, path_len);
 			FD_PREOPEN = true;
 
 			return 0;

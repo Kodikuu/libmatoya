@@ -1519,6 +1519,32 @@ uint32_t MTY_GetPlatform(void)
 	return v;
 }
 
+uint32_t MTY_GetPlatformNoWeb(void)
+{
+	return MTY_GetPlatform();
+}
+
+void MTY_MessageBox(const char *title, const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+
+	char *msg = MTY_VsprintfD(fmt, args);
+
+	va_end(args);
+
+	CFStringRef nstitle = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);
+	CFStringRef nsmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
+
+	CFOptionFlags r = 0;
+	CFUserNotificationDisplayAlert(0, kCFUserNotificationNoteAlertLevel, NULL,
+		NULL, NULL, nstitle, nsmsg, NULL, NULL, NULL, &r);
+
+	CFRelease(nstitle);
+	CFRelease(nsmsg);
+	MTY_Free(msg);
+}
+
 
 // Unimplemented
 

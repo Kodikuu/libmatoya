@@ -453,6 +453,12 @@ MTY_Strdup(const char *str);
 MTY_EXPORT void
 MTY_Strcat(char *dst, size_t size, const char *src);
 
+MTY_EXPORT char *
+MTY_VsprintfD(const char *fmt, va_list args);
+
+MTY_EXPORT char *
+MTY_SprintfD(const char *fmt, ...);
+
 MTY_EXPORT int32_t
 MTY_Strcasecmp(const char *s1, const char *s2);
 
@@ -1527,6 +1533,12 @@ MTY_ProtocolHandler(const char *uri, void *token);
 
 MTY_EXPORT uint32_t
 MTY_GetPlatform(void);
+
+MTY_EXPORT uint32_t
+MTY_GetPlatformNoWeb(void);
+
+MTY_EXPORT void
+MTY_MessageBox(const char *title, const char *fmt, ...);
 
 MTY_EXPORT void *
 MTY_JNIEnv(void);

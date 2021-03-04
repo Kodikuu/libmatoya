@@ -1094,6 +1094,15 @@ uint32_t MTY_GetPlatform(void)
 	return v;
 }
 
+uint32_t MTY_GetPlatformNoWeb(void)
+{
+	return MTY_GetPlatform();
+}
+
+void MTY_MessageBox(const char *title, const char *fmt, ...)
+{
+}
+
 void *MTY_JNIEnv(void)
 {
 	return app_jni_env(&CTX);

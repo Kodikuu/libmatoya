@@ -1318,6 +1318,24 @@ uint32_t MTY_GetPlatform(void)
 	return MTY_OS_LINUX;
 }
 
+uint32_t MTY_GetPlatformNoWeb(void)
+{
+	return MTY_GetPlatform();
+}
+
+void MTY_MessageBox(const char *title, const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+
+	char *msg = MTY_VsprintfD(fmt, args);
+
+	va_end(args);
+
+	printf("\n[%s]\n--------------------\n%s\n\n", title, msg);
+	MTY_Free(msg);
+}
+
 
 // Unimplemented
 

@@ -497,6 +497,42 @@ uint32_t MTY_GetPlatform(void)
 	return MTY_OS_WEB;
 }
 
+uint32_t MTY_GetPlatformNoWeb(void)
+{
+	char platform[64] = "";
+	web_platform(platform, 64);
+
+	if (strstr(platform, "Win32"))
+		return MTY_OS_WINDOWS;
+
+	if (strstr(platform, "Mac"))
+		return MTY_OS_MACOS;
+
+	if (strstr(platform, "Android"))
+		return MTY_OS_ANDROID;
+
+	if (strstr(platform, "Linux"))
+		return MTY_OS_LINUX;
+
+	if (strstr(platform, "iPhone"))
+		return MTY_OS_IOS;
+
+	return MTY_OS_UNKNOWN;
+}
+
+void MTY_MessageBox(const char *title, const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+
+	char *msg = MTY_VsprintfD(fmt, args);
+
+	va_end(args);
+
+	web_alert(title, msg);
+	MTY_Free(msg);
+}
+
 
 // Unimplemented
 

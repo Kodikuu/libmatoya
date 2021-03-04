@@ -62,6 +62,28 @@ void MTY_Strcat(char *dst, size_t size, const char *src)
 	memcpy(dst + dst_len, src, src_len + 1);
 }
 
+char *MTY_VsprintfD(const char *fmt, va_list args)
+{
+	size_t size = vsnprintf(NULL, 0, fmt, args) + 1;
+	char *str = MTY_Alloc(size, 1);
+
+	snprintf(str, size, fmt, args);
+
+	return str;
+}
+
+char *MTY_SprintfD(const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+
+	char *str = MTY_VsprintfD(fmt, args);
+
+	va_end(args);
+
+	return str;
+}
+
 void MTY_Free(void *mem)
 {
 	free(mem);
