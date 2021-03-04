@@ -1517,6 +1517,7 @@ MTY_WindowGFXState(MTY_App *app, MTY_Window window);
 
 // @module app-misc
 
+#define MTY_OS_UNKNOWN 0x00000000
 #define MTY_OS_WINDOWS 0x01000000
 #define MTY_OS_MACOS   0x02000000
 #define MTY_OS_ANDROID 0x04000000
