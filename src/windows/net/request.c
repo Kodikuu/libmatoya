@@ -73,7 +73,6 @@ bool MTY_HttpRequest(const char *_host, bool secure, const char *_method, const 
 	}
 
 	// Context initialization
-
 	session = WinHttpOpen(pargs.ua ? pargs.ua : MTY_USER_AGENTW, access_type, wproxy, WINHTTP_NO_PROXY_BYPASS, 0);
 	if (!session) {
 		r = false;
