@@ -63,6 +63,11 @@ static void ws_mask(const uint8_t *in, size_t size, const uint8_t *mask, uint8_t
 
 // Connect, accept
 
+static void ws_parse_headers(const char *key, const char *val, void *opaque)
+{
+	mty_http_set_header_str((char **) opaque, key, val);
+}
+
 static bool ws_connect(MTY_WebSocket *ws, const char *path, const char *headers,
 	uint32_t timeout, uint16_t *upgrade_status)
 {
@@ -84,7 +89,7 @@ static bool ws_connect(MTY_WebSocket *ws, const char *path, const char *headers,
 
 	// Optional headers
 	if (headers)
-		mty_http_set_all_headers(&req, headers);
+		mty_http_parse_headers(headers, ws_parse_headers, &req);
 
 	// Write http the header
 	bool r = mty_http_write_request_header(ws->net, "GET", path, req);

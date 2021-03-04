@@ -20,6 +20,13 @@ extern "C" {
 #endif
 
 
+/// @module version
+
+#define MTY_VERSION         4
+#define MTY_VERSION_STRING  "v4"
+#define MTY_VERSION_STRINGW L"v4"
+
+
 /// @module audio
 
 typedef struct MTY_Audio MTY_Audio;

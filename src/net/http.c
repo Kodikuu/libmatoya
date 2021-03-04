@@ -224,7 +224,7 @@ void mty_http_set_header_str(char **header, const char *name, const char *val)
 	snprintf(*header + len, new_len, "%s: %s\r\n", name, val);
 }
 
-void mty_http_set_all_headers(char **header, const char *all)
+void mty_http_parse_headers(const char *all, HTTP_PARSE_FUNC func, void *opaque)
 {
 	char *dup = MTY_Strdup(all);
 
@@ -241,7 +241,11 @@ void mty_http_set_all_headers(char **header, const char *all)
 		if (!val)
 			break;
 
-		mty_http_set_header_str(header, key, val);
+		// Skip past leading whitespace in the val
+		while (*val && (*val == ' ' || *val == '\t'))
+			val++;
+
+		func(key, val, opaque);
 
 		tok = MTY_Strtok(NULL, "\n", &ptr);
 	}

@@ -15,6 +15,28 @@
 #include "net/http.h"
 #include "net/gzip.h"
 
+#define MTY_USER_AGENTW L"libmatoya/" MTY_VERSION_STRINGW
+
+struct parse_args {
+	WCHAR *ua;
+	char *headers;
+};
+
+static void request_parse_headers(const char *key, const char *val, void *opaque)
+{
+	struct parse_args *pargs = opaque;
+
+	// WinHTTP needs to take the user-agent as a separate argument, so we need
+	// to pluck it out of the headers string
+	if (!MTY_Strcasecmp(key, "User-Agent")) {
+		if (!pargs->ua)
+			pargs->ua = MTY_MultiToWideD(val);
+
+	} else {
+		mty_http_set_header_str(&pargs->headers, key, val);
+	}
+}
+
 bool MTY_HttpRequest(const char *_host, bool secure, const char *_method, const char *_path,
 	const char *_headers, const void *body, size_t bodySize, uint32_t timeout,
 	void **response, size_t *responseSize, uint16_t *status)
@@ -29,16 +51,20 @@ bool MTY_HttpRequest(const char *_host, bool secure, const char *_method, const 
 	HINTERNET connect = NULL;
 	HINTERNET request = NULL;
 
+	struct parse_args pargs = {0};
+	if (_headers)
+		mty_http_parse_headers(_headers, request_parse_headers, &pargs);
+
 	WCHAR *host = MTY_MultiToWideD(_host);
 	WCHAR *path = MTY_MultiToWideD(_path);
 	WCHAR *method = MTY_MultiToWideD(_method);
-	WCHAR *headers = _headers ? MTY_MultiToWideD(_headers) : WINHTTP_NO_ADDITIONAL_HEADERS;
+	WCHAR *headers = pargs.headers ? MTY_MultiToWideD(pargs.headers) : WINHTTP_NO_ADDITIONAL_HEADERS;
 
 	INTERNET_PORT port = secure ? INTERNET_DEFAULT_HTTPS_PORT : INTERNET_DEFAULT_HTTP_PORT;
 
 	// Proxy
 	const char *proxy = mty_http_get_proxy();
-	DWORD access_type = WINHTTP_ACCESS_TYPE_NO_PROXY;
+	DWORD access_type = WINHTTP_ACCESS_TYPE_DEFAULT_PROXY;
 	WCHAR *wproxy = WINHTTP_NO_PROXY_NAME;
 
 	if (proxy) {
@@ -47,7 +73,8 @@ bool MTY_HttpRequest(const char *_host, bool secure, const char *_method, const 
 	}
 
 	// Context initialization
-	session = WinHttpOpen(L"mty-winhttp/v4", access_type, wproxy, WINHTTP_NO_PROXY_BYPASS, 0);
+
+	session = WinHttpOpen(pargs.ua ? pargs.ua : MTY_USER_AGENTW, access_type, wproxy, WINHTTP_NO_PROXY_BYPASS, 0);
 	if (!session) {
 		r = false;
 		goto except;
@@ -77,7 +104,7 @@ bool MTY_HttpRequest(const char *_host, bool secure, const char *_method, const 
 	}
 
 	// Write headers and body
-	r = WinHttpSendRequest(request, headers, _headers ? -1L : 0,
+	r = WinHttpSendRequest(request, headers, pargs.headers ? -1L : 0,
 		(void *) body, (DWORD) bodySize, (DWORD) bodySize, 0);
 	if (!r)
 		goto except;
@@ -155,6 +182,8 @@ bool MTY_HttpRequest(const char *_host, bool secure, const char *_method, const 
 	if (headers != WINHTTP_NO_ADDITIONAL_HEADERS)
 		MTY_Free(headers);
 
+	MTY_Free(pargs.ua);
+	MTY_Free(pargs.headers);
 	MTY_Free(method);
 	MTY_Free(path);
 	MTY_Free(host);

@@ -13,6 +13,13 @@
 #include "net/http.h"
 #include "net/gzip.h"
 
+#define MTY_USER_AGENT "libmatoya/" MTY_VERSION_STRING
+
+struct parse_args {
+	char **headers;
+	bool ua_found;
+};
+
 static bool http_read_chunk_len(struct net *net, uint32_t timeout, size_t *len)
 {
 	*len = 0;
@@ -59,6 +66,16 @@ static bool http_read_chunked(struct net *net, void **res, size_t *size, uint32_
 	return true;
 }
 
+static void request_parse_headers(const char *key, const char *val, void *opaque)
+{
+	struct parse_args *pargs = opaque;
+
+	if (!MTY_Strcasecmp(key, "User-Agent"))
+		pargs->ua_found = true;
+
+	mty_http_set_header_str(pargs->headers, key, val);
+}
+
 bool MTY_HttpRequest(const char *host, bool secure, const char *method, const char *path,
 	const char *headers, const void *body, size_t bodySize, uint32_t timeout,
 	void **response, size_t *responseSize, uint16_t *status)
@@ -78,11 +95,16 @@ bool MTY_HttpRequest(const char *host, bool secure, const char *method, const ch
 	}
 
 	// Set request headers
-	mty_http_set_header_str(&req, "User-Agent", "mty-http/v4");
 	mty_http_set_header_str(&req, "Connection", "close");
 
+	struct parse_args pargs = {0};
+	pargs.headers = &req;
+
 	if (headers)
-		mty_http_set_all_headers(&req, headers);
+		mty_http_parse_headers(headers, request_parse_headers, &pargs);
+
+	if (!pargs.ua_found)
+		mty_http_set_header_str(&req, "User-Agent", MTY_USER_AGENT);
 
 	if (bodySize)
 		mty_http_set_header_int(&req, "Content-Length", bodySize);
