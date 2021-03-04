@@ -121,8 +121,8 @@ bool MTY_MoveFile(const char *src, const char *dst)
 static bool fs_known_folder(const KNOWNFOLDERID *fid, char *dir, size_t size)
 {
 	WCHAR *dirw = NULL;
-
 	HRESULT e = SHGetKnownFolderPath(fid, 0, NULL, &dirw);
+
 	if (e == S_OK) {
 		MTY_WideToMulti(dirw, dir, size);
 		CoTaskMemFree(dirw);
