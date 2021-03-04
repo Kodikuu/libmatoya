@@ -19,6 +19,7 @@ static MTY_TLOCAL char FS_HOME[MTY_PATH_MAX];
 static MTY_TLOCAL char FS_PATH[MTY_PATH_MAX];
 static MTY_TLOCAL char FS_EXECUTABLE[MTY_PATH_MAX];
 static MTY_TLOCAL char FS_PROGRAMS[MTY_PATH_MAX];
+static MTY_TLOCAL char FS_GLOBAL_HOME[MTY_PATH_MAX];
 static MTY_TLOCAL char FS_FILE_NAME[MTY_PATH_MAX];
 
 bool MTY_DeleteFile(const char *path)
@@ -117,6 +118,24 @@ bool MTY_MoveFile(const char *src, const char *dst)
 	return r;
 }
 
+static bool fs_known_folder(const KNOWNFOLDERID *fid, char *dir, size_t size)
+{
+	WCHAR *dirw = NULL;
+
+	HRESULT e = SHGetKnownFolderPath(fid, 0, NULL, &dirw);
+	if (e == S_OK) {
+		MTY_WideToMulti(dirw, dir, size);
+		CoTaskMemFree(dirw);
+
+		return true;
+
+	} else {
+		MTY_Log("'SHGetKnownFolderPath' failed with HRESULT 0x%X", e);
+	}
+
+	return false;
+}
+
 const char *MTY_GetDir(MTY_Dir dir)
 {
 	wchar_t tmp[MTY_PATH_MAX];
@@ -174,22 +193,16 @@ const char *MTY_GetDir(MTY_Dir dir)
 
 			break;
 		}
-		case MTY_DIR_PROGRAMS: {
-			wchar_t *dirw = NULL;
-
-			HRESULT e = SHGetKnownFolderPath(&FOLDERID_ProgramFiles, 0, NULL, &dirw);
-			if (e == S_OK) {
-				MTY_WideToMulti(dirw, FS_PROGRAMS, MTY_PATH_MAX);
-				CoTaskMemFree(dirw);
-
-				return FS_PROGRAMS;
-
-			} else {
-				MTY_Log("'SHGetKnownFolderPath' failed with HRESULT 0x%X", e);
-			}
+		case MTY_DIR_GLOBAL_HOME:
+			if (fs_known_folder(&FOLDERID_ProgramData, FS_GLOBAL_HOME, MTY_PATH_MAX))
+				return FS_GLOBAL_HOME;
 
 			break;
-		}
+		case MTY_DIR_PROGRAMS:
+			if (fs_known_folder(&FOLDERID_ProgramFiles, FS_PROGRAMS, MTY_PATH_MAX))
+				return FS_PROGRAMS;
+
+			break;
 	}
 
 	return ".";

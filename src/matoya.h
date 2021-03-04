@@ -144,11 +144,12 @@ MTY_AESGCMDestroy(MTY_AESGCM **aesgcm);
 #define MTY_PATH_MAX 1280
 
 typedef enum {
-	MTY_DIR_CWD        = 1,
-	MTY_DIR_HOME       = 2,
-	MTY_DIR_EXECUTABLE = 3,
-	MTY_DIR_PROGRAMS   = 4,
-	MTY_DIR_MAKE_32    = 0x7FFFFFFF,
+	MTY_DIR_CWD         = 1,
+	MTY_DIR_HOME        = 2,
+	MTY_DIR_EXECUTABLE  = 3,
+	MTY_DIR_PROGRAMS    = 4,
+	MTY_DIR_GLOBAL_HOME = 5,
+	MTY_DIR_MAKE_32     = 0x7FFFFFFF,
 } MTY_Dir;
 
 typedef enum {

@@ -126,6 +126,7 @@ const char *MTY_GetDir(MTY_Dir dir)
 
 			break;
 		}
+		case MTY_DIR_GLOBAL_HOME:
 		case MTY_DIR_HOME: {
 			memset(FS_HOME, 0, MTY_PATH_MAX);
 
