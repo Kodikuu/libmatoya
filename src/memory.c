@@ -67,7 +67,7 @@ char *MTY_VsprintfD(const char *fmt, va_list args)
 	size_t size = vsnprintf(NULL, 0, fmt, args) + 1;
 	char *str = MTY_Alloc(size, 1);
 
-	snprintf(str, size, fmt, args);
+	vsnprintf(str, size, fmt, args);
 
 	return str;
 }
