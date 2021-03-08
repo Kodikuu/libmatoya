@@ -1072,32 +1072,11 @@ MTY_GFX mty_window_get_gfx(MTY_App *app, MTY_Window window, struct gfx_ctx **gfx
 
 void *mty_window_get_native(MTY_App *app, MTY_Window window)
 {
-	return (void *) (uintptr_t) 0xCDD;
+	return (void *) (uintptr_t) CTX.obj;
 }
 
 
 // Misc
-
-void MTY_ProtocolHandler(const char *uri, void *token)
-{
-	app_void_method(&CTX, "openURI", "(Ljava/lang/String;)V", app_jni_strdup(&CTX, uri));
-}
-
-uint32_t MTY_GetPlatform(void)
-{
-	uint32_t v = MTY_OS_ANDROID;
-
-	int32_t level = android_get_device_api_level();
-
-	v |= (uint32_t) level << 8;
-
-	return v;
-}
-
-uint32_t MTY_GetPlatformNoWeb(void)
-{
-	return MTY_GetPlatform();
-}
 
 void MTY_MessageBox(const char *title, const char *fmt, ...)
 {

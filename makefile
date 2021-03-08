@@ -52,6 +52,7 @@ OBJS = $(OBJS) \
 	src\windows\cryptow.obj \
 	src\windows\filew.obj \
 	src\windows\memoryw.obj \
+	src\windows\os.obj \
 	src\windows\proc.obj \
 	src\windows\threadw.obj \
 	src\windows\time.obj \
@@ -108,31 +109,8 @@ FLAGS = \
 LIB_FLAGS = \
 	/nologo
 
-TEST_FLAGS = \
-	$(LIB_FLAGS) \
-	/nodefaultlib \
-	/subsystem:console
-
-TEST_LIBS = \
-	libvcruntime.lib \
-	libucrt.lib \
-	libcmt.lib \
-	kernel32.lib \
-	user32.lib \
-	shell32.lib \
-	d3d11.lib \
-	dxguid.lib \
-	ole32.lib \
-	uuid.lib \
-	winmm.lib \
-	bcrypt.lib \
-	shlwapi.lib \
-	ws2_32.lib \
-	opengl32.lib
-
 !IFDEF DEBUG
 FLAGS = $(FLAGS) /Ob0 /Zi
-TEST_FLAGS = $(TEST_FLAGS) /debug
 !ELSE
 FLAGS = $(FLAGS) /O2 /GS- /Gw
 !ENDIF
@@ -143,10 +121,6 @@ all: clean-build clear $(SHADERS) $(OBJS)
 	mkdir bin\$(TARGET)\$(ARCH)
 	lib /out:bin\$(TARGET)\$(ARCH)\$(NAME).lib $(LIB_FLAGS) *.obj
 
-test: all src\test.obj
-	link /out:$(PREFIX)-test.exe $(TEST_FLAGS) *.obj $(TEST_LIBS)
-	$(PREFIX)-test.exe
-
 clean: clean-build
 	@-del /q $(SHADERS) 2>nul
 
@@ -155,7 +129,6 @@ clean-build:
 	@-del /q *.obj 2>nul
 	@-del /q *.lib 2>nul
 	@-del /q *.pdb 2>nul
-	@-del /q $(PREFIX)-test.exe 2>nul
 
 clear:
 	@cls

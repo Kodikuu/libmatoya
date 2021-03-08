@@ -4,9 +4,6 @@
 *.dll
 *.pdb
 
-mty-test
-mty-test.exe
-
 /obj
 /bin
 

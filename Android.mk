@@ -71,6 +71,7 @@ LOCAL_SRC_FILES := \
 	src/unix/linux/android/net/tls.c \
 	src/unix/linux/android/gfx/gl-ctx.c \
 	src/unix/linux/android/app.c \
+	src/unix/linux/android/os.c \
 	src/unix/linux/android/audio.c
 
 include $(BUILD_STATIC_LIBRARY)

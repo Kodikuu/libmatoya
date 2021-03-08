@@ -1834,8 +1834,6 @@ void *mty_window_get_native(MTY_App *app, MTY_Window window)
 
 // Misc
 
-typedef _Return_type_success_(return >= 0) LONG NTSTATUS;
-
 void *MTY_GLGetProcAddress(const char *name)
 {
 	void *p = wglGetProcAddress(name);
@@ -1844,81 +1842,6 @@ void *MTY_GLGetProcAddress(const char *name)
 		p = GetProcAddress(GetModuleHandleA("opengl32.dll"), name);
 
 	return p;
-}
-
-void MTY_ProtocolHandler(const char *uri, void *token)
-{
-	VOID *env = NULL;
-
-	if (token) {
-		if (!CreateEnvironmentBlock(&env, token, FALSE)) {
-			MTY_Log("'CreateEnvironmentBlock' failed with error 0x%X", GetLastError());
-			return;
-		}
-	}
-
-	WCHAR *wuri = MTY_MultiToWideD(uri);
-	WCHAR *cmd = MTY_Alloc(MAX_PATH, 1);
-	_snwprintf_s(cmd, MAX_PATH, _TRUNCATE, L"rundll32 url.dll,FileProtocolHandler %s", wuri);
-
-	STARTUPINFO si = {0};
-	si.cb = sizeof(STARTUPINFO);
-	si.lpDesktop = L"winsta0\\default";
-
-	PROCESS_INFORMATION pi = {0};
-	DWORD flags = NORMAL_PRIORITY_CLASS | CREATE_NEW_CONSOLE | CREATE_UNICODE_ENVIRONMENT;
-
-	BOOL success = FALSE;
-
-	if (token) {
-		success = CreateProcessAsUser(token, NULL, cmd, NULL, NULL, FALSE, flags, env, NULL, &si, &pi);
-		if (!success)
-			MTY_Log("'CreateProcessAsUser' failed with error 0x%X", GetLastError());
-
-	} else {
-		success = CreateProcess(NULL, cmd, NULL, NULL, FALSE, flags, env, NULL, &si, &pi);
-		if (!success)
-			MTY_Log("'CreateProcess' failed with error 0x%X", GetLastError());
-	}
-
-	if (success) {
-		CloseHandle(pi.hThread);
-		CloseHandle(pi.hProcess);
-	}
-
-	MTY_Free(wuri);
-	MTY_Free(cmd);
-
-	if (env)
-		DestroyEnvironmentBlock(env);
-}
-
-uint32_t MTY_GetPlatform(void)
-{
-	uint32_t v = MTY_OS_WINDOWS;
-
-	HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
-	if (ntdll) {
-		NTSTATUS (WINAPI *RtlGetVersion)(RTL_OSVERSIONINFOW *info) =
-			(void *) GetProcAddress(ntdll, "RtlGetVersion");
-
-		if (RtlGetVersion) {
-			RTL_OSVERSIONINFOW info = {0};
-			info.dwOSVersionInfoSize = sizeof(RTL_OSVERSIONINFOW);
-
-			RtlGetVersion(&info);
-
-			v |= (uint32_t) info.dwMajorVersion << 8;
-			v |= (uint32_t) info.dwMinorVersion;
-		}
-	}
-
-	return v;
-}
-
-uint32_t MTY_GetPlatformNoWeb(void)
-{
-	return MTY_GetPlatform();
 }
 
 void MTY_MessageBox(const char *title, const char *fmt, ...)

@@ -1494,36 +1494,6 @@ void *mty_window_get_native(MTY_App *app, MTY_Window window)
 
 // Misc
 
-void MTY_ProtocolHandler(const char *uri, void *token)
-{
-	NSString *nsuri = [NSString stringWithUTF8String:uri];
-
-	if (strstr(uri, "http") == uri) {
-		[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:nsuri]];
-
-	} else {
-		[[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:nsuri]];
-	}
-}
-
-uint32_t MTY_GetPlatform(void)
-{
-	uint32_t v = MTY_OS_MACOS;
-
-	NSProcessInfo *pInfo = [NSProcessInfo processInfo];
-	NSOperatingSystemVersion version = [pInfo operatingSystemVersion];
-
-	v |= (uint32_t) version.majorVersion << 8;
-	v |= (uint32_t) version.minorVersion;
-
-	return v;
-}
-
-uint32_t MTY_GetPlatformNoWeb(void)
-{
-	return MTY_GetPlatform();
-}
-
 void MTY_MessageBox(const char *title, const char *fmt, ...)
 {
 	va_list args;

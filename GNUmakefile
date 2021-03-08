@@ -35,6 +35,7 @@ OBJS := $(OBJS) \
 	src/unix/file.o \
 	src/unix/memory.o \
 	src/unix/proc.o \
+	src/unix/os.o \
 	src/unix/thread.o \
 	src/unix/time.o
 
@@ -61,9 +62,6 @@ FLAGS = \
 	-std=c99 \
 	-fPIC
 
-TEST_FLAGS = \
-	-nodefaultlibs
-
 ifdef DEBUG
 FLAGS := $(FLAGS) -O0 -g
 else
@@ -83,9 +81,11 @@ ARCH := wasm32
 
 OBJS := $(OBJS) \
 	src/unix/web/gfx/gl-ctx.o \
-	src/unix/web/app.o
+	src/unix/web/app.o \
+	src/unix/web/os.o
 
 DEFS := $(DEFS) \
+	-D_WASI_EMULATED_SIGNAL \
 	-DMTY_GLUI_CLEAR_ALPHA=0.0f \
 	-DMTY_GL_EXTERNAL \
 	-DMTY_GL_ES
@@ -107,6 +107,7 @@ OBJS := $(OBJS) \
 	src/unix/linux/generic/hid.o \
 	src/unix/linux/generic/audio.o \
 	src/unix/linux/generic/app.o \
+	src/unix/linux/generic/os.o \
 	src/unix/net/request.o \
 	src/net/secure.o \
 	src/net/http.o \
@@ -115,12 +116,6 @@ OBJS := $(OBJS) \
 	src/net/net.o \
 	src/net/tcp.o \
 	src/net/ws.o
-
-TEST_LIBS = \
-	-lc \
-	-lm \
-	-ldl \
-	-lpthread
 
 TARGET = linux
 INCLUDES := $(INCLUDES) -Isrc/unix/linux -Isrc/unix/linux/generic
@@ -168,6 +163,7 @@ OBJS := $(OBJS) \
 	src/unix/apple/audio.o \
 	src/unix/apple/crypto.o \
 	src/unix/apple/$(TARGET)/app.o \
+	src/unix/apple/$(TARGET)/os.o \
 	src/unix/net/request.o \
 	src/net/secure.o \
 	src/net/http.o \
@@ -183,14 +179,6 @@ SHADERS := $(SHADERS) \
 
 DEFS := $(DEFS) \
 	-DMTY_GL_EXTERNAL
-
-TEST_LIBS = \
-	-lc \
-	-framework OpenGL \
-	-framework AppKit \
-	-framework QuartzCore \
-	-framework Metal \
-	-framework AudioToolbox
 
 FLAGS := $(FLAGS) \
 	-m$(TARGET)-version-min=$(MIN_VER) \
@@ -210,13 +198,6 @@ all: clean-build clear $(SHADERS)
 objs: $(OBJS)
 	mkdir -p bin/$(TARGET)/$(ARCH)
 	$(AR) -crs bin/$(TARGET)/$(ARCH)/$(NAME).a $(OBJS)
-
-test: clean-build clear $(SHADERS)
-	make objs-test -j4
-
-objs-test: $(OBJS) src/test.o
-	$(CC) -o $(PREFIX)-test $(TEST_FLAGS) $(OBJS) src/test.o $(TEST_LIBS)
-	./$(PREFIX)-test
 
 ###############
 ### ANDROID ###
@@ -242,10 +223,8 @@ clean: clean-build
 
 clean-build:
 	@rm -rf bin
-	@rm -f src/test.o
 	@rm -f $(OBJS)
 	@rm -f $(NAME).so
-	@rm -f $(PREFIX)-test
 
 clear:
 	@clear

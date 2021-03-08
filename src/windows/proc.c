@@ -15,42 +15,8 @@
 #include "tlocal.h"
 
 static MTY_TLOCAL char PROC_NAME[MTY_PATH_MAX];
-static MTY_TLOCAL char PROC_HOSTNAME[MTY_PATH_MAX];
 static void (*PROC_CRASH_HANDLER)(bool forced, void *opaque);
 static void *PROC_OPAQUE;
-
-MTY_SO *MTY_SOLoad(const char *name)
-{
-	wchar_t *wname = MTY_MultiToWideD(name);
-
-	MTY_SO *so = (MTY_SO *) LoadLibrary(wname);
-	MTY_Free(wname);
-
-	if (!so)
-		MTY_Log("'LoadLibrary' failed to find '%s' with error 0x%X", name, GetLastError());
-
-	return so;
-}
-
-void *MTY_SOGetSymbol(MTY_SO *so, const char *name)
-{
-	void *sym = (void *) GetProcAddress((HMODULE) so, name);
-	if (!sym)
-		MTY_Log("'GetProcAddress' failed to find '%s' with error 0x%X", name, GetLastError());
-
-	return sym;
-}
-
-void MTY_SOUnload(MTY_SO **so)
-{
-	if (!so || !*so)
-		return;
-
-	if (!FreeLibrary((HMODULE) *so))
-		MTY_Log("'FreeLibrary' failed with error 0x%X", GetLastError());
-
-	*so = NULL;
-}
 
 const char *MTY_ProcessName(void)
 {
@@ -66,24 +32,6 @@ const char *MTY_ProcessName(void)
 	}
 
 	return PROC_NAME;
-}
-
-const char *MTY_Hostname(void)
-{
-	memset(PROC_HOSTNAME, 0, MTY_PATH_MAX);
-
-	DWORD lenw = MAX_COMPUTERNAME_LENGTH + 1;
-	wchar_t hostnamew[MAX_COMPUTERNAME_LENGTH + 1];
-
-	if (GetComputerName(hostnamew, &lenw)) {
-		MTY_WideToMulti(hostnamew, PROC_HOSTNAME, MTY_PATH_MAX);
-
-	} else {
-		MTY_Log("'GetComputerName' failed with error 0x%X", GetLastError());
-		snprintf(PROC_HOSTNAME, MTY_PATH_MAX, "noname");
-	}
-
-	return PROC_HOSTNAME;
 }
 
 bool MTY_RestartProcess(int32_t argc, char * const *argv)
