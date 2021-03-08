@@ -11,7 +11,6 @@
 
 #include <windows.h>
 #include <windowsx.h>
-#include <userenv.h>
 #include <shellapi.h>
 #include <shellscalingapi.h>
 
