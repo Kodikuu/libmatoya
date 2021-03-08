@@ -62,7 +62,7 @@ static LONG WINAPI proc_exception_handler(EXCEPTION_POINTERS *ex)
 	if (PROC_CRASH_HANDLER)
 		PROC_CRASH_HANDLER(false, PROC_OPAQUE);
 
-	return EXCEPTION_EXECUTE_HANDLER;
+	return EXCEPTION_CONTINUE_SEARCH;
 }
 
 static void proc_signal_handler(int32_t sig)
