@@ -374,10 +374,7 @@ const MTY_AUDIO_API = {
 		MTY_SetUint32(_, 0);
 		AC = {};
 	},
-	MTY_AudioPlay: function () {
-		AC.playing = true;
-	},
-	MTY_AudioStop: function () {
+	MTY_AudioReset: function () {
 		AC.playing = false;
 	},
 	MTY_AudioQueue: function (_, frames, count) {
@@ -410,9 +407,6 @@ const MTY_AUDIO_API = {
 		buf_source.connect(AC.ctx.destination);
 		buf_source.start(AC.next_time);
 		AC.next_time += buf.duration;
-	},
-	MTY_AudioIsPlaying: function () {
-		return AC.playing;
 	},
 	MTY_AudioGetQueuedMs: function () {
 		if (AC.ctx) {

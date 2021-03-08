@@ -15,6 +15,7 @@
 #include "dlopen.h"
 #include "tlocal.h"
 #include "procname.h"
+#include "execv.h"
 
 static MTY_TLOCAL char PROC_NAME[MTY_PATH_MAX];
 static MTY_TLOCAL char PROC_HOSTNAME[MTY_PATH_MAX];
@@ -84,4 +85,20 @@ const char *MTY_Hostname(void)
 	}
 
 	return PROC_HOSTNAME;
+}
+
+bool MTY_RestartProcess(int32_t argc, char * const *argv)
+{
+	if (argc > 0) {
+		char **argvn = MTY_Alloc(argc + 1, sizeof(char *));
+		for (int32_t x = 0; x < argc; x++)
+			argvn[x] = argv[x];
+
+		bool r = mty_execv(MTY_ProcessName(), argvn);
+		MTY_Free(argvn);
+
+		return r;
+	}
+
+	return mty_execv(MTY_ProcessName(), argv);
 }

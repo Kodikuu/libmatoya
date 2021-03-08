@@ -78,7 +78,7 @@ uint32_t MTY_AudioGetQueuedMs(MTY_Audio *ctx)
 	return (ctx->size / (AUDIO_CHANNELS * 2)) / ctx->sample_rate * 1000;
 }
 
-void MTY_AudioStop(MTY_Audio *ctx)
+void MTY_AudioReset(MTY_Audio *ctx)
 {
 	if (ctx->stream) {
 		MTY_MutexLock(ctx->mutex);
@@ -153,7 +153,7 @@ void MTY_AudioDestroy(MTY_Audio **audio)
 
 	MTY_Audio *ctx = *audio;
 
-	MTY_AudioStop(ctx);
+	MTY_AudioReset(ctx);
 
 	MTY_MutexDestroy(&ctx->mutex);
 	MTY_Free(ctx->buffer);

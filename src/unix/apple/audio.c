@@ -103,7 +103,7 @@ static void audio_play(MTY_Audio *ctx)
 		ctx->playing = true;
 }
 
-void MTY_AudioStop(MTY_Audio *ctx)
+void MTY_AudioReset(MTY_Audio *ctx)
 {
 	if (!ctx->playing)
 		return;
@@ -119,7 +119,7 @@ void MTY_AudioQueue(MTY_Audio *ctx, const int16_t *frames, uint32_t count)
 
 	// Stop playing and flush if we've exceeded the maximum buffer or underrun
 	if (ctx->playing && (queued > ctx->max_buffer || queued == 0))
-		MTY_AudioStop(ctx);
+		MTY_AudioReset(ctx);
 
 	if (size <= AUDIO_BUF_SIZE) {
 		for (uint8_t x = 0; x < AUDIO_BUFS; x++) {

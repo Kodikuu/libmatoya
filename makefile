@@ -30,8 +30,6 @@ OBJS = \
 	src\json.obj \
 	src\log.obj \
 	src\memory.obj \
-	src\proc.obj \
-	src\sort.obj \
 	src\hash.obj \
 	src\list.obj \
 	src\queue.obj \

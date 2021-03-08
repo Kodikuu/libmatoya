@@ -117,6 +117,50 @@ wchar_t *MTY_MultiToWideD(const char *src)
 }
 
 
+// Stable qsort
+
+struct element {
+	int32_t (*compare)(const void *, const void *);
+	const void *orig;
+};
+
+static int32_t sort_compare(const void *a, const void *b)
+{
+	const struct element *element_a = a;
+	const struct element *element_b = b;
+
+	int32_t r = element_a->compare(element_a->orig, element_b->orig);
+
+	// If zero is returned from original comare, use the memory address as the tie breaker
+	return r != 0 ? r : (int32_t) ((uint8_t *) element_a->orig - (uint8_t *) element_b->orig);
+}
+
+void MTY_Sort(void *base, size_t nElements, size_t size, int32_t (*compare)(const void *a, const void *b))
+{
+	// Temporary copy of the base array for wrapping
+	uint8_t *tmp = MTY_Alloc(nElements, size);
+	memcpy(tmp, base, nElements * size);
+
+	// Wrap the base array elements in a struct now with 'orig' memory addresses in ascending order
+	struct element *wrapped = MTY_Alloc(nElements, sizeof(struct element));
+
+	for (size_t x = 0; x < nElements; x++) {
+		wrapped[x].compare = compare;
+		wrapped[x].orig = tmp + x * size;
+	}
+
+	// Perform qsort using the original compare function, falling back to memory address comparison
+	qsort(wrapped, nElements, sizeof(struct element), sort_compare);
+
+	// Copy the reordered elements back to the base array
+	for (size_t x = 0; x < nElements; x++)
+		memcpy((uint8_t *) base + x * size, wrapped[x].orig, size);
+
+	MTY_Free(tmp);
+	MTY_Free(wrapped);
+}
+
+
 // Platform parsing
 
 const char *MTY_VersionString(uint32_t platform)
@@ -135,32 +179,24 @@ const char *MTY_VersionString(uint32_t platform)
 }
 
 
-// Misc protocol analysis
+// TLS protocol analysis
 
-// 0x14   - Change Cipher Spec
-// 0x16   - Handshake
-// 0x17   - Application Data
-
-// 0xFEFF - DTLS 1.0
-// 0xFEFD - DTLS 1.2
-// 0x0303 - TLS 1.2
-
-bool MTY_TLSIsHandshake(const void *buf, size_t size)
+bool MTY_IsTLSHandshake(const void *buf, size_t size)
 {
 	const uint8_t *d = buf;
 
-	return size > 2 && (d[0] == 0x14 || d[0] == 0x16) && (
-		(d[1] == 0xFE || d[1] == 0x03) &&
-		(d[2] == 0xFD || d[2] == 0xFF || d[2] == 0x03)
-	);
+	return size > 2 &&
+		((d[0] == 0x14 || d[0] == 0x16) &&  // Change Cipher Spec, Handshake
+		((d[1] == 0xFE && d[2] == 0xFD) ||  // DTLS 1.2
+		(d[1] == 0x03 && d[2] == 0x03)));   // TLS 1.2
 }
 
-bool MTY_TLSIsApplicationData(const void *buf, size_t size)
+bool MTY_IsTLSApplicationData(const void *buf, size_t size)
 {
 	const uint8_t *d = buf;
 
-	return size > 2 && d[0] == 0x17 && (
-		(d[1] == 0xFE || d[1] == 0x03) &&
-		(d[2] == 0xFD || d[2] == 0xFF || d[2] == 0x03)
-	);
+	return size > 2 &&
+		d[0] == 0x17 &&                    // Application Data
+		((d[1] == 0xFE && d[2] == 0xFD) || // DTLS 1.2
+		(d[1] == 0x03 && d[2] == 0x03));   // TLS 1.2
 }

@@ -43,8 +43,6 @@ LOCAL_SRC_FILES := \
 	src/json.c \
 	src/log.c \
 	src/memory.c \
-	src/proc.c \
-	src/sort.c \
 	src/hash.c \
 	src/list.c \
 	src/queue.c \

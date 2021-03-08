@@ -98,7 +98,7 @@ static void audio_play(MTY_Audio *ctx)
 	}
 }
 
-void MTY_AudioStop(MTY_Audio *ctx)
+void MTY_AudioReset(MTY_Audio *ctx)
 {
 	ctx->playing = false;
 	ctx->pos = 0;
@@ -112,7 +112,7 @@ void MTY_AudioQueue(MTY_Audio *ctx, const int16_t *samples, uint32_t count)
 
 	// Stop playing and flush if we've exceeded the maximum buffer or underrun
 	if (ctx->playing && (queued > ctx->max_buffer || queued == 0))
-		MTY_AudioStop(ctx);
+		MTY_AudioReset(ctx);
 
 	if (ctx->pos + size <= AUDIO_BUF_SIZE) {
 		memcpy(ctx->buf + ctx->pos, samples, count * 4);
@@ -130,7 +130,7 @@ void MTY_AudioQueue(MTY_Audio *ctx, const int16_t *samples, uint32_t count)
 			ctx->pos = 0;
 
 		} else if (e == -EPIPE) {
-			MTY_AudioStop(ctx);
+			MTY_AudioReset(ctx);
 		}
 	}
 }

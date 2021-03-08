@@ -38,7 +38,7 @@ MTY_EXPORT uint32_t
 MTY_AudioGetQueuedMs(MTY_Audio *ctx);
 
 MTY_EXPORT void
-MTY_AudioStop(MTY_Audio *ctx);
+MTY_AudioReset(MTY_Audio *ctx);
 
 MTY_EXPORT void
 MTY_AudioQueue(MTY_Audio *ctx, const int16_t *frames, uint32_t count);
@@ -47,21 +47,12 @@ MTY_EXPORT void
 MTY_AudioDestroy(MTY_Audio **audio);
 
 
-/// @module cminmax
-
-#define MTY_MIN(a, b) \
-	((a) > (b) ? (b) : (a))
-
-#define MTY_MAX(a, b) \
-	((a) > (b) ? (a) : (b))
-
-
 /// @module compress
 
 typedef enum {
 	MTY_IMAGE_PNG     = 1,
 	MTY_IMAGE_JPG     = 2,
-	MTY_IMAGE_MAKE_32 = 0x7FFFFFFF,
+	MTY_IMAGE_MAKE_32 = INT32_MAX,
 } MTY_Image;
 
 MTY_EXPORT void *
@@ -89,7 +80,7 @@ typedef enum {
 	MTY_ALGORITHM_SHA1_HEX   = 2,
 	MTY_ALGORITHM_SHA256     = 3,
 	MTY_ALGORITHM_SHA256_HEX = 4,
-	MTY_ALGORITHM_MAKE_32    = 0x7FFFFFFF,
+	MTY_ALGORITHM_MAKE_32    = INT32_MAX,
 } MTY_Algorithm;
 
 typedef struct MTY_AESGCM MTY_AESGCM;
@@ -149,13 +140,13 @@ typedef enum {
 	MTY_DIR_EXECUTABLE  = 3,
 	MTY_DIR_PROGRAMS    = 4,
 	MTY_DIR_GLOBAL_HOME = 5,
-	MTY_DIR_MAKE_32     = 0x7FFFFFFF,
+	MTY_DIR_MAKE_32     = INT32_MAX,
 } MTY_Dir;
 
 typedef enum {
 	MTY_FILE_MODE_WRITE   = 1,
 	MTY_FILE_MODE_READ    = 2,
-	MTY_FILE_MODE_MAKE_32 = 0x7FFFFFFF,
+	MTY_FILE_MODE_MAKE_32 = INT32_MAX,
 } MTY_FileMode;
 
 typedef struct {
@@ -221,14 +212,6 @@ MTY_FreeFileList(MTY_FileList **fileList);
 
 
 /// @module json
-/// @details The `MTY_JSON` struct is a special kind of object with different semantics
-///     than a typical object. The `JSON` prefix is assigned to all functions that return
-///     or operate on JSON, while `ReadFile` and `Parse` act as constructors instead of
-///     the typical `Create`. Since a JSON object serializes data rather than holding
-///     state, the `const` keyword makes sense.
-///
-///     The `JSONObjGetType` style macros make dealing with JSON easier in C. Other
-///     languages that support generics would not need these.
 
 typedef struct MTY_JSON MTY_JSON;
 
@@ -515,10 +498,20 @@ MTY_EXPORT const char *
 MTY_VersionString(uint32_t platform);
 
 MTY_EXPORT bool
-MTY_TLSIsHandshake(const void *buf, size_t size);
+MTY_IsTLSHandshake(const void *buf, size_t size);
 
 MTY_EXPORT bool
-MTY_TLSIsApplicationData(const void *buf, size_t size);
+MTY_IsTLSApplicationData(const void *buf, size_t size);
+
+MTY_EXPORT void
+MTY_Sort(void *base, size_t nElements, size_t size,
+	int32_t (*compare)(const void *a, const void *b));
+
+#define MTY_MIN(a, b) \
+	((a) > (b) ? (b) : (a))
+
+#define MTY_MAX(a, b) \
+	((a) > (b) ? (a) : (b))
 
 #define MTY_Align16(v) \
 	((v) + 0xF & ~((uintptr_t) 0xF))
@@ -527,7 +520,16 @@ MTY_TLSIsApplicationData(const void *buf, size_t size);
 	((v) + 0x1F & ~((uintptr_t) 0x1F))
 
 
-/// @module proc
+// @module os
+
+#define MTY_OS_UNKNOWN 0x00000000
+#define MTY_OS_WINDOWS 0x01000000
+#define MTY_OS_MACOS   0x02000000
+#define MTY_OS_ANDROID 0x04000000
+#define MTY_OS_LINUX   0x08000000
+#define MTY_OS_WEB     0x10000000
+#define MTY_OS_IOS     0x20000000
+#define MTY_OS_TVOS    0x40000000
 
 typedef struct MTY_SO MTY_SO;
 
@@ -541,13 +543,28 @@ MTY_EXPORT void
 MTY_SOUnload(MTY_SO **so);
 
 MTY_EXPORT const char *
+MTY_Hostname(void);
+
+MTY_EXPORT uint32_t
+MTY_GetPlatform(void);
+
+MTY_EXPORT uint32_t
+MTY_GetPlatformNoWeb(void);
+
+MTY_EXPORT void
+MTY_ProtocolHandler(const char *uri, void *token);
+
+
+/// @module proc
+
+MTY_EXPORT const char *
 MTY_ProcessName(void);
 
 MTY_EXPORT bool
 MTY_RestartProcess(int32_t argc, char * const *argv);
 
-MTY_EXPORT const char *
-MTY_Hostname(void);
+MTY_EXPORT void
+MTY_SetCrashHandler(void (*func)(bool force, void *opaque), void *opaque);
 
 
 /// @module render
@@ -559,7 +576,7 @@ typedef enum {
 	MTY_GFX_D3D11   = 3,
 	MTY_GFX_METAL   = 4,
 	MTY_GFX_MAX,
-	MTY_GFX_MAKE_32 = 0x7FFFFFFF,
+	MTY_GFX_MAKE_32 = INT32_MAX,
 } MTY_GFX;
 
 typedef enum {
@@ -570,7 +587,7 @@ typedef enum {
 	MTY_COLOR_FORMAT_I444    = 4,
 	MTY_COLOR_FORMAT_NV16    = 5,
 	MTY_COLOR_FORMAT_RGB565  = 6,
-	MTY_COLOR_FORMAT_MAKE_32 = 0x7FFFFFFF,
+	MTY_COLOR_FORMAT_MAKE_32 = INT32_MAX,
 } MTY_ColorFormat;
 
 typedef enum {
@@ -578,14 +595,14 @@ typedef enum {
 	MTY_FILTER_LINEAR         = 2,
 	MTY_FILTER_GAUSSIAN_SHARP = 3,
 	MTY_FILTER_GAUSSIAN_SOFT  = 4,
-	MTY_FILTER_MAKE_32        = 0x7FFFFFFF,
+	MTY_FILTER_MAKE_32        = INT32_MAX,
 } MTY_Filter;
 
 typedef enum {
 	MTY_EFFECT_NONE         = 0,
 	MTY_EFFECT_SCANLINES    = 1,
 	MTY_EFFECT_SCANLINES_X2 = 2,
-	MTY_EFFECT_MAKE_32      = 0x7FFFFFFF,
+	MTY_EFFECT_MAKE_32      = INT32_MAX,
 } MTY_Effect;
 
 typedef enum {
@@ -593,7 +610,7 @@ typedef enum {
 	MTY_ROTATION_90      = 1,
 	MTY_ROTATION_180     = 2,
 	MTY_ROTATION_270     = 3,
-	MTY_ROTATION_MAKE_32 = 0x7FFFFFFF,
+	MTY_ROTATION_MAKE_32 = INT32_MAX,
 } MTY_Rotation;
 
 typedef struct MTY_RenderDesc {
@@ -701,13 +718,6 @@ MTY_EXPORT void
 MTY_FreeRenderState(MTY_RenderState **state);
 
 
-/// @module sort
-
-MTY_EXPORT void
-MTY_Sort(void *base, size_t nElements, size_t size,
-	int32_t (*compare)(const void *a, const void *b));
-
-
 /// @module struct
 
 typedef struct MTY_ListNode {
@@ -806,7 +816,7 @@ typedef enum {
 	MTY_THREAD_STATE_RUNNING  = 1,
 	MTY_THREAD_STATE_DETACHED = 2,
 	MTY_THREAD_STATE_DONE     = 3,
-	MTY_THREAD_STATE_MAKE_32  = 0x7FFFFFFF,
+	MTY_THREAD_STATE_MAKE_32  = INT32_MAX,
 } MTY_ThreadState;
 
 typedef struct {
@@ -974,15 +984,17 @@ MTY_RevertTimerResolution(uint32_t res);
 typedef int8_t MTY_Window;
 
 typedef enum {
-	MTY_DETACH_NONE = 0,
-	MTY_DETACH_GRAB = 1,
-	MTY_DETACH_FULL = 2,
+	MTY_DETACH_NONE    = 0,
+	MTY_DETACH_GRAB    = 1,
+	MTY_DETACH_FULL    = 2,
+	MTY_DETACH_MAKE_32 = INT32_MAX,
 } MTY_Detach;
 
 typedef enum {
 	MTY_ORIENTATION_USER      = 0,
 	MTY_ORIENTATION_LANDSCAPE = 1,
 	MTY_ORIENTATION_PORTRAIT  = 2,
+	MTY_ORIENTATION_MAKE_32   = INT32_MAX,
 } MTY_Orientation;
 
 typedef enum {
@@ -1006,7 +1018,7 @@ typedef enum {
 	MTY_MSG_TRAY         = 17,
 	MTY_MSG_REOPEN       = 18,
 	MTY_MSG_BACK         = 19,
-	MTY_MSG_MAKE_32      = 0x7FFFFFFF,
+	MTY_MSG_MAKE_32      = INT32_MAX,
 } MTY_MsgType;
 
 typedef enum {
@@ -1138,7 +1150,7 @@ typedef enum {
 	MTY_KEY_INTL_COMMA     = 0x07E,
 	MTY_KEY_YEN            = 0x07D,
 	MTY_KEY_MAX            = 0x200,
-	MTY_KEY_MAKE_32        = 0x7FFFFFFF,
+	MTY_KEY_MAKE_32        = INT32_MAX,
 } MTY_Key;
 
 typedef enum {
@@ -1157,7 +1169,7 @@ typedef enum {
 	MTY_MOD_CTRL    = MTY_MOD_LCTRL  | MTY_MOD_RCTRL,
 	MTY_MOD_ALT     = MTY_MOD_LALT   | MTY_MOD_RALT,
 	MTY_MOD_WIN     = MTY_MOD_LWIN   | MTY_MOD_RWIN,
-	MTY_MOD_MAKE_32 = 0x7FFFFFFF,
+	MTY_MOD_MAKE_32 = INT32_MAX,
 } MTY_Mod;
 
 typedef enum {
@@ -1167,13 +1179,13 @@ typedef enum {
 	MTY_MOUSE_BUTTON_MIDDLE  = 3,
 	MTY_MOUSE_BUTTON_X1      = 4,
 	MTY_MOUSE_BUTTON_X2      = 5,
-	MTY_MOUSE_BUTTON_MAKE_32 = 0x7FFFFFFF,
+	MTY_MOUSE_BUTTON_MAKE_32 = INT32_MAX,
 } MTY_MouseButton;
 
 typedef enum {
 	MTY_HOTKEY_LOCAL   = 1,
 	MTY_HOTKEY_GLOBAL  = 2,
-	MTY_HOTKEY_MAKE_32 = 0x7FFFFFFF,
+	MTY_HOTKEY_MAKE_32 = INT32_MAX,
 } MTY_Hotkey;
 
 typedef enum {
@@ -1182,7 +1194,7 @@ typedef enum {
 	MTY_PEN_FLAG_INVERTED = 0x04,
 	MTY_PEN_FLAG_ERASER   = 0x08,
 	MTY_PEN_FLAG_BARREL   = 0x10,
-	MTY_PEN_FLAG_MAKE_32  = 0x7FFFFFFF,
+	MTY_PEN_FLAG_MAKE_32  = INT32_MAX,
 } MTY_PenFlag;
 
 typedef enum {
@@ -1193,6 +1205,7 @@ typedef enum {
 	MTY_HID_DRIVER_PS5     = 5,
 	MTY_HID_DRIVER_XBOX    = 6,
 	MTY_HID_DRIVER_XBOXW   = 7,
+	MTY_HID_DRIVER_MAKE_32 = INT32_MAX,
 } MTY_HIDDriver;
 
 typedef enum {
@@ -1211,7 +1224,7 @@ typedef enum {
 	MTY_CBUTTON_GUIDE          = 12,
 	MTY_CBUTTON_TOUCHPAD       = 13,
 	MTY_CBUTTON_MAX            = 64,
-	MTY_CBUTTON_MAKE_32        = 0x7FFFFFFF,
+	MTY_CBUTTON_MAKE_32        = INT32_MAX,
 } MTY_CButton;
 
 typedef enum {
@@ -1223,24 +1236,27 @@ typedef enum {
 	MTY_CVALUE_TRIGGER_R = 5,
 	MTY_CVALUE_DPAD      = 6,
 	MTY_CVALUE_MAX       = 16,
-	MTY_CVALUE_MAKE_32   = 0x7FFFFFFF,
+	MTY_CVALUE_MAKE_32   = INT32_MAX,
 } MTY_CValue;
 
 typedef enum {
 	MTY_POSITION_CENTER   = 0,
 	MTY_POSITION_ABSOLUTE = 1,
+	MTY_POSITION_MAKE_32  = INT32_MAX,
 } MTY_Position;
 
 typedef enum {
 	MTY_INPUT_UNSPECIFIED = 0,
 	MTY_INPUT_TOUCHSCREEN = 1,
 	MTY_INPUT_TRACKPAD    = 2,
+	MTY_INPUT_MAKE_32     = INT32_MAX,
 } MTY_Input;
 
 typedef enum {
 	MTY_GFX_STATE_NORMAL      = 0,
 	MTY_GFX_STATE_REFRESH     = 1,
 	MTY_GFX_STATE_NEW_CONTEXT = 2,
+	MTY_GFX_STATE_MAKE_32     = INT32_MAX,
 } MTY_GFXState;
 
 typedef struct {
@@ -1515,26 +1531,8 @@ MTY_WindowGFXState(MTY_App *app, MTY_Window window);
 
 // @module app-misc
 
-#define MTY_OS_UNKNOWN 0x00000000
-#define MTY_OS_WINDOWS 0x01000000
-#define MTY_OS_MACOS   0x02000000
-#define MTY_OS_ANDROID 0x04000000
-#define MTY_OS_LINUX   0x08000000
-#define MTY_OS_WEB     0x10000000
-#define MTY_OS_IOS     0x20000000
-#define MTY_OS_TVOS    0x40000000
-
 MTY_EXPORT void *
 MTY_GLGetProcAddress(const char *name);
-
-MTY_EXPORT void
-MTY_ProtocolHandler(const char *uri, void *token);
-
-MTY_EXPORT uint32_t
-MTY_GetPlatform(void);
-
-MTY_EXPORT uint32_t
-MTY_GetPlatformNoWeb(void);
 
 MTY_EXPORT void
 MTY_MessageBox(const char *title, const char *fmt, ...);
@@ -1550,6 +1548,7 @@ typedef enum {
 	MTY_ASYNC_DONE     = 1,
 	MTY_ASYNC_CONTINUE = 2,
 	MTY_ASYNC_ERROR    = 3,
+	MTY_ASYNC_MAKE_32  = INT32_MAX,
 } MTY_Async;
 
 typedef void (*MTY_HttpAsyncFunc)(uint16_t code, void **body, size_t *size);
@@ -1616,8 +1615,9 @@ MTY_WebSocketGetCloseCode(MTY_WebSocket *ctx);
 #define MTY_FINGERPRINT_MAX 512
 
 typedef enum {
-	MTY_TLS_TYPE_TLS  = 1,
-	MTY_TLS_TYPE_DTLS = 2,
+	MTY_TLS_TYPE_TLS     = 1,
+	MTY_TLS_TYPE_DTLS    = 2,
+	MTY_TLS_TYPE_MAKE_32 = INT32_MAX,
 } MTY_TLSType;
 
 typedef bool (*MTY_TLSWriteFunc)(const void *buf, size_t size, void *opaque);

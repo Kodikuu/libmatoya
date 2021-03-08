@@ -21,8 +21,6 @@ OBJS = \
 	src/json.o \
 	src/log.o \
 	src/memory.o \
-	src/proc.o \
-	src/sort.o \
 	src/hash.o \
 	src/list.o \
 	src/queue.o \
