@@ -34,12 +34,12 @@ const char *MTY_ProcessName(void)
 	return PROC_NAME;
 }
 
-bool MTY_RestartProcess(int32_t argc, char * const *argv)
+bool MTY_RestartProcess(char * const *argv)
 {
 	WCHAR *name = MTY_MultiToWideD(MTY_ProcessName());
 	WCHAR **argvn = NULL;
 
-	for (int32_t x = 0; x < argc && argv[x]; x++) {
+	for (uint32_t x = 0; argv && argv[x]; x++) {
 		argvn = MTY_Realloc(argvn, x + 2, sizeof(char *));
 		argvn[x] = MTY_MultiToWideD(argv[x]);
 		argvn[x + 1] = NULL;
@@ -48,13 +48,10 @@ bool MTY_RestartProcess(int32_t argc, char * const *argv)
 	bool r = _wexecv(name, argvn);
 	MTY_Log("'_wexecv' failed with errno %d", errno);
 
-	if (argvn) {
-		for (int32_t x = 0; argvn[x]; x++)
-			MTY_Free(argvn[x]);
+	for (uint32_t x = 0; argvn && argvn[x]; x++)
+		MTY_Free(argvn[x]);
 
-		MTY_Free(argvn);
-	}
-
+	MTY_Free(argvn);
 	MTY_Free(name);
 
 	return r;

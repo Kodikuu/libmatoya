@@ -561,7 +561,7 @@ MTY_EXPORT const char *
 MTY_ProcessName(void);
 
 MTY_EXPORT bool
-MTY_RestartProcess(int32_t argc, char * const *argv);
+MTY_RestartProcess(char * const *argv);
 
 MTY_EXPORT void
 MTY_SetCrashHandler(void (*func)(bool forced, void *opaque), void *opaque);
