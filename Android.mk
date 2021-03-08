@@ -58,6 +58,7 @@ LOCAL_SRC_FILES := \
 	src/net/tcp.c \
 	src/net/ws.c \
 	src/net/secure.c \
+	src/unix/os.c \
 	src/unix/image.c \
 	src/unix/file.c \
 	src/unix/memory.c \
