@@ -25,12 +25,12 @@
 #include "tlocal.h"
 #include "procname.h"
 
-static MTY_TLOCAL char FS_CWD[MTY_PATH_MAX];
-static MTY_TLOCAL char FS_HOME[MTY_PATH_MAX];
-static MTY_TLOCAL char FS_PATH[MTY_PATH_MAX];
-static MTY_TLOCAL char FS_EXECUTABLE[MTY_PATH_MAX];
-static MTY_TLOCAL char FS_PROGRAMS[MTY_PATH_MAX];
-static MTY_TLOCAL char FS_FILE_NAME[MTY_PATH_MAX];
+static MTY_TLOCAL char FILE_CWD[MTY_PATH_MAX];
+static MTY_TLOCAL char FILE_HOME[MTY_PATH_MAX];
+static MTY_TLOCAL char FILE_PATH[MTY_PATH_MAX];
+static MTY_TLOCAL char FILE_EXECUTABLE[MTY_PATH_MAX];
+static MTY_TLOCAL char FILE_PROGRAMS[MTY_PATH_MAX];
+static MTY_TLOCAL char FILE_NAME[MTY_PATH_MAX];
 
 bool MTY_DeleteFile(const char *path)
 {
@@ -79,12 +79,12 @@ const char *MTY_Path(const char *dir, const char *file)
 	char *safe_dir = MTY_Strdup(dir);
 	char *safe_file = MTY_Strdup(file);
 
-	snprintf(FS_PATH, MTY_PATH_MAX, "%s/%s", safe_dir, safe_file);
+	snprintf(FILE_PATH, MTY_PATH_MAX, "%s/%s", safe_dir, safe_file);
 
 	MTY_Free(safe_dir);
 	MTY_Free(safe_file);
 
-	return FS_PATH;
+	return FILE_PATH;
 }
 
 bool MTY_CopyFile(const char *src, const char *dst)
@@ -115,10 +115,10 @@ const char *MTY_GetDir(MTY_Dir dir)
 {
 	switch (dir) {
 		case MTY_DIR_CWD: {
-			memset(FS_CWD, 0, MTY_PATH_MAX);
+			memset(FILE_CWD, 0, MTY_PATH_MAX);
 
-			if (getcwd(FS_CWD, MTY_PATH_MAX)) {
-				return FS_CWD;
+			if (getcwd(FILE_CWD, MTY_PATH_MAX)) {
+				return FILE_CWD;
 
 			} else {
 				MTY_Log("'getcwd' failed with errno %d", errno);
@@ -128,12 +128,12 @@ const char *MTY_GetDir(MTY_Dir dir)
 		}
 		case MTY_DIR_GLOBAL_HOME:
 		case MTY_DIR_HOME: {
-			memset(FS_HOME, 0, MTY_PATH_MAX);
+			memset(FILE_HOME, 0, MTY_PATH_MAX);
 
 			const struct passwd *pw = getpwuid(getuid());
 			if (pw) {
-				snprintf(FS_HOME, MTY_PATH_MAX, "%s", pw->pw_dir);
-				return FS_HOME;
+				snprintf(FILE_HOME, MTY_PATH_MAX, "%s", pw->pw_dir);
+				return FILE_HOME;
 
 			} else {
 				MTY_Log("'getpwuid' failed with errno %d", errno);
@@ -142,20 +142,20 @@ const char *MTY_GetDir(MTY_Dir dir)
 			break;
 		}
 		case MTY_DIR_EXECUTABLE: {
-			if (mty_proc_name(FS_EXECUTABLE, MTY_PATH_MAX)) {
-				char *name = strrchr(FS_EXECUTABLE, '/');
+			if (mty_proc_name(FILE_EXECUTABLE, MTY_PATH_MAX)) {
+				char *name = strrchr(FILE_EXECUTABLE, '/');
 
 				if (name)
 					name[0] = '\0';
 
-				return FS_EXECUTABLE;
+				return FILE_EXECUTABLE;
 			}
 
 			break;
 		}
 		case MTY_DIR_PROGRAMS: {
-			snprintf(FS_PROGRAMS, MTY_PATH_MAX, "/user/bin");
-			return FS_PROGRAMS;
+			snprintf(FILE_PROGRAMS, MTY_PATH_MAX, "/user/bin");
+			return FILE_PROGRAMS;
 		}
 	}
 
@@ -213,16 +213,16 @@ const char *MTY_GetFileName(const char *path, bool extension)
 	const char *name = strrchr(path, '/');
 	name = name ? name + 1 : path;
 
-	snprintf(FS_FILE_NAME, MTY_PATH_MAX, "%s", name);
+	snprintf(FILE_NAME, MTY_PATH_MAX, "%s", name);
 
 	if (!extension) {
-		char *ext = strrchr(FS_FILE_NAME, '.');
+		char *ext = strrchr(FILE_NAME, '.');
 
 		if (ext)
 			*ext = '\0';
 	}
 
-	return FS_FILE_NAME;
+	return FILE_NAME;
 }
 
 static int32_t fs_file_compare(const void *p1, const void *p2)

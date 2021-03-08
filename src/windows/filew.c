@@ -14,13 +14,13 @@
 
 #include "tlocal.h"
 
-static MTY_TLOCAL char FS_CWD[MTY_PATH_MAX];
-static MTY_TLOCAL char FS_HOME[MTY_PATH_MAX];
-static MTY_TLOCAL char FS_PATH[MTY_PATH_MAX];
-static MTY_TLOCAL char FS_EXECUTABLE[MTY_PATH_MAX];
-static MTY_TLOCAL char FS_PROGRAMS[MTY_PATH_MAX];
-static MTY_TLOCAL char FS_GLOBAL_HOME[MTY_PATH_MAX];
-static MTY_TLOCAL char FS_FILE_NAME[MTY_PATH_MAX];
+static MTY_TLOCAL char FILE_CWD[MTY_PATH_MAX];
+static MTY_TLOCAL char FILE_HOME[MTY_PATH_MAX];
+static MTY_TLOCAL char FILE_PATH[MTY_PATH_MAX];
+static MTY_TLOCAL char FILE_EXECUTABLE[MTY_PATH_MAX];
+static MTY_TLOCAL char FILE_PROGRAMS[MTY_PATH_MAX];
+static MTY_TLOCAL char FILE_GLOBAL_HOME[MTY_PATH_MAX];
+static MTY_TLOCAL char FILE_NAME[MTY_PATH_MAX];
 
 bool MTY_DeleteFile(const char *path)
 {
@@ -76,12 +76,12 @@ const char *MTY_Path(const char *dir, const char *file)
 	char *safe_dir = MTY_Strdup(dir);
 	char *safe_file = MTY_Strdup(file);
 
-	snprintf(FS_PATH, MTY_PATH_MAX, "%s\\%s", safe_dir, safe_file);
+	snprintf(FILE_PATH, MTY_PATH_MAX, "%s\\%s", safe_dir, safe_file);
 
 	MTY_Free(safe_dir);
 	MTY_Free(safe_file);
 
-	return FS_PATH;
+	return FILE_PATH;
 }
 
 bool MTY_CopyFile(const char *src, const char *dst)
@@ -142,12 +142,12 @@ const char *MTY_GetDir(MTY_Dir dir)
 
 	switch (dir) {
 		case MTY_DIR_CWD: {
-			memset(FS_CWD, 0, MTY_PATH_MAX);
+			memset(FILE_CWD, 0, MTY_PATH_MAX);
 
 			DWORD n = GetCurrentDirectory(MTY_PATH_MAX, tmp);
 			if (n > 0) {
-				MTY_WideToMulti(tmp, FS_CWD, MTY_PATH_MAX);
-				return FS_CWD;
+				MTY_WideToMulti(tmp, FILE_CWD, MTY_PATH_MAX);
+				return FILE_CWD;
 
 			} else {
 				MTY_Log("'GetCurrentDirectory' failed with error 0x%X", GetLastError());
@@ -156,16 +156,16 @@ const char *MTY_GetDir(MTY_Dir dir)
 			break;
 		}
 		case MTY_DIR_HOME: {
-			memset(FS_HOME, 0, MTY_PATH_MAX);
+			memset(FILE_HOME, 0, MTY_PATH_MAX);
 
 			wchar_t *home = NULL;
 			errno_t e = _wdupenv_s(&home, NULL, L"APPDATA");
 
 			if (e == 0) {
-				MTY_WideToMulti(home, FS_HOME, MTY_PATH_MAX);
+				MTY_WideToMulti(home, FILE_HOME, MTY_PATH_MAX);
 				free(home);
 
-				return FS_HOME;
+				return FILE_HOME;
 
 			} else {
 				MTY_Log("'_wdupenv_s' failed with errno %d", e);
@@ -174,18 +174,18 @@ const char *MTY_GetDir(MTY_Dir dir)
 			break;
 		}
 		case MTY_DIR_EXECUTABLE: {
-			memset(FS_EXECUTABLE, 0, MTY_PATH_MAX);
+			memset(FILE_EXECUTABLE, 0, MTY_PATH_MAX);
 
 			DWORD n = GetModuleFileName(NULL, tmp, MTY_PATH_MAX);
 
 			if (n > 0) {
-				MTY_WideToMulti(tmp, FS_EXECUTABLE, MTY_PATH_MAX);
-				char *name = strrchr(FS_EXECUTABLE, '\\');
+				MTY_WideToMulti(tmp, FILE_EXECUTABLE, MTY_PATH_MAX);
+				char *name = strrchr(FILE_EXECUTABLE, '\\');
 
 				if (name)
 					name[0] = '\0';
 
-				return FS_EXECUTABLE;
+				return FILE_EXECUTABLE;
 
 			} else {
 				MTY_Log("'GetModuleFileName' failed with error 0x%X", GetLastError());
@@ -194,13 +194,13 @@ const char *MTY_GetDir(MTY_Dir dir)
 			break;
 		}
 		case MTY_DIR_GLOBAL_HOME:
-			if (fs_known_folder(&FOLDERID_ProgramData, FS_GLOBAL_HOME, MTY_PATH_MAX))
-				return FS_GLOBAL_HOME;
+			if (fs_known_folder(&FOLDERID_ProgramData, FILE_GLOBAL_HOME, MTY_PATH_MAX))
+				return FILE_GLOBAL_HOME;
 
 			break;
 		case MTY_DIR_PROGRAMS:
-			if (fs_known_folder(&FOLDERID_ProgramFiles, FS_PROGRAMS, MTY_PATH_MAX))
-				return FS_PROGRAMS;
+			if (fs_known_folder(&FOLDERID_ProgramFiles, FILE_PROGRAMS, MTY_PATH_MAX))
+				return FILE_PROGRAMS;
 
 			break;
 	}
@@ -250,16 +250,16 @@ const char *MTY_GetFileName(const char *path, bool extension)
 	const char *name = strrchr(path, '\\');
 	name = name ? name + 1 : path;
 
-	snprintf(FS_FILE_NAME, MTY_PATH_MAX, "%s", name);
+	snprintf(FILE_NAME, MTY_PATH_MAX, "%s", name);
 
 	if (!extension) {
-		char *ext = strrchr(FS_FILE_NAME, '.');
+		char *ext = strrchr(FILE_NAME, '.');
 
 		if (ext)
 			*ext = '\0';
 	}
 
-	return FS_FILE_NAME;
+	return FILE_NAME;
 }
 
 static int32_t fs_file_compare(const void *p1, const void *p2)
