@@ -47,7 +47,7 @@ MTY_EXPORT void
 MTY_AudioDestroy(MTY_Audio **audio);
 
 
-/// @module compress
+/// @module image
 
 typedef enum {
 	MTY_IMAGE_PNG     = 1,
