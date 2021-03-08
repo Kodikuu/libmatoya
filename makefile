@@ -52,7 +52,7 @@ OBJS = $(OBJS) \
 	src\windows\cryptow.obj \
 	src\windows\fsw.obj \
 	src\windows\memoryw.obj \
-	src\windows\procw.obj \
+	src\windows\proc.obj \
 	src\windows\threadw.obj \
 	src\windows\time.obj \
 	src\windows\app.obj \
