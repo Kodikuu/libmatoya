@@ -8,6 +8,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <signal.h>
 #include <errno.h>
 
 #include <unistd.h>
@@ -19,6 +20,8 @@
 
 static MTY_TLOCAL char PROC_NAME[MTY_PATH_MAX];
 static MTY_TLOCAL char PROC_HOSTNAME[MTY_PATH_MAX];
+static void (*PROC_CRASH_HANDLER)(bool forced, void *opaque);
+static void *PROC_OPAQUE;
 
 MTY_SO *MTY_SOLoad(const char *name)
 {
@@ -101,4 +104,24 @@ bool MTY_RestartProcess(int32_t argc, char * const *argv)
 	}
 
 	return mty_execv(MTY_ProcessName(), argv);
+}
+
+static void proc_signal_handler(int32_t sig)
+{
+	if (PROC_CRASH_HANDLER)
+		PROC_CRASH_HANDLER(sig == SIGTERM || sig == SIGINT, PROC_OPAQUE);
+
+	signal(sig, SIG_DFL);
+	raise(sig);
+}
+
+void MTY_SetCrashHandler(void (*func)(bool forced, void *opaque), void *opaque)
+{
+	signal(SIGINT, proc_signal_handler);
+	signal(SIGSEGV, proc_signal_handler);
+	signal(SIGABRT, proc_signal_handler);
+	signal(SIGTERM, proc_signal_handler);
+
+	PROC_CRASH_HANDLER = func;
+	PROC_OPAQUE = opaque;
 }

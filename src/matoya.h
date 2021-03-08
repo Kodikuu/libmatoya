@@ -564,7 +564,7 @@ MTY_EXPORT bool
 MTY_RestartProcess(int32_t argc, char * const *argv);
 
 MTY_EXPORT void
-MTY_SetCrashHandler(void (*func)(bool force, void *opaque), void *opaque);
+MTY_SetCrashHandler(void (*func)(bool forced, void *opaque), void *opaque);
 
 
 /// @module render
