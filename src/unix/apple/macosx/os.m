@@ -6,6 +6,8 @@
 
 #include "matoya.h"
 
+#include <AppKit/AppKit.h>
+
 void MTY_ProtocolHandler(const char *uri, void *token)
 {
 	NSString *nsuri = [NSString stringWithUTF8String:uri];
