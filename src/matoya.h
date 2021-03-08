@@ -129,7 +129,7 @@ MTY_EXPORT void
 MTY_AESGCMDestroy(MTY_AESGCM **aesgcm);
 
 
-/// @module fs
+/// @module file
 
 #define MTY_URL_MAX  1024
 #define MTY_PATH_MAX 1280

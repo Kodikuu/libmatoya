@@ -15,9 +15,9 @@ PREFIX = mty
 	$(CC) $(OCFLAGS)  -c -o $@ $<
 
 OBJS = \
-	src/compress.o \
+	src/image.o \
 	src/crypto.o \
-	src/fs.o \
+	src/file.o \
 	src/json.o \
 	src/log.o \
 	src/memory.o \
@@ -31,8 +31,8 @@ OBJS = \
 	src/gfx/window-ctx.o
 
 OBJS := $(OBJS) \
-	src/unix/compress.o \
-	src/unix/fs.o \
+	src/unix/image.o \
+	src/unix/file.o \
 	src/unix/memory.o \
 	src/unix/proc.o \
 	src/unix/thread.o \

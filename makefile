@@ -24,9 +24,9 @@ PREFIX = mty
 	@echo static const GLchar FRAG[]={ > $@ && powershell "Format-Hex $< | %{$$_ -replace '^.*?   ',''} | %{$$_ -replace '  .*',' '} | %{$$_ -replace '(\w\w)','0x$$1,'}" >> $@ && echo 0x00}; >> $@
 
 OBJS = \
-	src\compress.obj \
+	src\image.obj \
 	src\crypto.obj \
-	src\fs.obj \
+	src\file.obj \
 	src\json.obj \
 	src\log.obj \
 	src\memory.obj \
@@ -48,9 +48,9 @@ OBJS = \
 
 OBJS = $(OBJS) \
 	src\windows\audio.obj \
-	src\windows\compressw.obj \
+	src\windows\imagew.obj \
 	src\windows\cryptow.obj \
-	src\windows\fsw.obj \
+	src\windows\filew.obj \
 	src\windows\memoryw.obj \
 	src\windows\proc.obj \
 	src\windows\threadw.obj \

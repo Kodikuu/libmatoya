@@ -37,9 +37,9 @@ DEFS = \
 LOCAL_CFLAGS = $(DEFS) $(FLAGS)
 
 LOCAL_SRC_FILES := \
-	src/compress.c \
+	src/image.c \
 	src/crypto.c \
-	src/fs.c \
+	src/file.c \
 	src/json.c \
 	src/log.c \
 	src/memory.c \
@@ -58,8 +58,8 @@ LOCAL_SRC_FILES := \
 	src/net/tcp.c \
 	src/net/ws.c \
 	src/net/secure.c \
-	src/unix/compress.c \
-	src/unix/fs.c \
+	src/unix/image.c \
+	src/unix/file.c \
 	src/unix/memory.c \
 	src/unix/proc.c \
 	src/unix/thread.c \

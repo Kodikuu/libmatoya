@@ -9,7 +9,7 @@
 #include <string.h>
 #include <errno.h>
 
-#include "file.h"
+#include "fsutil.h"
 
 void *MTY_ReadFile(const char *path, size_t *size)
 {

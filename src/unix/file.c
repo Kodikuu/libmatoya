@@ -21,7 +21,7 @@
 #include <sys/file.h>
 #include <dirent.h>
 
-#include "fs.h"
+#include "fspwd.h"
 #include "tlocal.h"
 #include "procname.h"
 
