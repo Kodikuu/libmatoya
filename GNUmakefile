@@ -58,15 +58,15 @@ FLAGS = \
 	-Wall \
 	-Wextra \
 	-Wshadow \
-	-Wno-unused-parameter \
 	-Wno-switch \
+	-Wno-unused-parameter \
 	-std=c99 \
 	-fPIC
 
 ifdef DEBUG
 FLAGS := $(FLAGS) -O0 -g
 else
-FLAGS := $(FLAGS) -O3 -fvisibility=hidden
+FLAGS := $(FLAGS) -O3 -g0 -fvisibility=hidden
 endif
 
 ############

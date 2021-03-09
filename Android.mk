@@ -6,10 +6,10 @@ TARGET_OUT = bin/android/$(TARGET_ARCH_ABI)
 FLAGS = \
 	-Wall \
 	-Wextra \
-	-Wno-unused-parameter \
+	-Wshadow \
 	-Wno-switch \
+	-Wno-unused-parameter \
 	-Wno-atomic-alignment \
-	-Wno-unknown-pragmas \
 	-std=c99 \
 	-fPIC
 
