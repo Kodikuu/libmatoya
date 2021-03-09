@@ -28,11 +28,11 @@ static void log_internal(const char *func, const char *msg, va_list args)
 		return;
 
 	char *fmt = MTY_SprintfD("%s: %s", func, msg);
-	size_t len = vsnprintf(NULL, 0, fmt, args) + 1;
+	char *fmsg = MTY_VsprintfD(fmt, args);
 
-	LOG_MSG = mty_tlocal(len);
-	vsnprintf(LOG_MSG, len, fmt, args);
+	LOG_MSG = mty_tlocal_strcpy(fmsg);
 
+	MTY_Free(fmsg);
 	MTY_Free(fmt);
 
 	LOG_PREVENT_RECURSIVE = true;

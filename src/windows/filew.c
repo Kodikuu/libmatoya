@@ -65,12 +65,12 @@ bool MTY_Mkdir(const char *path)
 
 const char *MTY_Path(const char *dir, const char *file)
 {
-	size_t len = snprintf(NULL, 0, "%s\\%s", dir, file) + 1;
+	char *path = MTY_SprintfD("%s\\%s", dir, file);
+	char *local = mty_tlocal_strcpy(path);
 
-	char *path = mty_tlocal(len);
-	snprintf(path, len, "%s\\%s", dir, file);
+	MTY_Free(path);
 
-	return path;
+	return local;
 }
 
 bool MTY_CopyFile(const char *src, const char *dst)

@@ -8,21 +8,15 @@
 #include "tlocal.h"
 
 #include <string.h>
+#include <stdio.h>
 
-#define MTY_TLOCAL_MAX (16 * 1024)
+#define MTY_TLOCAL_MAX (8 * 1024)
 
 static MTY_TLOCAL uint8_t TLOCAL[MTY_TLOCAL_MAX];
 static MTY_TLOCAL size_t TLOCAL_OFFSET;
 
 void *mty_tlocal(size_t size)
 {
-	if (size > MTY_TLOCAL_MAX) {
-		MTY_Fatal("Requested thread local buffer space larger than "
-			"maximum of %u bytes", MTY_TLOCAL_MAX);
-
-		return NULL;
-	}
-
 	if (TLOCAL_OFFSET + size > MTY_TLOCAL_MAX)
 		TLOCAL_OFFSET = 0;
 
@@ -36,8 +30,11 @@ char *mty_tlocal_strcpy(const char *str)
 {
 	size_t len = strlen(str) + 1;
 
+	if (len > MTY_TLOCAL_MAX)
+		len = MTY_TLOCAL_MAX;
+
 	char *local = mty_tlocal(len);
-	memcpy(local, str, len);
+	snprintf(local, len, "%s", str);
 
 	return local;
 }
