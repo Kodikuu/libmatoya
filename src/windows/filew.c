@@ -14,14 +14,6 @@
 
 #include "tlocal.h"
 
-static MTY_TLOCAL char FILE_CWD[MTY_PATH_MAX];
-static MTY_TLOCAL char FILE_HOME[MTY_PATH_MAX];
-static MTY_TLOCAL char FILE_PATH[MTY_PATH_MAX];
-static MTY_TLOCAL char FILE_EXECUTABLE[MTY_PATH_MAX];
-static MTY_TLOCAL char FILE_PROGRAMS[MTY_PATH_MAX];
-static MTY_TLOCAL char FILE_GLOBAL_HOME[MTY_PATH_MAX];
-static MTY_TLOCAL char FILE_NAME[MTY_PATH_MAX];
-
 bool MTY_DeleteFile(const char *path)
 {
 	wchar_t *wpath = MTY_MultiToWideD(path);
@@ -73,15 +65,12 @@ bool MTY_Mkdir(const char *path)
 
 const char *MTY_Path(const char *dir, const char *file)
 {
-	char *safe_dir = MTY_Strdup(dir);
-	char *safe_file = MTY_Strdup(file);
+	size_t len = snprintf(NULL, 0, "%s\\%s", dir, file) + 1;
 
-	snprintf(FILE_PATH, MTY_PATH_MAX, "%s\\%s", safe_dir, safe_file);
+	char *path = mty_tlocal(len);
+	snprintf(path, len, "%s\\%s", dir, file);
 
-	MTY_Free(safe_dir);
-	MTY_Free(safe_file);
-
-	return FILE_PATH;
+	return path;
 }
 
 bool MTY_CopyFile(const char *src, const char *dst)
@@ -118,22 +107,22 @@ bool MTY_MoveFile(const char *src, const char *dst)
 	return r;
 }
 
-static bool fs_known_folder(const KNOWNFOLDERID *fid, char *dir, size_t size)
+static const char *fs_known_folder(const KNOWNFOLDERID *fid)
 {
 	WCHAR *dirw = NULL;
 	HRESULT e = SHGetKnownFolderPath(fid, 0, NULL, &dirw);
 
 	if (e == S_OK) {
-		MTY_WideToMulti(dirw, dir, size);
+		char *local = mty_tlocal_strcpyw(dirw);
 		CoTaskMemFree(dirw);
 
-		return true;
+		return local;
 
 	} else {
 		MTY_Log("'SHGetKnownFolderPath' failed with HRESULT 0x%X", e);
 	}
 
-	return false;
+	return NULL;
 }
 
 const char *MTY_GetDir(MTY_Dir dir)
@@ -142,12 +131,9 @@ const char *MTY_GetDir(MTY_Dir dir)
 
 	switch (dir) {
 		case MTY_DIR_CWD: {
-			memset(FILE_CWD, 0, MTY_PATH_MAX);
-
 			DWORD n = GetCurrentDirectory(MTY_PATH_MAX, tmp);
 			if (n > 0) {
-				MTY_WideToMulti(tmp, FILE_CWD, MTY_PATH_MAX);
-				return FILE_CWD;
+				return mty_tlocal_strcpyw(tmp);
 
 			} else {
 				MTY_Log("'GetCurrentDirectory' failed with error 0x%X", GetLastError());
@@ -156,16 +142,14 @@ const char *MTY_GetDir(MTY_Dir dir)
 			break;
 		}
 		case MTY_DIR_HOME: {
-			memset(FILE_HOME, 0, MTY_PATH_MAX);
-
 			wchar_t *home = NULL;
 			errno_t e = _wdupenv_s(&home, NULL, L"APPDATA");
 
 			if (e == 0) {
-				MTY_WideToMulti(home, FILE_HOME, MTY_PATH_MAX);
+				char *local = mty_tlocal_strcpyw(home);
 				free(home);
 
-				return FILE_HOME;
+				return local;
 
 			} else {
 				MTY_Log("'_wdupenv_s' failed with errno %d", e);
@@ -174,18 +158,16 @@ const char *MTY_GetDir(MTY_Dir dir)
 			break;
 		}
 		case MTY_DIR_EXECUTABLE: {
-			memset(FILE_EXECUTABLE, 0, MTY_PATH_MAX);
-
 			DWORD n = GetModuleFileName(NULL, tmp, MTY_PATH_MAX);
 
 			if (n > 0) {
-				MTY_WideToMulti(tmp, FILE_EXECUTABLE, MTY_PATH_MAX);
-				char *name = strrchr(FILE_EXECUTABLE, '\\');
+				char *local = mty_tlocal_strcpyw(tmp);
+				char *name = strrchr(local, '\\');
 
 				if (name)
 					name[0] = '\0';
 
-				return FILE_EXECUTABLE;
+				return local;
 
 			} else {
 				MTY_Log("'GetModuleFileName' failed with error 0x%X", GetLastError());
@@ -193,16 +175,20 @@ const char *MTY_GetDir(MTY_Dir dir)
 
 			break;
 		}
-		case MTY_DIR_GLOBAL_HOME:
-			if (fs_known_folder(&FOLDERID_ProgramData, FILE_GLOBAL_HOME, MTY_PATH_MAX))
-				return FILE_GLOBAL_HOME;
+		case MTY_DIR_GLOBAL_HOME: {
+			const char *local = fs_known_folder(&FOLDERID_ProgramData);
+			if (local)
+				return local;
 
 			break;
-		case MTY_DIR_PROGRAMS:
-			if (fs_known_folder(&FOLDERID_ProgramFiles, FILE_PROGRAMS, MTY_PATH_MAX))
-				return FILE_PROGRAMS;
+		}
+		case MTY_DIR_PROGRAMS: {
+			const char *local = fs_known_folder(&FOLDERID_ProgramFiles);
+			if (local)
+				return local;
 
 			break;
+		}
 	}
 
 	return ".";
@@ -250,16 +236,16 @@ const char *MTY_GetFileName(const char *path, bool extension)
 	const char *name = strrchr(path, '\\');
 	name = name ? name + 1 : path;
 
-	snprintf(FILE_NAME, MTY_PATH_MAX, "%s", name);
+	char *local = mty_tlocal_strcpy(name);
 
 	if (!extension) {
-		char *ext = strrchr(FILE_NAME, '.');
+		char *ext = strrchr(local, '.');
 
 		if (ext)
 			*ext = '\0';
 	}
 
-	return FILE_NAME;
+	return local;
 }
 
 static int32_t fs_file_compare(const void *p1, const void *p2)

@@ -11,8 +11,6 @@
 
 #include "tlocal.h"
 
-#define LOG_LEN 256
-
 static void log_none(const char *msg, void *opaque)
 {
 }
@@ -20,8 +18,7 @@ static void log_none(const char *msg, void *opaque)
 static void (*LOG_CALLBACK)(const char *msg, void *opaque) = log_none;
 static void *LOG_OPAQUE;
 
-static MTY_TLOCAL char LOG_MSG[LOG_LEN];
-static MTY_TLOCAL char LOG_FMT[LOG_LEN];
+static MTY_TLOCAL char *LOG_MSG;
 static MTY_TLOCAL bool LOG_PREVENT_RECURSIVE;
 static MTY_Atomic32 LOG_DISABLED;
 
@@ -30,8 +27,13 @@ static void log_internal(const char *func, const char *msg, va_list args)
 	if (MTY_Atomic32Get(&LOG_DISABLED) || LOG_PREVENT_RECURSIVE)
 		return;
 
-	snprintf(LOG_FMT, LOG_LEN, "%s: %s", func, msg);
-	vsnprintf(LOG_MSG, LOG_LEN, LOG_FMT, args);
+	char *fmt = MTY_SprintfD("%s: %s", func, msg);
+	size_t len = vsnprintf(NULL, 0, fmt, args) + 1;
+
+	LOG_MSG = mty_tlocal(len);
+	vsnprintf(LOG_MSG, len, fmt, args);
+
+	MTY_Free(fmt);
 
 	LOG_PREVENT_RECURSIVE = true;
 	LOG_CALLBACK(LOG_MSG, LOG_OPAQUE);
@@ -69,5 +71,5 @@ void MTY_DisableLog(bool disabled)
 
 const char *MTY_GetLog(void)
 {
-	return LOG_MSG;
+	return LOG_MSG ? LOG_MSG : "";
 }

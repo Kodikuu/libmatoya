@@ -15,8 +15,6 @@
 #include "dlopen.h"
 #include "tlocal.h"
 
-static MTY_TLOCAL char OS_HOSTNAME[MTY_PATH_MAX];
-
 MTY_SO *MTY_SOLoad(const char *name)
 {
 	MTY_SO *so = dlopen(name, MTY_DLOPEN_FLAGS);
@@ -66,13 +64,16 @@ void MTY_SOUnload(MTY_SO **so)
 
 const char *MTY_Hostname(void)
 {
-	memset(OS_HOSTNAME, 0, MTY_PATH_MAX);
+	char *host = MTY_Alloc(MTY_PATH_MAX, 1);
 
-	int32_t e = gethostname(OS_HOSTNAME, MTY_PATH_MAX - 1);
+	int32_t e = gethostname(host, MTY_PATH_MAX - 1);
 	if (e != 0) {
 		MTY_Log("'gethostname' failed with errno %d", errno);
-		snprintf(OS_HOSTNAME, MTY_PATH_MAX, "noname");
+		snprintf(host, MTY_PATH_MAX, "noname");
 	}
 
-	return OS_HOSTNAME;
+	char *local = mty_tlocal_strcpy(host);
+	MTY_Free(host);
+
+	return local;
 }

@@ -14,8 +14,6 @@
 
 #include "tlocal.h"
 
-static MTY_TLOCAL char MEMORY_VER[32];
-
 void *MTY_Alloc(size_t nelem, size_t elsize)
 {
 	void *mem = calloc(nelem, elsize);
@@ -168,14 +166,16 @@ const char *MTY_VersionString(uint32_t platform)
 	uint8_t major = (platform & 0xFF00) >> 8;
 	uint8_t minor = platform & 0xFF;
 
+	char *ver = mty_tlocal(16);
+
 	if (minor > 0) {
-		snprintf(MEMORY_VER, 32, "%u.%u", major, minor);
+		snprintf(ver, 16, "%u.%u", major, minor);
 
 	} else {
-		snprintf(MEMORY_VER, 32, "%u", major);
+		snprintf(ver, 16, "%u", major);
 	}
 
-	return MEMORY_VER;
+	return ver;
 }
 
 

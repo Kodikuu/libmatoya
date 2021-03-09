@@ -14,15 +14,18 @@
 #include "procname.h"
 #include "execv.h"
 
-static MTY_TLOCAL char PROC_NAME[MTY_PATH_MAX];
 static void (*PROC_CRASH_HANDLER)(bool forced, void *opaque);
 static void *PROC_OPAQUE;
 
 const char *MTY_ProcessName(void)
 {
-	mty_proc_name(PROC_NAME, MTY_PATH_MAX);
+	char *name = MTY_Alloc(MTY_PATH_MAX, 1);
+	mty_proc_name(name, MTY_PATH_MAX);
 
-	return PROC_NAME;
+	char *local = mty_tlocal_strcpy(name);
+	MTY_Free(name);
+
+	return local;
 }
 
 bool MTY_RestartProcess(char * const *argv)

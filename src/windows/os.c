@@ -15,8 +15,6 @@
 
 typedef _Return_type_success_(return >= 0) LONG NTSTATUS;
 
-static MTY_TLOCAL char OS_HOSTNAME[MTY_PATH_MAX];
-
 MTY_SO *MTY_SOLoad(const char *name)
 {
 	wchar_t *wname = MTY_MultiToWideD(name);
@@ -52,20 +50,17 @@ void MTY_SOUnload(MTY_SO **so)
 
 const char *MTY_Hostname(void)
 {
-	memset(OS_HOSTNAME, 0, MTY_PATH_MAX);
-
 	DWORD lenw = MAX_COMPUTERNAME_LENGTH + 1;
-	wchar_t hostnamew[MAX_COMPUTERNAME_LENGTH + 1];
+	WCHAR tmp[MAX_COMPUTERNAME_LENGTH + 1] = {0};
 
-	if (GetComputerName(hostnamew, &lenw)) {
-		MTY_WideToMulti(hostnamew, OS_HOSTNAME, MTY_PATH_MAX);
+	if (GetComputerName(tmp, &lenw)) {
+		return mty_tlocal_strcpyw(tmp);
 
 	} else {
 		MTY_Log("'GetComputerName' failed with error 0x%X", GetLastError());
-		snprintf(OS_HOSTNAME, MTY_PATH_MAX, "noname");
 	}
 
-	return OS_HOSTNAME;
+	return "noname";
 }
 
 void MTY_ProtocolHandler(const char *uri, void *token)

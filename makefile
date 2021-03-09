@@ -34,6 +34,7 @@ OBJS = \
 	src\list.obj \
 	src\queue.obj \
 	src\thread.obj \
+	src\tlocal.obj \
 	src\gfx\gl.obj \
 	src\gfx\gl-ui.obj \
 	src\gfx\render.obj \

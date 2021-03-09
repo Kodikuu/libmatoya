@@ -12,8 +12,6 @@
 
 static bool mty_proc_name(char *name, size_t size)
 {
-	memset(name, 0, size);
-
 	uint32_t bsize = size - 1;
 	int32_t e = _NSGetExecutablePath(name, &bsize);
 	if (e != 0) {

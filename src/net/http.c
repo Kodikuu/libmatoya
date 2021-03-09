@@ -432,7 +432,6 @@ void MTY_HttpEncodeUrl(const char *src, char *dst, size_t size)
 
 static MTY_Atomic32 HTTP_GLOCK;
 static char HTTP_PROXY[MTY_URL_MAX];
-static MTY_TLOCAL char HTTP_PROXY_TLOCAL[MTY_URL_MAX];
 
 void MTY_HttpSetProxy(const char *proxy)
 {
@@ -450,14 +449,12 @@ void MTY_HttpSetProxy(const char *proxy)
 
 const char *mty_http_get_proxy(void)
 {
-	const char *proxy = NULL;
+	char *proxy = NULL;
 
 	MTY_GlobalLock(&HTTP_GLOCK);
 
-	if (HTTP_PROXY[0]) {
-		snprintf(HTTP_PROXY_TLOCAL, MTY_URL_MAX, "%s", HTTP_PROXY);
-		proxy = HTTP_PROXY_TLOCAL;
-	}
+	if (HTTP_PROXY[0])
+		proxy = mty_tlocal_strcpy(HTTP_PROXY);
 
 	MTY_GlobalUnlock(&HTTP_GLOCK);
 
@@ -471,10 +468,13 @@ bool mty_http_should_proxy(const char **host, uint16_t *port)
 		return false;
 
 	bool secure = false;
+	char *hbuf = MTY_Alloc(MTY_URL_MAX, 1);
 
-	bool r = mty_http_parse_url(proxy, &secure, HTTP_PROXY_TLOCAL, MTY_URL_MAX, port, NULL, 0);
+	bool r = mty_http_parse_url(proxy, &secure, hbuf, MTY_URL_MAX, port, NULL, 0);
 	if (r)
-		*host = HTTP_PROXY_TLOCAL;
+		*host = mty_tlocal_strcpy(hbuf);
+
+	MTY_Free(hbuf);
 
 	return r;
 }

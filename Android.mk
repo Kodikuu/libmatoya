@@ -47,6 +47,7 @@ LOCAL_SRC_FILES := \
 	src/list.c \
 	src/queue.c \
 	src/thread.c \
+	src/tlocal.c \
 	src/gfx/gl.c \
 	src/gfx/gl-ui.c \
 	src/gfx/render.c \

@@ -25,13 +25,6 @@
 #include "tlocal.h"
 #include "procname.h"
 
-static MTY_TLOCAL char FILE_CWD[MTY_PATH_MAX];
-static MTY_TLOCAL char FILE_HOME[MTY_PATH_MAX];
-static MTY_TLOCAL char FILE_PATH[MTY_PATH_MAX];
-static MTY_TLOCAL char FILE_EXECUTABLE[MTY_PATH_MAX];
-static MTY_TLOCAL char FILE_PROGRAMS[MTY_PATH_MAX];
-static MTY_TLOCAL char FILE_NAME[MTY_PATH_MAX];
-
 bool MTY_DeleteFile(const char *path)
 {
 	if (remove(path) != 0) {
@@ -76,15 +69,12 @@ bool MTY_Mkdir(const char *path)
 
 const char *MTY_Path(const char *dir, const char *file)
 {
-	char *safe_dir = MTY_Strdup(dir);
-	char *safe_file = MTY_Strdup(file);
+	size_t len = snprintf(NULL, 0, "%s/%s", dir, file) + 1;
 
-	snprintf(FILE_PATH, MTY_PATH_MAX, "%s/%s", safe_dir, safe_file);
+	char *path = mty_tlocal(len);
+	snprintf(path, len, "%s/%s", dir, file);
 
-	MTY_Free(safe_dir);
-	MTY_Free(safe_file);
-
-	return FILE_PATH;
+	return path;
 }
 
 bool MTY_CopyFile(const char *src, const char *dst)
@@ -113,27 +103,29 @@ bool MTY_MoveFile(const char *src, const char *dst)
 
 const char *MTY_GetDir(MTY_Dir dir)
 {
+	char *local = NULL;
+
 	switch (dir) {
 		case MTY_DIR_CWD: {
-			memset(FILE_CWD, 0, MTY_PATH_MAX);
+			char *cwd = MTY_Alloc(MTY_PATH_MAX, 1);
 
-			if (getcwd(FILE_CWD, MTY_PATH_MAX)) {
-				return FILE_CWD;
+			if (getcwd(cwd, MTY_PATH_MAX)) {
+				local = mty_tlocal_strcpy(cwd);
 
 			} else {
 				MTY_Log("'getcwd' failed with errno %d", errno);
 			}
 
+			MTY_Free(cwd);
+
 			break;
 		}
 		case MTY_DIR_GLOBAL_HOME:
 		case MTY_DIR_HOME: {
-			memset(FILE_HOME, 0, MTY_PATH_MAX);
-
 			const struct passwd *pw = getpwuid(getuid());
+
 			if (pw) {
-				snprintf(FILE_HOME, MTY_PATH_MAX, "%s", pw->pw_dir);
-				return FILE_HOME;
+				local = mty_tlocal_strcpy(pw->pw_dir);
 
 			} else {
 				MTY_Log("'getpwuid' failed with errno %d", errno);
@@ -142,24 +134,26 @@ const char *MTY_GetDir(MTY_Dir dir)
 			break;
 		}
 		case MTY_DIR_EXECUTABLE: {
-			if (mty_proc_name(FILE_EXECUTABLE, MTY_PATH_MAX)) {
-				char *name = strrchr(FILE_EXECUTABLE, '/');
+			char *exe = MTY_Alloc(MTY_PATH_MAX, 1);
+
+			if (mty_proc_name(exe, MTY_PATH_MAX)) {
+				char *name = strrchr(exe, '/');
 
 				if (name)
 					name[0] = '\0';
 
-				return FILE_EXECUTABLE;
+				local = mty_tlocal_strcpy(exe);
 			}
+
+			MTY_Free(exe);
 
 			break;
 		}
-		case MTY_DIR_PROGRAMS: {
-			snprintf(FILE_PROGRAMS, MTY_PATH_MAX, "/user/bin");
-			return FILE_PROGRAMS;
-		}
+		case MTY_DIR_PROGRAMS:
+			return "/user/bin";
 	}
 
-	return ".";
+	return local ? local : ".";
 }
 
 MTY_LockFile *MTY_LockFileCreate(const char *path, MTY_FileMode mode)
@@ -213,16 +207,16 @@ const char *MTY_GetFileName(const char *path, bool extension)
 	const char *name = strrchr(path, '/');
 	name = name ? name + 1 : path;
 
-	snprintf(FILE_NAME, MTY_PATH_MAX, "%s", name);
+	char *local = mty_tlocal_strcpy(name);
 
 	if (!extension) {
-		char *ext = strrchr(FILE_NAME, '.');
+		char *ext = strrchr(local, '.');
 
 		if (ext)
 			*ext = '\0';
 	}
 
-	return FILE_NAME;
+	return local;
 }
 
 static int32_t fs_file_compare(const void *p1, const void *p2)

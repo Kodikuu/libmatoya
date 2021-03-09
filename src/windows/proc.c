@@ -14,24 +14,22 @@
 
 #include "tlocal.h"
 
-static MTY_TLOCAL char PROC_NAME[MTY_PATH_MAX];
 static void (*PROC_CRASH_HANDLER)(bool forced, void *opaque);
 static void *PROC_OPAQUE;
 
 const char *MTY_ProcessName(void)
 {
-	wchar_t tmp[MTY_PATH_MAX];
-	memset(PROC_NAME, 0, MTY_PATH_MAX);
+	WCHAR tmp[MTY_PATH_MAX] = {0};
 
 	DWORD e = GetModuleFileName(NULL, tmp, MTY_PATH_MAX);
 	if (e > 0) {
-		MTY_WideToMulti(tmp, PROC_NAME, MTY_PATH_MAX);
+		return mty_tlocal_strcpyw(tmp);
 
 	} else {
 		MTY_Log("'GetModuleFileName' failed with error 0x%X", GetLastError());
 	}
 
-	return PROC_NAME;
+	return "";
 }
 
 bool MTY_RestartProcess(char * const *argv)

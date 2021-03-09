@@ -25,6 +25,7 @@ OBJS = \
 	src/list.o \
 	src/queue.o \
 	src/thread.o \
+	src/tlocal.o \
 	src/gfx/gl.o \
 	src/gfx/gl-ui.o \
 	src/gfx/render.o \
