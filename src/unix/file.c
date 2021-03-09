@@ -103,20 +103,17 @@ bool MTY_MoveFile(const char *src, const char *dst)
 
 const char *MTY_GetDir(MTY_Dir dir)
 {
+	char tmp[MTY_PATH_MAX] = {0};
 	char *local = NULL;
 
 	switch (dir) {
 		case MTY_DIR_CWD: {
-			char *cwd = MTY_Alloc(MTY_PATH_MAX, 1);
-
-			if (getcwd(cwd, MTY_PATH_MAX)) {
-				local = mty_tlocal_strcpy(cwd);
+			if (getcwd(tmp, MTY_PATH_MAX)) {
+				local = mty_tlocal_strcpy(tmp);
 
 			} else {
 				MTY_Log("'getcwd' failed with errno %d", errno);
 			}
-
-			MTY_Free(cwd);
 
 			break;
 		}
@@ -134,18 +131,14 @@ const char *MTY_GetDir(MTY_Dir dir)
 			break;
 		}
 		case MTY_DIR_EXECUTABLE: {
-			char *exe = MTY_Alloc(MTY_PATH_MAX, 1);
-
-			if (mty_proc_name(exe, MTY_PATH_MAX)) {
-				char *name = strrchr(exe, '/');
+			if (mty_proc_name(tmp, MTY_PATH_MAX)) {
+				char *name = strrchr(tmp, '/');
 
 				if (name)
 					name[0] = '\0';
 
-				local = mty_tlocal_strcpy(exe);
+				local = mty_tlocal_strcpy(tmp);
 			}
-
-			MTY_Free(exe);
 
 			break;
 		}

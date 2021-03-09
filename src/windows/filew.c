@@ -127,7 +127,7 @@ static char *fs_known_folder(const KNOWNFOLDERID *fid)
 
 const char *MTY_GetDir(MTY_Dir dir)
 {
-	wchar_t tmp[MTY_PATH_MAX];
+	wchar_t tmp[MTY_PATH_MAX] = {0};
 	char *local = NULL;
 
 	switch (dir) {
