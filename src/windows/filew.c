@@ -107,33 +107,34 @@ bool MTY_MoveFile(const char *src, const char *dst)
 	return r;
 }
 
-static const char *fs_known_folder(const KNOWNFOLDERID *fid)
+static char *fs_known_folder(const KNOWNFOLDERID *fid)
 {
 	WCHAR *dirw = NULL;
+	char *local = NULL;
+
 	HRESULT e = SHGetKnownFolderPath(fid, 0, NULL, &dirw);
 
 	if (e == S_OK) {
-		char *local = mty_tlocal_strcpyw(dirw);
+		local = mty_tlocal_strcpyw(dirw);
 		CoTaskMemFree(dirw);
-
-		return local;
 
 	} else {
 		MTY_Log("'SHGetKnownFolderPath' failed with HRESULT 0x%X", e);
 	}
 
-	return NULL;
+	return local;
 }
 
 const char *MTY_GetDir(MTY_Dir dir)
 {
 	wchar_t tmp[MTY_PATH_MAX];
+	char *local = NULL;
 
 	switch (dir) {
 		case MTY_DIR_CWD: {
 			DWORD n = GetCurrentDirectory(MTY_PATH_MAX, tmp);
 			if (n > 0) {
-				return mty_tlocal_strcpyw(tmp);
+				local = mty_tlocal_strcpyw(tmp);
 
 			} else {
 				MTY_Log("'GetCurrentDirectory' failed with error 0x%X", GetLastError());
@@ -146,10 +147,8 @@ const char *MTY_GetDir(MTY_Dir dir)
 			errno_t e = _wdupenv_s(&home, NULL, L"APPDATA");
 
 			if (e == 0) {
-				char *local = mty_tlocal_strcpyw(home);
+				local = mty_tlocal_strcpyw(home);
 				free(home);
-
-				return local;
 
 			} else {
 				MTY_Log("'_wdupenv_s' failed with errno %d", e);
@@ -161,13 +160,11 @@ const char *MTY_GetDir(MTY_Dir dir)
 			DWORD n = GetModuleFileName(NULL, tmp, MTY_PATH_MAX);
 
 			if (n > 0) {
-				char *local = mty_tlocal_strcpyw(tmp);
+				local = mty_tlocal_strcpyw(tmp);
 				char *name = strrchr(local, '\\');
 
 				if (name)
 					name[0] = '\0';
-
-				return local;
 
 			} else {
 				MTY_Log("'GetModuleFileName' failed with error 0x%X", GetLastError());
@@ -175,23 +172,15 @@ const char *MTY_GetDir(MTY_Dir dir)
 
 			break;
 		}
-		case MTY_DIR_GLOBAL_HOME: {
-			const char *local = fs_known_folder(&FOLDERID_ProgramData);
-			if (local)
-				return local;
-
+		case MTY_DIR_GLOBAL_HOME:
+			local = fs_known_folder(&FOLDERID_ProgramData);
 			break;
-		}
-		case MTY_DIR_PROGRAMS: {
-			const char *local = fs_known_folder(&FOLDERID_ProgramFiles);
-			if (local)
-				return local;
-
+		case MTY_DIR_PROGRAMS:
+			local = fs_known_folder(&FOLDERID_ProgramFiles);
 			break;
-		}
 	}
 
-	return ".";
+	return local ? local : ".";
 }
 
 MTY_LockFile *MTY_LockFileCreate(const char *path, MTY_FileMode mode)
