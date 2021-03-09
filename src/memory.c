@@ -62,9 +62,17 @@ void MTY_Strcat(char *dst, size_t size, const char *src)
 
 char *MTY_VsprintfD(const char *fmt, va_list args)
 {
-	size_t size = vsnprintf(NULL, 0, fmt, args) + 1;
-	char *str = MTY_Alloc(size, 1);
+	// va_list can be exausted each time it is referenced
+	// by a ...v style function. Since we use it twice, make a copy
 
+	va_list args_copy;
+	va_copy(args_copy, args);
+
+	size_t size = vsnprintf(NULL, 0, fmt, args_copy) + 1;
+
+	va_end(args_copy);
+
+	char *str = MTY_Alloc(size, 1);
 	vsnprintf(str, size, fmt, args);
 
 	return str;
