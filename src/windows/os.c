@@ -53,14 +53,12 @@ const char *MTY_Hostname(void)
 	DWORD lenw = MAX_COMPUTERNAME_LENGTH + 1;
 	WCHAR tmp[MAX_COMPUTERNAME_LENGTH + 1] = {0};
 
-	if (GetComputerName(tmp, &lenw)) {
-		return mty_tlocal_strcpyw(tmp);
-
-	} else {
+	if (!GetComputerName(tmp, &lenw)) {
 		MTY_Log("'GetComputerName' failed with error 0x%X", GetLastError());
+		return "noname";
 	}
 
-	return "noname";
+	return mty_tlocal_strcpyw(tmp);
 }
 
 void MTY_ProtocolHandler(const char *uri, void *token)

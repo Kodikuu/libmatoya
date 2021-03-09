@@ -64,16 +64,13 @@ void MTY_SOUnload(MTY_SO **so)
 
 const char *MTY_Hostname(void)
 {
-	char *host = MTY_Alloc(MTY_PATH_MAX, 1);
+	char tmp[MTY_PATH_MAX] = {0};
 
-	int32_t e = gethostname(host, MTY_PATH_MAX - 1);
+	int32_t e = gethostname(tmp, MTY_PATH_MAX - 1);
 	if (e != 0) {
 		MTY_Log("'gethostname' failed with errno %d", errno);
-		snprintf(host, MTY_PATH_MAX, "noname");
+		return "noname";
 	}
 
-	char *local = mty_tlocal_strcpy(host);
-	MTY_Free(host);
-
-	return local;
+	return mty_tlocal_strcpy(tmp);
 }
