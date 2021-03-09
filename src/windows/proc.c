@@ -21,15 +21,10 @@ const char *MTY_ProcessName(void)
 {
 	WCHAR tmp[MTY_PATH_MAX] = {0};
 
-	DWORD e = GetModuleFileName(NULL, tmp, MTY_PATH_MAX);
-	if (e > 0) {
-		return mty_tlocal_strcpyw(tmp);
-
-	} else {
+	if (GetModuleFileName(NULL, tmp, MTY_PATH_MAX) <= 0)
 		MTY_Log("'GetModuleFileName' failed with error 0x%X", GetLastError());
-	}
 
-	return "";
+	return mty_tlocal_strcpyw(tmp);
 }
 
 bool MTY_RestartProcess(char * const *argv)

@@ -468,13 +468,11 @@ bool mty_http_should_proxy(const char **host, uint16_t *port)
 		return false;
 
 	bool secure = false;
-	char *hbuf = MTY_Alloc(MTY_URL_MAX, 1);
+	char hbuf[MTY_URL_MAX] = {0};
 
 	bool r = mty_http_parse_url(proxy, &secure, hbuf, MTY_URL_MAX, port, NULL, 0);
 	if (r)
 		*host = mty_tlocal_strcpy(hbuf);
-
-	MTY_Free(hbuf);
 
 	return r;
 }

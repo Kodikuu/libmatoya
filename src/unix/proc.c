@@ -19,13 +19,10 @@ static void *PROC_OPAQUE;
 
 const char *MTY_ProcessName(void)
 {
-	char *name = MTY_Alloc(MTY_PATH_MAX, 1);
+	char name[MTY_PATH_MAX] = {0};
 	mty_proc_name(name, MTY_PATH_MAX);
 
-	char *local = mty_tlocal_strcpy(name);
-	MTY_Free(name);
-
-	return local;
+	return mty_tlocal_strcpy(name);
 }
 
 bool MTY_RestartProcess(char * const *argv)
