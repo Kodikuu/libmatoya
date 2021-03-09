@@ -211,10 +211,9 @@ ANDROID_NDK = $(HOME)/android-ndk-r21e
 
 android: clean clear $(SHADERS)
 	@$(ANDROID_NDK)/ndk-build -j4 \
-		NDK_PROJECT_PATH=. \
 		APP_BUILD_SCRIPT=Android.mk \
-		APP_OPTIM=release \
 		APP_PLATFORM=android-26 \
+		NDK_PROJECT_PATH=. \
 		--no-print-directory \
 		| grep -v 'fcntl(): Operation not supported'
 
