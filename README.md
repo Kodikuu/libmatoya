@@ -43,18 +43,18 @@ The WASM implementation is considered a "Unix" platform because of its build too
 
 ## Platform Support
 
-| Platform | Minimum Version |
-| -------- | --------------- |
-| Windows  | 7               |
-| Android  | API 26 (8.0)    |
-| macOS    | 10.11           |
-| iOS/tvOS | 13.0            |
-| Linux    | `*`             |
-| web      | `**`            |
+| Platform | Minimum Version            |
+| -------- | -------------------------- |
+| Windows  | 7                          |
+| Android  | API 26 (8.0)               |
+| macOS    | 10.11                      |
+| iOS/tvOS | 13.0                       |
+| Linux    | `*`                        |
+| web      | `**` Chrome 86, Firefox 79 |
 
 `*` Linux doesn't have a minimum version per se, but relies on certain dependencies being present on the system at run time.
 
-`**` The WASM (web) version requires WASM 64-bit support, which appeared in Chrome 86 and Firefox 79. Safari is currently not supported.
+`**` Safari is currently not supported.
 
 ## Dependencies
 
