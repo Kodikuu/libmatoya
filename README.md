@@ -63,24 +63,6 @@ The development of this library is closely tied to [Merton](https://github.com/m
 
 A major goal of `libmatoya` is to avoid third-party dependencies and wrap system dependencies wherever possible. This approach keeps `libmatoya` very small while relying on performant and well-tested libraries shipped with the target platforms. Required system libraries are guaranteed to be present per [Platform Support](#platform-support). Third-party dependencies are compiled with `libmatoya` from the [`/deps`](/deps) directory.
 
-| Library                                                     | License | Role                                              |
-| ----------------------------------------------------------- | ------- | ------------------------------------------------- |
-| [`cJSON`](https://github.com/DaveGamble/cJSON)              | MIT     | JSON support                                      |
-| [`OpenGL`](https://github.com/KhronosGroup/OpenGL-Registry) | MIT     | OpenGL and OpenGLES headers                       |
-| [`miniz`](https://github.com/richgel999/miniz)              | MIT     | Decompression for HTTP requests                   |
-| [`stb`](https://github.com/nothings/stb)                    | MIT     | Image compression/decompression on Unix platforms |
-
-On Linux, you are required only to link against the C standard library. All other dependencies are queried at run time with `dlopen`. These "system" dependencies all have a long history of ABI stability and wide package manager support on the major distros.
-
-- `libX11.so.6`
-    - `libXi.so.6`
-	- `libXcursor.so.1`
-- `libGL.so.1`
-- `libasound.so.2`
-- `libudev.so.1`
-- `libcrypto.so.1.1 OR libcrypto.so.1.0.0`
-- `libssl.so.1.1 OR libssl.so.1.0.0`
-
 ## Building
 
 `libmatoya` changes frequently and is not intended to be distributed as a shared library. It will never use wrapped build systems like CMake, Visual Studio projects, or Automake. `libmatoya` ships with simple makefiles that output lean static libraries. The only public header you are required to include is [`matoya.h`](/src/matoya.h).
