@@ -13,6 +13,7 @@
 - Relative mouse mode
 - Clipboard support
 - Hotkeys
+- Simple HTTP/HTTPS requests and WebSockets
 - Simple audio playback
 - JSON parsing and construction
 - Image compression/decompression
@@ -22,7 +23,6 @@
 - Simple commonly used data structures: `MTY_List`, thread-safe `MTY_Queue`, and `MTY_Hash`
 - Common cryptography tasks: CRC32, SHA1, SHA256, HMAC, AES-GCM, TLS/DTLS protocol
 - Many threading features including readers-writer locks and thread pools
-- HTTP/HTTPS and WebSockets using platform specific crypto libraries
 
 The name comes from a character in [Final Fantasy](https://en.wikipedia.org/wiki/Final_Fantasy_(video_game)) who needs a crystal eye to see.
 
@@ -42,10 +42,6 @@ The development of this library is closely tied to [Merton](https://github.com/m
 `*` Linux doesn't have a minimum version per se, but relies on certain dependencies being present on the system at run time.
 
 `**` Safari is currently not supported.
-
-## Dependencies
-
-A major goal of `libmatoya` is to avoid third-party dependencies and wrap system dependencies wherever possible. This approach keeps `libmatoya` very small while relying on performant and well-tested libraries shipped with the target platforms. Required system libraries are guaranteed to be present per [Platform Support](#platform-support). Third-party dependencies are compiled with `libmatoya` from the [`/deps`](/deps) directory.
 
 ## Building
 
