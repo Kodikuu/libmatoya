@@ -15,14 +15,6 @@ The interface is a blend of basic window management (i.e. features of [`SDL`](ht
 	- Clipboard support
 	- Hotkey event system
 	- System tray and notifications
-- Common cryptography tasks
-    - CRC32
-	- SHA1
-	- SHA256
-	- HMAC
-	- AES-GCM
-	- Secure random number generation
-	- Full TLS/DTLS protocol wrapper
 - Audio playback
 - JSON parsing and construction
 - Image compression/decompression
@@ -30,6 +22,7 @@ The interface is a blend of basic window management (i.e. features of [`SDL`](ht
 - Built in frame rendering with inteded for video players and emulators
 - Built in UI draw list rendering intended for output from systems such as [`imgui`](https://github.com/ocornut/imgui) or [`nuklear`](https://github.com/Immediate-Mode-UI/Nuklear)
 - Simple commonly used data structures: `MTY_List`, thread-safe `MTY_Queue`, and `MTY_Hash`
+- Common cryptography tasks: CRC32, SHA1, SHA256, HMAC, AES-GCM, TLS/DTLS protocol
 - Many threading features including readers-writer locks and thread pools
 - HTTP/HTTPS and WebSockets using platform specific crypto libraries
 
