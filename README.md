@@ -1,8 +1,8 @@
 ## Overview
 
-`libmatoya` is a lightweight, cross-platform, native application development library.
+`libmatoya` is a lightweight, cross-platform, native application development library. It's a small static library a single header file.
 
-The interface can be considered a blend of basic window management (i.e. features of [`SDL`](https://github.com/libsdl-org/SDL) and [`GLFW`](https://github.com/glfw/glfw)), cross platform utility and convenience (audio playback, threads, queues, lists, filesystem helpers), and application management features that you might find in [`Electron`](https://github.com/electron/electron) or the browser's [`Web APIs`](https://developer.mozilla.org/en-US/docs/Web/API).
+The interface is a blend of basic window management (i.e. features of [`SDL`](https://github.com/libsdl-org/SDL) and [`GLFW`](https://github.com/glfw/glfw)), cross platform utility and convenience (audio playback, threads, queues, lists, filesystem helpers), and application management features that you might find in [`Electron`](https://github.com/electron/electron) or the browser's [`Web APIs`](https://developer.mozilla.org/en-US/docs/Web/API).
 
 #### Features
 - Full application and window management suite
