@@ -6,6 +6,19 @@
 - Wrap old, cumbersome interfaces into modern, ergonomic interfaces
 - Bundle common application tasks into a single dependency
 
+The `libmatoya` interface can be considered a blend of basic window management (i.e. features of [`SDL`](https://github.com/libsdl-org/SDL) and [`GLFW`](https://github.com/glfw/glfw)), cross platform utility and convenience (audio playback, threads, queues, lists, filesystem helpers), and application management features that you might find in [`Electron`](https://github.com/electron/electron) or the browser's [`Web APIs`](https://developer.mozilla.org/en-US/docs/Web/API). THe philosophy is that to be productive in developing a modern application, you usually need all of this stuff, so why not put it all in one place.
+
+- Image compression/decompression routines
+- Common cryptography tasks such as CRC32, SHA1, SHA256, HMAC, secure random number generation, and AES-GCM
+- Simple filesystem heplers intended for basic IO on small files
+- JSON parsing and construction
+- Wrapped window and graphics context supporting `OpenGL`, `D3D9`, `D3D11`, and `Metal`
+- Built in frame rendering with a variety of color formats inteded for video players and emulators
+- Built in UI draw list rendering intended for output from systems such as imgui or nuklear
+- Simple commonly used data structures: linked list, thread safe queue, and hash table
+- Many threading features including readers-writer locks and thread pools
+- HTTP/HTTPS and WebSockets using platform specific crypto libraries (`libssl` on Linux)
+
 The name comes from a character in [Final Fantasy](https://en.wikipedia.org/wiki/Final_Fantasy_(video_game)) who needs a crystal eye to see.
 
 The development of this library is closely tied to [Merton](https://github.com/matoya/merton).
@@ -38,19 +51,6 @@ The development of this library is closely tied to [Merton](https://github.com/m
     - [`/src/unix/linux`](/src/unix/linux)
         - [`/src/unix/linux/generic`](/src/unix/linux/generic)
         - [`/src/unix/linux/android`](/src/unix/linux/android)
-
-The `libmatoya` interface can be considered a blend of basic window management (i.e. features of [`SDL`](https://github.com/libsdl-org/SDL) and [`GLFW`](https://github.com/glfw/glfw)), cross platform utility and convenience (audio playback, threads, queues, lists, filesystem helpers), and application management features that you might find in [`Electron`](https://github.com/electron/electron) or the browser's [`JavaScript API`](https://developer.mozilla.org/en-US/docs/Web/JavaScript). THe philosophy is that to be productive in developing a modern application, you usually need all of this stuff, so why not put it all in one place. Some notable features:
-
-- Image compression/decompression routines
-- Common cryptography tasks such as CRC32, SHA1, SHA256, HMAC, secure random number generation, and AES-GCM
-- Simple filesystem heplers intended for basic IO on small files
-- JSON parsing and construction
-- Wrapped window and graphics context supporting `OpenGL`, `D3D9`, `D3D11`, and `Metal`
-- Built in frame rendering with a variety of color formats inteded for video players and emulators
-- Built in UI draw list rendering intended for output from systems such as imgui or nuklear
-- Simple commonly used data structures: linked list, thread safe queue, and hash table
-- Many threading features including readers-writer locks and thread pools
-- HTTP/HTTPS and WebSockets using platform specific crypto libraries (`libssl` on Linux)
 
 On Linux, `libmatoya` assumes an X11 environment and immediately looks for `libX11` and `libGL`. In order to use certain function related to cryptography and HTTP requests, `libssl` must be present on the system. Audio playback relies on `libasound` and gamepad support relies on `libudev`.
 
