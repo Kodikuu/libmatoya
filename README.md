@@ -2,7 +2,7 @@
 
 `libmatoya` is a cross-platform native app development library. It's a small static library and a [single header file](/src/matoya.h). Written mainly in C but uses Objective-C, JavaScript, and Java where necessary. No C++.
 
-The interface is a blend of basic window management (i.e. features of [`SDL`](https://github.com/libsdl-org/SDL) and [`GLFW`](https://github.com/glfw/glfw)), cross-platform convenience wrappers, and app management features that you might find in [`Electron`](https://github.com/electron/electron) or the browser's [`Web APIs`](https://developer.mozilla.org/en-US/docs/Web/API).
+The interface is a blend of window management (i.e. features of [`SDL`](https://github.com/libsdl-org/SDL) and [`GLFW`](https://github.com/glfw/glfw)), cross-platform convenience wrappers, and app management features that you might find in [`Electron`](https://github.com/electron/electron) or the browser's [`Web APIs`](https://developer.mozilla.org/en-US/docs/Web/API).
 
 #### Features
 - Full app and window management suite
