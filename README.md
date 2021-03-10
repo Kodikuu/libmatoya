@@ -44,8 +44,6 @@ The development of this library is closely tied to [Merton](https://github.com/m
         - [`/src/unix/linux/generic`](/src/unix/linux/generic)
         - [`/src/unix/linux/android`](/src/unix/linux/android)
 
-The WASM implementation is considered a "Unix" platform because of its build tools, the [WASI SDK](https://github.com/WebAssembly/wasi-sdk). Unlike most systems targeting the browser, `libmatoya` does not use Emscripten and instead implements support directly in [`matoya.js`](/src/unix/web/matoya.js).
-
 ## Platform Support
 
 | Platform | Minimum Version            |
@@ -83,7 +81,7 @@ On Linux, you are required only to link against the C standard library. All othe
 
 ## Building
 
-`libmatoya` is changes frequently and is not intended to be distributed as a shared library. It will never use wrapped build systems like CMake, Visual Studio projects, or Automake. `libmatoya` ships with simple makefiles that output lean static libraries. The only public header you are required to include is [`matoya.h`](/src/matoya.h).
+`libmatoya` changes frequently and is not intended to be distributed as a shared library. It will never use wrapped build systems like CMake, Visual Studio projects, or Automake. `libmatoya` ships with simple makefiles that output lean static libraries. The only public header you are required to include is [`matoya.h`](/src/matoya.h).
 
 #### Windows
 ```shell
