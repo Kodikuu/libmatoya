@@ -61,7 +61,7 @@ The development of this library is closely tied to [Merton](https://github.com/m
 
 ## Dependencies
 
-A major goal of `libmatoya` is to avoid third party dependencies, but to wrap system dependencies wherever possible. This approach keeps `libmatoya` small and relies on performant and well-tested code shipped with the target platforms. All libraries required are either guaranteed to be present on the target platforms or are compiled with `libmatoya` from the [`/deps`](/deps) directory. Thanks to:
+A major goal of `libmatoya` is to avoid third-party dependencies, but to wrap system dependencies wherever possible. This approach keeps `libmatoya` very small while relying on performant and well-tested libraries shipped with the target platforms. System libraries required are guaranteed to be present per [Platform Support](#platform-support). Third-party dependencies are compiled with `libmatoya` from the [`/deps`](/deps) directory. Thanks to:
 
 - [`cJSON`](https://github.com/DaveGamble/cJSON): JSON support
 - [`OpenGL`](https://github.com/KhronosGroup/OpenGL-Registry): OpenGL and OpenGLES headers
