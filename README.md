@@ -39,8 +39,6 @@ The development of this library is closely tied to [Merton](https://github.com/m
         - [`/src/unix/linux/generic`](/src/unix/linux/generic)
         - [`/src/unix/linux/android`](/src/unix/linux/android)
 
-On Linux, `libmatoya` assumes an X11 environment and immediately looks for `libX11` and `libGL`. In order to use certain function related to cryptography and HTTP requests, `libssl` must be present on the system. Audio playback relies on `libasound` and gamepad support relies on `libudev`.
-
 The WASM implementation is considered a "Unix" platform because of its build tools, the [WASI SDK](https://github.com/WebAssembly/wasi-sdk). Unlike most systems targeting the browser, `libmatoya` does not use Emscripten and instead implements support directly in [`matoya.js`](/src/unix/web/matoya.js).
 
 ## Platform Support
@@ -54,9 +52,9 @@ The WASM implementation is considered a "Unix" platform because of its build too
 | Linux    | `*`             |
 | web      | `**`            |
 
-`*` Linux doesn't have a minimum version per se, but relies on certain dependencies being present on the system at run time, i.e. `libssl` and `libX11`.
+`*` Linux doesn't have a minimum version per se, but relies on certain dependencies being present on the system at run time.
 
-`**` The WASM (web) version requires WASM 64-bit support, which appeared in Chrome 86. Safari is not supported.
+`**` The WASM (web) version requires WASM 64-bit support, which appeared in Chrome 86 and Firefox 79. Safari is currently not supported.
 
 ## Dependencies
 
