@@ -6,20 +6,32 @@ The interface is a blend of basic window management (i.e. features of [`SDL`](ht
 
 #### Features
 - Full application and window management suite
-    - Multiple windows
-	- System tray icon on Windows
+	- `OpenGL`, `D3D9`, `D3D11`, and `Metal` context creation
     - Mouse, keyboard, and gamepad input
+	- Mouse and keyboard "grabbing"
+	- PNG cursor support
+	- Relative mouse mode
+    - Multiple windows
+	- Clipboard support
+	- Hotkey event system
+	- System tray and notifications
 - Audio playback
 - JSON parsing and construction
-- Image compression/decompression routines
-- Common cryptography tasks such as CRC32, SHA1, SHA256, HMAC, secure random number generation, AES-GCM, and a full TLS/DTLS protocol wrapper
-- Simple filesystem heplers intended for basic IO on small files and common file tasks
-- Wrapped window and graphics context supporting `OpenGL`, `D3D9`, `D3D11`, and `Metal`
-- Built in frame rendering with a variety of color formats inteded for video players and emulators
+- Image compression/decompression
+- Common cryptography tasks
+    - CRC32
+	- SHA1
+	- SHA256
+	- HMAC
+	- AES-GCM
+	- Secure random number generation
+	- Full TLS/DTLS protocol wrapper
+- Simple filesystem heplers intended for basic IO on small files
+- Built in frame rendering with inteded for video players and emulators
 - Built in UI draw list rendering intended for output from systems such as [`imgui`](https://github.com/ocornut/imgui) or [`nuklear`](https://github.com/Immediate-Mode-UI/Nuklear)
 - Simple commonly used data structures: linked list, thread safe queue, and hash table
 - Many threading features including readers-writer locks and thread pools
-- HTTP/HTTPS and WebSockets using platform specific crypto libraries (`libssl` on Linux)
+- HTTP/HTTPS and WebSockets using platform specific crypto libraries
 
 The name comes from a character in [Final Fantasy](https://en.wikipedia.org/wiki/Final_Fantasy_(video_game)) who needs a crystal eye to see.
 
