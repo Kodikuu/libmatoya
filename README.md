@@ -18,6 +18,12 @@ The interface is a blend of basic window management (i.e. features of [`SDL`](ht
 - Audio playback
 - JSON parsing and construction
 - Image compression/decompression
+- Simple filesystem heplers intended for basic IO on small files
+- Built in frame rendering with inteded for video players and emulators
+- Built in UI draw list rendering intended for output from systems such as [`imgui`](https://github.com/ocornut/imgui) or [`nuklear`](https://github.com/Immediate-Mode-UI/Nuklear)
+- Simple commonly used data structures: `MTY_List`, thread-safe `MTY_Queue`, and `MTY_Hash`
+- Many threading features including readers-writer locks and thread pools
+- HTTP/HTTPS and WebSockets using platform specific crypto libraries
 - Common cryptography tasks
     - CRC32
 	- SHA1
@@ -26,12 +32,6 @@ The interface is a blend of basic window management (i.e. features of [`SDL`](ht
 	- AES-GCM
 	- Secure random number generation
 	- Full TLS/DTLS protocol wrapper
-- Simple filesystem heplers intended for basic IO on small files
-- Built in frame rendering with inteded for video players and emulators
-- Built in UI draw list rendering intended for output from systems such as [`imgui`](https://github.com/ocornut/imgui) or [`nuklear`](https://github.com/Immediate-Mode-UI/Nuklear)
-- Simple commonly used data structures: linked list, thread safe queue, and hash table
-- Many threading features including readers-writer locks and thread pools
-- HTTP/HTTPS and WebSockets using platform specific crypto libraries
 
 The name comes from a character in [Final Fantasy](https://en.wikipedia.org/wiki/Final_Fantasy_(video_game)) who needs a crystal eye to see.
 
