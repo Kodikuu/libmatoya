@@ -2,19 +2,17 @@
 
 `libmatoya` is a cross-platform native app development library. It's a small static library and a [single header file](/src/matoya.h). Written mainly in C but uses Objective-C, JavaScript, and Java where necessary. No C++.
 
-The interface is a blend of window management (i.e. features of [`SDL`](https://github.com/libsdl-org/SDL) and [`GLFW`](https://github.com/glfw/glfw)), cross-platform convenience wrappers, and app management features that you might find in [`Electron`](https://github.com/electron/electron) or the browser's [`Web APIs`](https://developer.mozilla.org/en-US/docs/Web/API).
-
 #### Features
-- Full app and window management suite
-	- `OpenGL`, `D3D9`, `D3D11`, and `Metal` context creation
-    - Mouse, keyboard, and gamepad input
-	- Mouse and keyboard "grabbing"
-	- PNG cursor support
-	- Relative mouse mode
-    - Multiple windows
-	- Clipboard support
-	- Hotkey event system
-	- System tray and notifications
+
+- `MTY_App` is the top level object supporting multiple windows (`MTY_Window`)
+- `OpenGL`, `D3D9`, `D3D11`, and `Metal` context creation
+- System tray and notifications
+- Mouse, keyboard, and extensive game controller support
+- Mouse and keyboard window "grabbing"
+- PNG cursor support
+- Relative mouse mode
+- Clipboard support
+- Hotkeys
 - Simple audio playback
 - JSON parsing and construction
 - Image compression/decompression
