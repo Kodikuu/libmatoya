@@ -1,6 +1,6 @@
 ## Overview
 
-`libmatoya` is a lightweight, cross-platform, native application development library. It's a small static library and a [single header file](/src/matoya.h).
+`libmatoya` is a lightweight, cross-platform, native application development library. It's a small static library and a [single header file](/src/matoya.h). It is written mainly in C but uses Objective-C, JavaScript, and Java where necessary. No C++.
 
 The interface is a blend of basic window management (i.e. features of [`SDL`](https://github.com/libsdl-org/SDL) and [`GLFW`](https://github.com/glfw/glfw)), cross-platform utility and convenience, and application management features that you might find in [`Electron`](https://github.com/electron/electron) or the browser's [`Web APIs`](https://developer.mozilla.org/en-US/docs/Web/API).
 
@@ -32,7 +32,7 @@ The development of this library is closely tied to [Merton](https://github.com/m
 
 ## Code
 
-`libmatoya` is set up in a tree-like fashion where the code in common with all platforms is at the root of [`/src`](/src). From there, as you go further up the tree towards the leaves, the code becomes more platform specific. A major development goal is to move as much code as possible towards the root and maintain as little as possible towards the leaves. `libmatoya` never uses platform `#ifdef`s in its source, instead it uses the makefile to choose different paths through the tree depending on the platform.
+`libmatoya` is set up in a tree-like fashion where code in common with all platforms is at the root of [`/src`](/src). From there, as you go further up the tree towards the leaves, the code becomes more platform specific. A major development goal is to move as much code as possible towards the root and maintain as little as possible towards the leaves. `libmatoya` will never `#ifdef` based on platform, instead it uses the makefile to choose different paths through the tree.
 
 - [`/src/windows`](/src/windows)
 - [`/src/unix`](/src/unix)
