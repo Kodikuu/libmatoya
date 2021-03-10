@@ -15,11 +15,11 @@ The interface is a blend of basic window management (i.e. features of [`SDL`](ht
 	- Clipboard support
 	- Hotkey event system
 	- System tray and notifications
-- Audio playback
+- Simple audio playback
 - JSON parsing and construction
 - Image compression/decompression
 - Simple filesystem heplers intended for basic IO on small files
-- Built in frame rendering with inteded for video players and emulators
+- Built in frame rendering intended for video players and emulators
 - Built in UI draw list rendering intended for output from systems such as [`imgui`](https://github.com/ocornut/imgui) or [`nuklear`](https://github.com/Immediate-Mode-UI/Nuklear)
 - Simple commonly used data structures: `MTY_List`, thread-safe `MTY_Queue`, and `MTY_Hash`
 - Common cryptography tasks: CRC32, SHA1, SHA256, HMAC, AES-GCM, TLS/DTLS protocol
@@ -39,7 +39,7 @@ The development of this library is closely tied to [Merton](https://github.com/m
     - [`/src/unix/web`](/src/unix/web)
     - [`/src/unix/apple`](/src/unix/apple)
         - [`/src/unix/apple/macosx`](/src/unix/apple/macosx)
-        - [`/src/unix/apple/iphoneos`](/src/unix/apple/macosx)
+        - [`/src/unix/apple/iphoneos`](/src/unix/apple/iphoneos)
     - [`/src/unix/linux`](/src/unix/linux)
         - [`/src/unix/linux/generic`](/src/unix/linux/generic)
         - [`/src/unix/linux/android`](/src/unix/linux/android)
@@ -48,18 +48,20 @@ The WASM implementation is considered a "Unix" platform because of its build too
 
 ## Platform Support
 
-| Platform | Minimum Version            |
-| -------- | -------------------------- |
-| Windows  | 7                          |
-| Android  | API 26 (8.0)               |
-| macOS    | 10.11                      |
-| iOS/tvOS | 13.0                       |
-| Linux    | `*`                        |
-| web      | `**` Chrome 86, Firefox 79 |
+| Platform | Minimum Version             |
+| -------- | --------------------------- |
+| Windows  | 7                           |
+| Android  | API 26 (8.0)                |
+| macOS    | 10.11                       |
+| iOS/tvOS | `*` 13.0                    |
+| Linux    | `**`                        |
+| web      | `***` Chrome 86, Firefox 79 |
 
-`*` Linux doesn't have a minimum version per se, but relies on certain dependencies being present on the system at run time.
+`*` Not yet implemented, coming soon!
 
-`**` Safari is currently not supported.
+`**` Linux doesn't have a minimum version per se, but relies on certain dependencies being present on the system at run time.
+
+`***` Safari is currently not supported.
 
 ## Dependencies
 
