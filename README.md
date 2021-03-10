@@ -1,11 +1,11 @@
 ## Overview
 
-`libmatoya` is a lightweight, cross-platform, native application development library. It's a small static library and a [single header file](/src/matoya.h). It is written mainly in C but uses Objective-C, JavaScript, and Java where necessary. No C++.
+`libmatoya` is a cross-platform native app development library. It's a small static library and a [single header file](/src/matoya.h). It is written mainly in C but uses Objective-C, JavaScript, and Java where necessary. No C++.
 
-The interface is a blend of basic window management (i.e. features of [`SDL`](https://github.com/libsdl-org/SDL) and [`GLFW`](https://github.com/glfw/glfw)), cross-platform convenience wrappers, and application management features that you might find in [`Electron`](https://github.com/electron/electron) or the browser's [`Web APIs`](https://developer.mozilla.org/en-US/docs/Web/API).
+The interface is a blend of basic window management (i.e. features of [`SDL`](https://github.com/libsdl-org/SDL) and [`GLFW`](https://github.com/glfw/glfw)), cross-platform convenience wrappers, and app management features that you might find in [`Electron`](https://github.com/electron/electron) or the browser's [`Web APIs`](https://developer.mozilla.org/en-US/docs/Web/API).
 
 #### Features
-- Full application and window management suite
+- Full app and window management suite
 	- `OpenGL`, `D3D9`, `D3D11`, and `Metal` context creation
     - Mouse, keyboard, and gamepad input
 	- Mouse and keyboard "grabbing"
@@ -67,7 +67,7 @@ A major goal of `libmatoya` is to avoid third party dependencies. All libraries 
 
 - [`cJSON`](https://github.com/DaveGamble/cJSON): JSON support
 - [`OpenGL`](https://github.com/KhronosGroup/OpenGL-Registry): OpenGL and OpenGLES headers
-- [`miniz`](https://github.com/richgel999/miniz): `gzip` decompression for HTTP requests
+- [`miniz`](https://github.com/richgel999/miniz): Decompression for HTTP requests
 - [`stb`](https://github.com/nothings/stb): Image compression/decompression on Unix platforms
 
 On Linux, you are required only to link against the C standard library. All other dependencies are queried at run time with `dlopen`. These "system" dependencies all have a long history of ABI stability and wide package manager support on the major distros.
