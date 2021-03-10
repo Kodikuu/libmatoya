@@ -61,12 +61,14 @@ The development of this library is closely tied to [Merton](https://github.com/m
 
 ## Dependencies
 
-A major goal of `libmatoya` is to avoid third-party dependencies, but to wrap system dependencies wherever possible. This approach keeps `libmatoya` very small while relying on performant and well-tested libraries shipped with the target platforms. System libraries required are guaranteed to be present per [Platform Support](#platform-support). Third-party dependencies are compiled with `libmatoya` from the [`/deps`](/deps) directory. Thanks to:
+A major goal of `libmatoya` is to avoid third-party dependencies, but to wrap system dependencies wherever possible. This approach keeps `libmatoya` very small while relying on performant and well-tested libraries shipped with the target platforms. Required system libraries are guaranteed to be present per [Platform Support](#platform-support). Third-party dependencies are compiled with `libmatoya` from the [`/deps`](/deps) directory.
 
-- [`cJSON`](https://github.com/DaveGamble/cJSON): JSON support
-- [`OpenGL`](https://github.com/KhronosGroup/OpenGL-Registry): OpenGL and OpenGLES headers
-- [`miniz`](https://github.com/richgel999/miniz): Decompression for HTTP requests
-- [`stb`](https://github.com/nothings/stb): Image compression/decompression on Unix platforms
+| Library                                                     | Role                                              |
+| ----------------------------------------------------------- | ------------------------------------------------- |
+| [`cJSON`](https://github.com/DaveGamble/cJSON)              | JSON support                                      |
+| [`OpenGL`](https://github.com/KhronosGroup/OpenGL-Registry) | OpenGL and OpenGLES headers                       |
+| [`miniz`](https://github.com/richgel999/miniz)              | Decompression for HTTP requests                   |
+| [`stb`](https://github.com/nothings/stb)                    | Image compression/decompression on Unix platforms |
 
 On Linux, you are required only to link against the C standard library. All other dependencies are queried at run time with `dlopen`. These "system" dependencies all have a long history of ABI stability and wide package manager support on the major distros.
 
