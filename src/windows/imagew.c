@@ -6,8 +6,6 @@
 
 #include "matoya.h"
 
-#include <math.h>
-
 #define COBJMACROS
 #include <wincodec.h>
 #include <shlwapi.h>

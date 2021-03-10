@@ -38,10 +38,7 @@ make TARGET=appletvsimulator
 ```
 #### Web
 ```shell
-# By default, WASM=1 builds a WASI compatible binary. It will build an Esmcripten
-# compatible binary if the Emscripten environment is present
-
-# Must be built on a Unix environment
+# Must be built on a Unix environment, see the GNUmakefile for details
 make WASM=1
 ```
 #### Android
