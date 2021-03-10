@@ -15,6 +15,14 @@ The interface is a blend of basic window management (i.e. features of [`SDL`](ht
 	- Clipboard support
 	- Hotkey event system
 	- System tray and notifications
+- Common cryptography tasks
+    - CRC32
+	- SHA1
+	- SHA256
+	- HMAC
+	- AES-GCM
+	- Secure random number generation
+	- Full TLS/DTLS protocol wrapper
 - Audio playback
 - JSON parsing and construction
 - Image compression/decompression
@@ -24,14 +32,6 @@ The interface is a blend of basic window management (i.e. features of [`SDL`](ht
 - Simple commonly used data structures: `MTY_List`, thread-safe `MTY_Queue`, and `MTY_Hash`
 - Many threading features including readers-writer locks and thread pools
 - HTTP/HTTPS and WebSockets using platform specific crypto libraries
-- Common cryptography tasks
-    - CRC32
-	- SHA1
-	- SHA256
-	- HMAC
-	- AES-GCM
-	- Secure random number generation
-	- Full TLS/DTLS protocol wrapper
 
 The name comes from a character in [Final Fantasy](https://en.wikipedia.org/wiki/Final_Fantasy_(video_game)) who needs a crystal eye to see.
 
