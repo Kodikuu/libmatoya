@@ -83,7 +83,7 @@ On Linux, you are required only to link against the C standard library. All othe
 
 ## Building
 
-Currently `libmatoya` is changing frequently and is not intended to be distributed as a shared library. It will never use wrapped build systems like CMake, Visual Studio projects, or Automake. `libmatoya` ships with simple makefiles that output lean static libraries. The only public header you are required to include is [`matoya.h`](/src/matoya.h).
+`libmatoya` is changes frequently and is not intended to be distributed as a shared library. It will never use wrapped build systems like CMake, Visual Studio projects, or Automake. `libmatoya` ships with simple makefiles that output lean static libraries. The only public header you are required to include is [`matoya.h`](/src/matoya.h).
 
 #### Windows
 ```shell
