@@ -1,19 +1,15 @@
 ## Overview
 
-`libmatoya` is a lightweight, cross-platform, native application development library. The main goals of `libmatoya` are:
-- Abstract platform differences into a single interface with consistent behavior
-- Allow access to low level operating system and graphics API functionality
-- Wrap old, cumbersome interfaces into modern, ergonomic interfaces
-- Bundle common application tasks into a single dependency
+`libmatoya` is a lightweight, cross-platform, native application development library.
 
-The `libmatoya` interface can be considered a blend of basic window management (i.e. features of [`SDL`](https://github.com/libsdl-org/SDL) and [`GLFW`](https://github.com/glfw/glfw)), cross platform utility and convenience (audio playback, threads, queues, lists, filesystem helpers), and application management features that you might find in [`Electron`](https://github.com/electron/electron) or the browser's [`Web APIs`](https://developer.mozilla.org/en-US/docs/Web/API). THe philosophy is that to be productive in developing a modern application, you usually need all of this stuff, so why not put it all in one place.
+The interface can be considered a blend of basic window management (i.e. features of [`SDL`](https://github.com/libsdl-org/SDL) and [`GLFW`](https://github.com/glfw/glfw)), cross platform utility and convenience (audio playback, threads, queues, lists, filesystem helpers), and application management features that you might find in [`Electron`](https://github.com/electron/electron) or the browser's [`Web APIs`](https://developer.mozilla.org/en-US/docs/Web/API).
 
 #### Features
-- Audio playback
 - Full application and window management suite
     - Multiple windows
 	- System tray icon on Windows
     - Mouse, keyboard, and gamepad input
+- Audio playback
 - JSON parsing and construction
 - Image compression/decompression routines
 - Common cryptography tasks such as CRC32, SHA1, SHA256, HMAC, secure random number generation, AES-GCM, and a full TLS/DTLS protocol wrapper
@@ -28,21 +24,6 @@ The `libmatoya` interface can be considered a blend of basic window management (
 The name comes from a character in [Final Fantasy](https://en.wikipedia.org/wiki/Final_Fantasy_(video_game)) who needs a crystal eye to see.
 
 The development of this library is closely tied to [Merton](https://github.com/matoya/merton).
-
-## Platform Support
-
-| Platform | Minimum Version |
-| -------- | --------------- |
-| Windows  | 7               |
-| Android  | API 26 (8.0)    |
-| macOS    | 10.11           |
-| iOS/tvOS | 13.0            |
-| Linux    | `*`             |
-| web      | `**`            |
-
-`*` Linux doesn't have a minimum version per se, but relies on certain dependencies being present on the system at run time, i.e. `libssl` and `libX11`.
-
-`**` The WASM (web) version requires WASM 64-bit support, which appeared in Chrome 86. Safari is not supported.
 
 ## Code
 
@@ -62,6 +43,21 @@ On Linux, `libmatoya` assumes an X11 environment and immediately looks for `libX
 
 The WASM implementation is considered a "Unix" platform because of its build tools, the [WASI SDK](https://github.com/WebAssembly/wasi-sdk). Unlike most systems targeting the browser, `libmatoya` does not use Emscripten and instead implements support directly in [`matoya.js`](/src/unix/web/matoya.js).
 
+## Platform Support
+
+| Platform | Minimum Version |
+| -------- | --------------- |
+| Windows  | 7               |
+| Android  | API 26 (8.0)    |
+| macOS    | 10.11           |
+| iOS/tvOS | 13.0            |
+| Linux    | `*`             |
+| web      | `**`            |
+
+`*` Linux doesn't have a minimum version per se, but relies on certain dependencies being present on the system at run time, i.e. `libssl` and `libX11`.
+
+`**` The WASM (web) version requires WASM 64-bit support, which appeared in Chrome 86. Safari is not supported.
+
 ## Dependencies
 
 A major goal of `libmatoya` is to avoid third party dependencies. All libraries required are either guaranteed to be present on the target platforms or are compiled with `libmatoya` from the [`/deps`](/deps) directory. Thanks to:
@@ -72,6 +68,15 @@ A major goal of `libmatoya` is to avoid third party dependencies. All libraries 
 - [`stb`](https://github.com/nothings/stb): Image compression/decompression on Unix platforms
 
 On Linux, you are required only to link against the C standard library. All other dependencies are queried at run time with `dlopen`. These "system" dependencies all have a long history of ABI stability and wide package manager support on the major distros.
+
+- `libX11.so.6`
+    - `libXi.so.6`
+	- `libXcursor.so.1`
+- `libGL.so.1`
+- `libasound.so.2`
+- `libudev.so.1`
+- `libcrypto.so.1.1 OR libcrypto.so.1.0.0`
+- `libssl.so.1.1 OR libssl.so.1.0.0`
 
 ## Building
 
