@@ -28,20 +28,6 @@ The name comes from a character in [Final Fantasy](https://en.wikipedia.org/wiki
 
 The development of this library is closely tied to [Merton](https://github.com/matoya/merton).
 
-## Code
-
-`libmatoya` is set up in a tree-like fashion where code in common with all platforms is at the root of [`/src`](/src). From there, as you go further up the tree towards the leaves, the code becomes more platform specific. A major development goal is to move as much code as possible towards the root and maintain as little as possible towards the leaves. `libmatoya` will never `#ifdef` based on platform, instead it uses the makefile to choose different paths through the tree.
-
-- [`/src/windows`](/src/windows)
-- [`/src/unix`](/src/unix)
-    - [`/src/unix/web`](/src/unix/web)
-    - [`/src/unix/apple`](/src/unix/apple)
-        - [`/src/unix/apple/macosx`](/src/unix/apple/macosx)
-        - [`/src/unix/apple/iphoneos`](/src/unix/apple/iphoneos)
-    - [`/src/unix/linux`](/src/unix/linux)
-        - [`/src/unix/linux/generic`](/src/unix/linux/generic)
-        - [`/src/unix/linux/android`](/src/unix/linux/android)
-
 ## Platform Support
 
 | Platform | Minimum Version            |
