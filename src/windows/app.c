@@ -12,6 +12,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <shellapi.h>
+#include <shobjidl.h>
 #include <shellscalingapi.h>
 
 #include "wsize.h"
@@ -1860,6 +1861,15 @@ void MTY_MessageBox(const char *title, const char *fmt, ...)
 	MTY_Free(wmsg);
 	MTY_Free(wtitle);
 	MTY_Free(msg);
+}
+
+void MTY_SetAppID(const char *id)
+{
+	WCHAR *wid = MTY_MultiToWideD(id);
+
+	SetCurrentProcessExplicitAppUserModelID(wid);
+
+	MTY_Free(wid);
 }
 
 

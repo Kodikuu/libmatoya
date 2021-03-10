@@ -1515,6 +1515,10 @@ void MTY_MessageBox(const char *title, const char *fmt, ...)
 	MTY_Free(msg);
 }
 
+void MTY_SetAppID(const char *id)
+{
+}
+
 
 // Unimplemented
 

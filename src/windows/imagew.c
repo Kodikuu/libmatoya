@@ -11,6 +11,7 @@
 #define COBJMACROS
 #include <wincodec.h>
 #include <shlwapi.h>
+#include <shellapi.h>
 
 void *MTY_DecompressImage(const void *input, size_t size, uint32_t *width, uint32_t *height)
 {
@@ -231,4 +232,89 @@ void *MTY_CompressImage(MTY_Image type, const void *input, uint32_t width, uint3
 		IWICImagingFactory_Release(factory);
 
 	return cmp;
+}
+
+
+// Program Icons
+
+void *MTY_GetProgramIcon(const char *path, uint32_t *width, uint32_t *height)
+{
+	uint8_t *buf = NULL;
+	uint8_t *bmp = NULL;
+	uint8_t *mask = NULL;
+
+	ICONINFO ii = {0};
+	BITMAP bmiColor = {0};
+	BITMAP bmiMask = {0};
+
+	HICON icon = NULL;
+	WCHAR *wpath = MTY_MultiToWideD(path);
+	if (ExtractIconEx(wpath, 0, &icon, NULL, 1) != 1)
+		goto except;
+
+	if (!GetIconInfo(icon, &ii))
+		goto except;
+
+	if (GetObject(ii.hbmColor, sizeof(BITMAP), &bmiColor) == 0)
+		goto except;
+
+	if (GetObject(ii.hbmMask, sizeof(BITMAP), &bmiMask) == 0)
+		goto except;
+
+	// Color and mask must be same dimensions, 32 bpp color, 1 bpp alpha mask
+	if (bmiColor.bmWidth != bmiMask.bmWidth ||
+		bmiColor.bmHeight != bmiMask.bmHeight ||
+		bmiColor.bmBitsPixel != 32 ||
+		bmiMask.bmBitsPixel != 1)
+	{
+		goto except;
+	}
+
+	LONG bitmap_size = bmiColor.bmWidthBytes * bmiColor.bmHeight;
+	LONG mask_size = bmiMask.bmWidthBytes * bmiMask.bmHeight;
+
+	bmp = MTY_Alloc(bitmap_size, 1);
+	mask = MTY_Alloc(mask_size, 1);
+
+	LONG size = GetBitmapBits(ii.hbmColor, bitmap_size, bmp);
+	LONG msize = GetBitmapBits(ii.hbmMask, mask_size, mask);
+
+	if (size != bitmap_size || msize < bitmap_size / 32)
+		goto except;
+
+	buf = MTY_Alloc(bmiColor.bmWidth * bmiColor.bmHeight * 4, 1);
+
+	for (LONG y = 0; y < bmiColor.bmHeight; y++) {
+		for (LONG x = 0; x < bmiColor.bmWidth; x++) {
+			size_t buf_o = y * 4 * bmiColor.bmWidth + x * 4;
+			size_t bmp_o = y * bmiColor.bmWidthBytes + x * 4;
+			size_t msk_o = y * bmiMask.bmWidthBytes + x / 8;
+			uint8_t msk_b = (mask[msk_o] & (1 << (7 - (x % 8)))) ? 0 : 0xFF;
+
+			buf[buf_o + 0] = bmp[bmp_o + 2];
+			buf[buf_o + 1] = bmp[bmp_o + 1];
+			buf[buf_o + 2] = bmp[bmp_o + 0];
+			buf[buf_o + 3] = bmp[bmp_o + 3] != 0 ? bmp[bmp_o + 3] : msk_b;
+		}
+	}
+
+	*width = bmiColor.bmWidth;
+	*height = bmiColor.bmHeight;
+
+	except:
+
+	if (ii.hbmColor)
+		DeleteObject(ii.hbmColor);
+
+	if (ii.hbmMask)
+		DeleteObject(ii.hbmMask);
+
+	if (icon)
+		DestroyIcon(icon);
+
+	MTY_Free(bmp);
+	MTY_Free(mask);
+	MTY_Free(wpath);
+
+	return buf;
 }

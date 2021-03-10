@@ -66,6 +66,9 @@ MTY_EXPORT void *
 MTY_CropImage(const void *image, uint32_t cropWidth, uint32_t cropHeight, uint32_t *width,
 	uint32_t *height);
 
+MTY_EXPORT void *
+MTY_GetProgramIcon(const char *path, uint32_t *width, uint32_t *height);
+
 
 /// @module crypto
 
@@ -1536,6 +1539,9 @@ MTY_GLGetProcAddress(const char *name);
 
 MTY_EXPORT void
 MTY_MessageBox(const char *title, const char *fmt, ...);
+
+MTY_EXPORT void
+MTY_SetAppID(const char *id);
 
 MTY_EXPORT void *
 MTY_JNIEnv(void);

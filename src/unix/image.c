@@ -92,3 +92,8 @@ void *MTY_CompressImage(MTY_Image type, const void *input, uint32_t width, uint3
 
 	return ctx.output;
 }
+
+void *MTY_GetProgramIcon(const char *path, uint32_t *width, uint32_t *height)
+{
+	return NULL;
+}

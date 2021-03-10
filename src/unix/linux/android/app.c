@@ -1082,6 +1082,10 @@ void MTY_MessageBox(const char *title, const char *fmt, ...)
 {
 }
 
+void MTY_SetAppID(const char *id)
+{
+}
+
 void *MTY_JNIEnv(void)
 {
 	return app_jni_env(&CTX);
