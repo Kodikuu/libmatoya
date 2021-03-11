@@ -973,11 +973,13 @@ MTY_GlobalUnlock(MTY_Atomic32 *lock);
 //- module Time
 //- mdesc High precision timestamp and sleep.
 
-MTY_EXPORT int64_t
+typedef int64_t MTY_Time;
+
+MTY_EXPORT MTY_Time
 MTY_Timestamp(void);
 
 MTY_EXPORT float
-MTY_TimeDiff(int64_t begin, int64_t end);
+MTY_TimeDiff(MTY_Time begin, MTY_Time end);
 
 MTY_EXPORT void
 MTY_Sleep(uint32_t timeout);
@@ -1362,7 +1364,7 @@ typedef struct {
 } MTY_Msg;
 
 typedef struct {
-	wchar_t label[256];
+	const char *label;
 	uint32_t trayID;
 	bool (*checked)(void *opaque);
 } MTY_MenuItem;

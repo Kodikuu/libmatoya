@@ -76,12 +76,18 @@ struct MTY_App {
 	struct {
 		HMENU menu;
 		NOTIFYICONDATA nid;
-		MTY_MenuItem *items;
-		uint32_t len;
 		int64_t ts;
 		int64_t rctimer;
 		bool init;
 		bool want;
+
+		struct menu_item {
+			WCHAR *label;
+			uint32_t trayID;
+			bool (*checked)(void *opaque);
+		} *items;
+
+		uint32_t len;
 	} tray;
 };
 
@@ -325,7 +331,7 @@ void MTY_AppRemoveHotkeys(MTY_App *app, MTY_Hotkey mode)
 #define APP_TRAY_UID      1337
 #define APP_TRAY_FIRST    1000
 
-static HMENU app_tray_menu(MTY_MenuItem *items, uint32_t len, void *opaque)
+static HMENU app_tray_menu(struct menu_item *items, uint32_t len, void *opaque)
 {
 	HMENU menu = CreatePopupMenu();
 
@@ -477,8 +483,14 @@ void MTY_AppSetTray(MTY_App *app, const char *tooltip, const MTY_MenuItem *items
 
 	app->tray.want = true;
 	app->tray.rctimer = MTY_Timestamp();
-	app->tray.items = MTY_Dup(items, len * sizeof(MTY_MenuItem));
+	app->tray.items = MTY_Alloc(len, sizeof(struct menu_item));
 	app->tray.len = len;
+
+	for (uint32_t x = 0; x < len; x++) {
+		app->tray.items[x].label = MTY_MultiToWideD(items[x].label);
+		app->tray.items[x].checked = items[x].checked;
+		app->tray.items[x].trayID = items[x].trayID;
+	}
 
 	HWND hwnd = app_get_main_hwnd(app);
 	if (hwnd) {
@@ -493,7 +505,11 @@ void MTY_AppSetTray(MTY_App *app, const char *tooltip, const MTY_MenuItem *items
 
 void MTY_AppRemoveTray(MTY_App *app)
 {
+	for (uint32_t x = 0; x < app->tray.len; x++)
+		MTY_Free(app->tray.items[x].label);
+
 	MTY_Free(app->tray.items);
+
 	app->tray.items = NULL;
 	app->tray.want = false;
 	app->tray.len = 0;
