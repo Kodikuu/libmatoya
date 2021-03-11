@@ -81,7 +81,7 @@ bool MTY_HashNextKeyInt(MTY_Hash *ctx, uint64_t *iter, int64_t *key)
 	return r;
 }
 
-void MTY_HashDestroy(MTY_Hash **hash, void (*freeFunc)(void *value))
+void MTY_HashDestroy(MTY_Hash **hash, MTY_FreeFunc freeFunc)
 {
 	if (!hash || !*hash)
 		return;

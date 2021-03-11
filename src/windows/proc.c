@@ -14,7 +14,7 @@
 
 #include "tlocal.h"
 
-static void (*PROC_CRASH_HANDLER)(bool forced, void *opaque);
+static MTY_CrashFunc PROC_CRASH_FUNC;
 static void *PROC_OPAQUE;
 
 const char *MTY_ProcessName(void)
@@ -52,22 +52,22 @@ bool MTY_RestartProcess(char * const *argv)
 
 static LONG WINAPI proc_exception_handler(EXCEPTION_POINTERS *ex)
 {
-	if (PROC_CRASH_HANDLER)
-		PROC_CRASH_HANDLER(false, PROC_OPAQUE);
+	if (PROC_CRASH_FUNC)
+		PROC_CRASH_FUNC(false, PROC_OPAQUE);
 
 	return EXCEPTION_CONTINUE_SEARCH;
 }
 
 static void proc_signal_handler(int32_t sig)
 {
-	if (PROC_CRASH_HANDLER)
-		PROC_CRASH_HANDLER(sig == SIGTERM || sig == SIGINT, PROC_OPAQUE);
+	if (PROC_CRASH_FUNC)
+		PROC_CRASH_FUNC(sig == SIGTERM || sig == SIGINT, PROC_OPAQUE);
 
 	signal(sig, SIG_DFL);
 	raise(sig);
 }
 
-void MTY_SetCrashHandler(void (*func)(bool forced, void *opaque), void *opaque)
+void MTY_SetCrashFunc(MTY_CrashFunc func, void *opaque)
 {
 	SetUnhandledExceptionFilter(proc_exception_handler);
 
@@ -76,6 +76,6 @@ void MTY_SetCrashHandler(void (*func)(bool forced, void *opaque), void *opaque)
 	signal(SIGABRT, proc_signal_handler);
 	signal(SIGTERM, proc_signal_handler);
 
-	PROC_CRASH_HANDLER = func;
+	PROC_CRASH_FUNC = func;
 	PROC_OPAQUE = opaque;
 }

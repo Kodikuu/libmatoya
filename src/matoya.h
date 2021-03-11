@@ -84,6 +84,8 @@ MTY_GetProgramIcon(const char *path, uint32_t *width, uint32_t *height);
 #define MTY_SHA256_SIZE     32
 #define MTY_SHA256_HEX_SIZE 65
 
+typedef struct MTY_AESGCM MTY_AESGCM;
+
 typedef enum {
 	MTY_ALGORITHM_SHA1       = 1,
 	MTY_ALGORITHM_SHA1_HEX   = 2,
@@ -91,8 +93,6 @@ typedef enum {
 	MTY_ALGORITHM_SHA256_HEX = 4,
 	MTY_ALGORITHM_MAKE_32    = INT32_MAX,
 } MTY_Algorithm;
-
-typedef struct MTY_AESGCM MTY_AESGCM;
 
 MTY_EXPORT uint32_t
 MTY_CRC32(const void *data, size_t size);
@@ -144,6 +144,8 @@ MTY_AESGCMDestroy(MTY_AESGCM **aesgcm);
 #define MTY_URL_MAX  1024
 #define MTY_PATH_MAX 1280
 
+typedef struct MTY_LockFile MTY_LockFile;
+
 typedef enum {
 	MTY_DIR_CWD         = 1,
 	MTY_DIR_HOME        = 2,
@@ -169,8 +171,6 @@ typedef struct {
 	MTY_FileDesc *files;
 	uint32_t len;
 } MTY_FileList;
-
-typedef struct MTY_LockFile MTY_LockFile;
 
 MTY_EXPORT void *
 MTY_ReadFile(const char *path, size_t *size);
@@ -407,8 +407,10 @@ MTY_JSONArrayAppend(MTY_JSON *json, const MTY_JSON *value);
 //- module Log
 //- mdesc Add logs, set logging callback, and log getters.
 
+typedef void (*MTY_LogFunc)(const char *msg, void *opaque);
+
 MTY_EXPORT void
-MTY_SetLogCallback(void (*callback)(const char *msg, void *opaque), void *opaque);
+MTY_SetLogFunc(MTY_LogFunc func, void *opaque);
 
 MTY_EXPORT void
 MTY_DisableLog(bool disabled);
@@ -431,6 +433,8 @@ MTY_GetLog(void);
 
 //- module Memory
 //- mdesc Memory allocation and manipulation.
+
+typedef int32_t (*MTY_CompareFunc)(const void *a, const void *b);
 
 MTY_EXPORT void *
 MTY_Alloc(size_t nelem, size_t elsize);
@@ -517,8 +521,7 @@ MTY_EXPORT bool
 MTY_IsTLSApplicationData(const void *buf, size_t size);
 
 MTY_EXPORT void
-MTY_Sort(void *base, size_t nElements, size_t size,
-	int32_t (*compare)(const void *a, const void *b));
+MTY_Sort(void *base, size_t nElements, size_t size, MTY_CompareFunc func);
 
 #define MTY_MIN(a, b) \
 	((a) > (b) ? (b) : (a))
@@ -572,6 +575,8 @@ MTY_ProtocolHandler(const char *uri, void *token);
 //- module Proc
 //- mdesc Process level configuration.
 
+typedef void (*MTY_CrashFunc)(bool forced, void *opaque);
+
 MTY_EXPORT const char *
 MTY_ProcessName(void);
 
@@ -579,11 +584,17 @@ MTY_EXPORT bool
 MTY_RestartProcess(char * const *argv);
 
 MTY_EXPORT void
-MTY_SetCrashHandler(void (*func)(bool forced, void *opaque), void *opaque);
+MTY_SetCrashFunc(MTY_CrashFunc func, void *opaque);
 
 
 //- module Render
 //- mdesc Simple wrapped common rendering tasks.
+
+typedef struct MTY_Device MTY_Device;
+typedef struct MTY_Context MTY_Context;
+typedef struct MTY_Texture MTY_Texture;
+typedef struct MTY_Renderer MTY_Renderer;
+typedef struct MTY_RenderState MTY_RenderState;
 
 typedef enum {
 	MTY_GFX_NONE    = 0,
@@ -591,7 +602,7 @@ typedef enum {
 	MTY_GFX_D3D9    = 2,
 	MTY_GFX_D3D11   = 3,
 	MTY_GFX_METAL   = 4,
-	MTY_GFX_MAX,
+	MTY_GFX_MAX     = 5,
 	MTY_GFX_MAKE_32 = INT32_MAX,
 } MTY_GFX;
 
@@ -692,12 +703,6 @@ typedef struct {
 	bool clear;
 } MTY_DrawData;
 
-typedef struct MTY_Device MTY_Device;
-typedef struct MTY_Context MTY_Context;
-typedef struct MTY_Texture MTY_Texture;
-typedef struct MTY_Renderer MTY_Renderer;
-typedef struct MTY_RenderState MTY_RenderState;
-
 MTY_EXPORT MTY_Renderer *
 MTY_RendererCreate(void);
 
@@ -737,15 +742,17 @@ MTY_FreeRenderState(MTY_RenderState **state);
 //- module Struct
 //- mdesc Simple data structures.
 
+typedef struct MTY_Hash MTY_Hash;
+typedef struct MTY_Queue MTY_Queue;
+typedef struct MTY_List MTY_List;
+
+typedef void (*MTY_FreeFunc)(void *ptr);
+
 typedef struct MTY_ListNode {
 	void *value;
 	struct MTY_ListNode *prev;
 	struct MTY_ListNode *next;
 } MTY_ListNode;
-
-typedef struct MTY_Hash MTY_Hash;
-typedef struct MTY_Queue MTY_Queue;
-typedef struct MTY_List MTY_List;
 
 MTY_EXPORT MTY_Hash *
 MTY_HashCreate(uint32_t numBuckets);
@@ -775,7 +782,7 @@ MTY_EXPORT bool
 MTY_HashNextKeyInt(MTY_Hash *ctx, uint64_t *iter, int64_t *key);
 
 MTY_EXPORT void
-MTY_HashDestroy(MTY_Hash **hash, void (*freeFunc)(void *value));
+MTY_HashDestroy(MTY_Hash **hash, MTY_FreeFunc freeFunc);
 
 MTY_EXPORT MTY_Queue *
 MTY_QueueCreate(uint32_t len, size_t bufSize);
@@ -805,7 +812,7 @@ MTY_EXPORT bool
 MTY_QueuePopPtr(MTY_Queue *ctx, int32_t timeout, void **opaque, size_t *size);
 
 MTY_EXPORT void
-MTY_QueueFlush(MTY_Queue *ctx, void (*freeFunc)(void *value));
+MTY_QueueFlush(MTY_Queue *ctx, MTY_FreeFunc freeFunc);
 
 MTY_EXPORT void
 MTY_QueueDestroy(MTY_Queue **queue);
@@ -823,11 +830,21 @@ MTY_EXPORT void *
 MTY_ListRemove(MTY_List *ctx, MTY_ListNode *node);
 
 MTY_EXPORT void
-MTY_ListDestroy(MTY_List **list, void (*freeFunc)(void *value));
+MTY_ListDestroy(MTY_List **list, MTY_FreeFunc freeFunc);
 
 
 //- module Thread
 //- mdesc Thread creation and synchronization, atomics.
+
+typedef struct MTY_Thread MTY_Thread;
+typedef struct MTY_Mutex MTY_Mutex;
+typedef struct MTY_Cond MTY_Cond;
+typedef struct MTY_RWLock MTY_RWLock;
+typedef struct MTY_Sync MTY_Sync;
+typedef struct MTY_ThreadPool MTY_ThreadPool;
+
+typedef void (*MTY_AnonFunc)(void *opaque);
+typedef void *(*MTY_ThreadFunc)(void *opaque);
 
 typedef enum {
 	MTY_THREAD_STATE_EMPTY    = 0,
@@ -845,18 +862,11 @@ typedef struct {
 	volatile int64_t value;
 } MTY_Atomic64;
 
-typedef struct MTY_Thread MTY_Thread;
-typedef struct MTY_Mutex MTY_Mutex;
-typedef struct MTY_Cond MTY_Cond;
-typedef struct MTY_RWLock MTY_RWLock;
-typedef struct MTY_Sync MTY_Sync;
-typedef struct MTY_ThreadPool MTY_ThreadPool;
-
 MTY_EXPORT MTY_Thread *
-MTY_ThreadCreate(void *(*func)(void *opaque), void *opaque);
+MTY_ThreadCreate(MTY_ThreadFunc func, void *opaque);
 
 MTY_EXPORT void
-MTY_ThreadDetach(void *(*func)(void *opaque), void *opaque);
+MTY_ThreadDetach(MTY_ThreadFunc func, void *opaque);
 
 MTY_EXPORT int64_t
 MTY_ThreadGetID(MTY_Thread *ctx);
@@ -928,16 +938,16 @@ MTY_EXPORT MTY_ThreadPool *
 MTY_ThreadPoolCreate(uint32_t maxThreads);
 
 MTY_EXPORT uint32_t
-MTY_ThreadPoolStart(MTY_ThreadPool *ctx, void (*func)(void *opaque), void *opaque);
+MTY_ThreadPoolStart(MTY_ThreadPool *ctx, MTY_AnonFunc func, void *opaque);
 
 MTY_EXPORT void
-MTY_ThreadPoolDetach(MTY_ThreadPool *ctx, uint32_t index, void (*detach)(void *opaque));
+MTY_ThreadPoolDetach(MTY_ThreadPool *ctx, uint32_t index, MTY_AnonFunc detach);
 
 MTY_EXPORT MTY_ThreadState
 MTY_ThreadPoolState(MTY_ThreadPool *ctx, uint32_t index, void **opaque);
 
 MTY_EXPORT void
-MTY_ThreadPoolDestroy(MTY_ThreadPool **pool, void (*detach)(void *opaque));
+MTY_ThreadPoolDestroy(MTY_ThreadPool **pool, MTY_AnonFunc detach);
 
 MTY_EXPORT void
 MTY_Atomic32Set(MTY_Atomic32 *atomic, int32_t value);
@@ -1003,7 +1013,13 @@ MTY_RevertTimerResolution(uint32_t res);
 #define MTY_DPAD_DOWN(c)  (MTY_DPAD(c) == 3 || MTY_DPAD(c) == 4 || MTY_DPAD(c) == 5)
 #define MTY_DPAD_LEFT(c)  (MTY_DPAD(c) == 5 || MTY_DPAD(c) == 6 || MTY_DPAD(c) == 7)
 
+struct MTY_Msg;
+typedef struct MTY_App MTY_App;
 typedef int8_t MTY_Window;
+
+typedef bool (*MTY_AppFunc)(void *opaque);
+typedef void (*MTY_MsgFunc)(const struct MTY_Msg *msg, void *opaque);
+typedef bool (*MTY_MenuItemCheckedFunc)(void *opaque);
 
 typedef enum {
 	MTY_DETACH_NONE    = 0,
@@ -1342,7 +1358,7 @@ typedef struct {
 	int8_t tiltY;
 } MTY_PenEvent;
 
-typedef struct {
+typedef struct MTY_Msg {
 	MTY_MsgType type;
 	MTY_Window window;
 
@@ -1366,7 +1382,7 @@ typedef struct {
 typedef struct {
 	const char *label;
 	uint32_t trayID;
-	bool (*checked)(void *opaque);
+	MTY_MenuItemCheckedFunc checked;
 } MTY_MenuItem;
 
 typedef struct {
@@ -1383,11 +1399,6 @@ typedef struct {
 	bool hidden;
 	bool vsync;
 } MTY_WindowDesc;
-
-typedef bool (*MTY_AppFunc)(void *opaque);
-typedef void (*MTY_MsgFunc)(const MTY_Msg *wmsg, void *opaque);
-
-typedef struct MTY_App MTY_App;
 
 MTY_EXPORT MTY_App *
 MTY_AppCreate(MTY_AppFunc appFunc, MTY_MsgFunc msgFunc, void *opaque);
@@ -1577,6 +1588,10 @@ MTY_JNIEnv(void);
 //- module Net
 //- mdesc HTTP/HTTPS, WebSocket support.
 
+typedef struct MTY_WebSocket MTY_WebSocket;
+
+typedef void (*MTY_HttpAsyncFunc)(uint16_t code, void **body, size_t *size);
+
 typedef enum {
 	MTY_ASYNC_OK       = 0,
 	MTY_ASYNC_DONE     = 1,
@@ -1584,10 +1599,6 @@ typedef enum {
 	MTY_ASYNC_ERROR    = 3,
 	MTY_ASYNC_MAKE_32  = INT32_MAX,
 } MTY_Async;
-
-typedef void (*MTY_HttpAsyncFunc)(uint16_t code, void **body, size_t *size);
-
-typedef struct MTY_WebSocket MTY_WebSocket;
 
 MTY_EXPORT void
 MTY_HttpSetProxy(const char *proxy);
@@ -1649,16 +1660,16 @@ MTY_WebSocketGetCloseCode(MTY_WebSocket *ctx);
 
 #define MTY_FINGERPRINT_MAX 512
 
+typedef struct MTY_Cert MTY_Cert;
+typedef struct MTY_TLS MTY_TLS;
+
+typedef bool (*MTY_TLSWriteFunc)(const void *buf, size_t size, void *opaque);
+
 typedef enum {
 	MTY_TLS_TYPE_TLS     = 1,
 	MTY_TLS_TYPE_DTLS    = 2,
 	MTY_TLS_TYPE_MAKE_32 = INT32_MAX,
 } MTY_TLSType;
-
-typedef bool (*MTY_TLSWriteFunc)(const void *buf, size_t size, void *opaque);
-
-typedef struct MTY_Cert MTY_Cert;
-typedef struct MTY_TLS MTY_TLS;
 
 MTY_EXPORT MTY_Cert *
 MTY_CertCreate(void);

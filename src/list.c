@@ -59,7 +59,7 @@ void *MTY_ListRemove(MTY_List *ctx, MTY_ListNode *node)
 	return r;
 }
 
-void MTY_ListDestroy(MTY_List **list, void (*freeFunc)(void *value))
+void MTY_ListDestroy(MTY_List **list, MTY_FreeFunc freeFunc)
 {
 	if (!list || !*list)
 		return;

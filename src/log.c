@@ -15,7 +15,7 @@ static void log_none(const char *msg, void *opaque)
 {
 }
 
-static void (*LOG_CALLBACK)(const char *msg, void *opaque) = log_none;
+static MTY_LogFunc LOG_FUNC = log_none;
 static void *LOG_OPAQUE;
 
 static MTY_TLOCAL char *LOG_MSG;
@@ -36,7 +36,7 @@ static void log_internal(const char *func, const char *msg, va_list args)
 	MTY_Free(fmt);
 
 	LOG_PREVENT_RECURSIVE = true;
-	LOG_CALLBACK(LOG_MSG, LOG_OPAQUE);
+	LOG_FUNC(LOG_MSG, LOG_OPAQUE);
 	LOG_PREVENT_RECURSIVE = false;
 }
 
@@ -58,9 +58,9 @@ void MTY_FatalParams(const char *func, const char *msg, ...)
 	_Exit(EXIT_FAILURE);
 }
 
-void MTY_SetLogCallback(void (*callback)(const char *msg, void *opaque), void *opaque)
+void MTY_SetLogFunc(MTY_LogFunc func, void *opaque)
 {
-	LOG_CALLBACK = callback ? callback : log_none;
+	LOG_FUNC = func ? func : log_none;
 	LOG_OPAQUE = opaque;
 }
 

@@ -16,7 +16,7 @@
 struct MTY_Thread {
 	HANDLE thread;
 	bool detach;
-	void *(*func)(void *opaque);
+	MTY_ThreadFunc func;
 	void *opaque;
 	void *ret;
 };
@@ -33,7 +33,7 @@ static DWORD WINAPI thread_func(LPVOID *lpParameter)
 	return 0;
 }
 
-static MTY_Thread *thread_create(void *(*func)(void *opaque), void *opaque, bool detach)
+static MTY_Thread *thread_create(MTY_ThreadFunc func, void *opaque, bool detach)
 {
 	MTY_Thread *ctx = MTY_Alloc(1, sizeof(MTY_Thread));
 	ctx->func = func;
@@ -56,12 +56,12 @@ static MTY_Thread *thread_create(void *(*func)(void *opaque), void *opaque, bool
 	return ctx;
 }
 
-MTY_Thread *MTY_ThreadCreate(void *(*func)(void *opaque), void *opaque)
+MTY_Thread *MTY_ThreadCreate(MTY_ThreadFunc func, void *opaque)
 {
 	return thread_create(func, opaque, false);
 }
 
-void MTY_ThreadDetach(void *(*func)(void *opaque), void *opaque)
+void MTY_ThreadDetach(MTY_ThreadFunc func, void *opaque)
 {
 	thread_create(func, opaque, true);
 }

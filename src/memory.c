@@ -126,7 +126,7 @@ wchar_t *MTY_MultiToWideD(const char *src)
 // Stable qsort
 
 struct element {
-	int32_t (*compare)(const void *, const void *);
+	MTY_CompareFunc compare;
 	const void *orig;
 };
 
@@ -141,7 +141,7 @@ static int32_t sort_compare(const void *a, const void *b)
 	return r != 0 ? r : (int32_t) ((uint8_t *) element_a->orig - (uint8_t *) element_b->orig);
 }
 
-void MTY_Sort(void *base, size_t nElements, size_t size, int32_t (*compare)(const void *a, const void *b))
+void MTY_Sort(void *base, size_t nElements, size_t size, MTY_CompareFunc func)
 {
 	// Temporary copy of the base array for wrapping
 	uint8_t *tmp = MTY_Alloc(nElements, size);
@@ -151,7 +151,7 @@ void MTY_Sort(void *base, size_t nElements, size_t size, int32_t (*compare)(cons
 	struct element *wrapped = MTY_Alloc(nElements, sizeof(struct element));
 
 	for (size_t x = 0; x < nElements; x++) {
-		wrapped[x].compare = compare;
+		wrapped[x].compare = func;
 		wrapped[x].orig = tmp + x * size;
 	}
 

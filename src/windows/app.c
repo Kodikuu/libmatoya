@@ -84,7 +84,7 @@ struct MTY_App {
 		struct menu_item {
 			WCHAR *label;
 			uint32_t trayID;
-			bool (*checked)(void *opaque);
+			MTY_MenuItemCheckedFunc checked;
 		} *items;
 
 		uint32_t len;

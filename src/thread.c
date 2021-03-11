@@ -73,8 +73,8 @@ void MTY_SyncDestroy(MTY_Sync **sync)
 
 struct thread_info {
 	MTY_ThreadState status;
-	void (*func)(void *opaque);
-	void (*detach)(void *opaque);
+	MTY_AnonFunc func;
+	MTY_AnonFunc detach;
 	void *opaque;
 	MTY_Thread *t;
 	MTY_Mutex *m;
@@ -119,7 +119,7 @@ static void *thread_pool_func(void *opaque)
 	return NULL;
 }
 
-uint32_t MTY_ThreadPoolStart(MTY_ThreadPool *ctx, void (*func)(void *opaque), void *opaque)
+uint32_t MTY_ThreadPoolStart(MTY_ThreadPool *ctx, MTY_AnonFunc func, void *opaque)
 {
 	uint32_t index = 0;
 
@@ -151,7 +151,7 @@ uint32_t MTY_ThreadPoolStart(MTY_ThreadPool *ctx, void (*func)(void *opaque), vo
 	return index;
 }
 
-void MTY_ThreadPoolDetach(MTY_ThreadPool *ctx, uint32_t index, void (*detach)(void *opaque))
+void MTY_ThreadPoolDetach(MTY_ThreadPool *ctx, uint32_t index, MTY_AnonFunc detach)
 {
 	struct thread_info *ti = &ctx->ti[index];
 
@@ -184,7 +184,7 @@ MTY_ThreadState MTY_ThreadPoolState(MTY_ThreadPool *ctx, uint32_t index, void **
 	return status;
 }
 
-void MTY_ThreadPoolDestroy(MTY_ThreadPool **pool, void (*detach)(void *opaque))
+void MTY_ThreadPoolDestroy(MTY_ThreadPool **pool, MTY_AnonFunc detach)
 {
 	if (!pool || !*pool)
 		return;
