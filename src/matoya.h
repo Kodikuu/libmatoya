@@ -4,6 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+/// @file
+
 #pragma once
 
 #include <stdint.h>
@@ -20,14 +22,16 @@ extern "C" {
 #endif
 
 
-/// @module version
+//- module Version
+//- mdesc `libmatoya` version constants and helper functions.
 
 #define MTY_VERSION         4
 #define MTY_VERSION_STRING  "v4"
 #define MTY_VERSION_STRINGW L"v4"
 
 
-/// @module audio
+//- module Audio
+//- mdesc Simple audio playback.
 
 typedef struct MTY_Audio MTY_Audio;
 
@@ -47,7 +51,8 @@ MTY_EXPORT void
 MTY_AudioDestroy(MTY_Audio **audio);
 
 
-/// @module image
+//- module Image
+//- mdesc Image compression and cropping. Program icons.
 
 typedef enum {
 	MTY_IMAGE_PNG     = 1,
@@ -70,7 +75,8 @@ MTY_EXPORT void *
 MTY_GetProgramIcon(const char *path, uint32_t *width, uint32_t *height);
 
 
-/// @module crypto
+//- module Crypto
+//- mdesc Common cryptography tasks.
 
 #define MTY_SHA1_SIZE       20
 #define MTY_SHA1_HEX_SIZE   41
@@ -132,7 +138,8 @@ MTY_EXPORT void
 MTY_AESGCMDestroy(MTY_AESGCM **aesgcm);
 
 
-/// @module file
+//- module File
+//- mdesc Simple filesystem helpers.
 
 #define MTY_URL_MAX  1024
 #define MTY_PATH_MAX 1280
@@ -214,7 +221,8 @@ MTY_EXPORT void
 MTY_FreeFileList(MTY_FileList **fileList);
 
 
-/// @module json
+//- module JSON
+//- mdesc JSON parsing and construction.
 
 typedef struct MTY_JSON MTY_JSON;
 
@@ -396,7 +404,8 @@ MTY_JSONArrayAppend(MTY_JSON *json, const MTY_JSON *value);
 	MTY_JSONArraySet(j, i, MTY_JSONFromBool(v))
 
 
-/// @module log
+//- module Log
+//- mdesc Add logs, set logging callback, and log getters.
 
 MTY_EXPORT void
 MTY_SetLogCallback(void (*callback)(const char *msg, void *opaque), void *opaque);
@@ -420,7 +429,8 @@ MTY_GetLog(void);
 	MTY_FatalParams(__FUNCTION__, msg, ##__VA_ARGS__)
 
 
-/// @module memory
+//- module Memory
+//- mdesc Memory allocation and manipulation.
 
 MTY_EXPORT void *
 MTY_Alloc(size_t nelem, size_t elsize);
@@ -523,7 +533,8 @@ MTY_Sort(void *base, size_t nElements, size_t size,
 	((v) + 0x1F & ~((uintptr_t) 0x1F))
 
 
-// @module os
+//- module OS
+//- mdesc Interact with the OS outside of the application.
 
 #define MTY_OS_UNKNOWN 0x00000000
 #define MTY_OS_WINDOWS 0x01000000
@@ -558,7 +569,8 @@ MTY_EXPORT void
 MTY_ProtocolHandler(const char *uri, void *token);
 
 
-/// @module proc
+//- module Proc
+//- mdesc Process level configuration.
 
 MTY_EXPORT const char *
 MTY_ProcessName(void);
@@ -570,7 +582,8 @@ MTY_EXPORT void
 MTY_SetCrashHandler(void (*func)(bool forced, void *opaque), void *opaque);
 
 
-/// @module render
+//- module Render
+//- mdesc Simple wrapped common rendering tasks.
 
 typedef enum {
 	MTY_GFX_NONE    = 0,
@@ -616,7 +629,7 @@ typedef enum {
 	MTY_ROTATION_MAKE_32 = INT32_MAX,
 } MTY_Rotation;
 
-typedef struct MTY_RenderDesc {
+typedef struct {
 	MTY_ColorFormat format;
 	MTY_Rotation rotation;
 	MTY_Filter filter;
@@ -721,7 +734,8 @@ MTY_EXPORT void
 MTY_FreeRenderState(MTY_RenderState **state);
 
 
-/// @module struct
+//- module Struct
+//- mdesc Simple data structures.
 
 typedef struct MTY_ListNode {
 	void *value;
@@ -812,7 +826,8 @@ MTY_EXPORT void
 MTY_ListDestroy(MTY_List **list, void (*freeFunc)(void *value));
 
 
-/// @module thread
+//- module Thread
+//- mdesc Thread creation and synchronization, atomics.
 
 typedef enum {
 	MTY_THREAD_STATE_EMPTY    = 0,
@@ -955,7 +970,8 @@ MTY_EXPORT void
 MTY_GlobalUnlock(MTY_Atomic32 *lock);
 
 
-/// @module time
+//- module Time
+//- mdesc High precision timestamp and sleep.
 
 MTY_EXPORT int64_t
 MTY_Timestamp(void);
@@ -973,7 +989,8 @@ MTY_EXPORT void
 MTY_RevertTimerResolution(uint32_t res);
 
 
-// @module app
+//- module App
+//- mdesc Application, window, and input management.
 
 #define MTY_TITLE_MAX   1024
 #define MTY_WINDOW_MAX  8
@@ -1532,7 +1549,8 @@ MTY_EXPORT MTY_GFXState
 MTY_WindowGFXState(MTY_App *app, MTY_Window window);
 
 
-// @module app-misc
+//- module AppMisc
+//- mdesc Miscellanous application related tasks.
 
 MTY_EXPORT void *
 MTY_GLGetProcAddress(const char *name);
@@ -1547,7 +1565,8 @@ MTY_EXPORT void *
 MTY_JNIEnv(void);
 
 
-// @module net
+//- module Net
+//- mdesc HTTP/HTTPS, WebSocket support.
 
 typedef enum {
 	MTY_ASYNC_OK       = 0,
@@ -1616,7 +1635,8 @@ MTY_EXPORT uint16_t
 MTY_WebSocketGetCloseCode(MTY_WebSocket *ctx);
 
 
-// @module tls
+//- module TLS
+//- mdesc TLS/DTLS protocol wrapper.
 
 #define MTY_FINGERPRINT_MAX 512
 
