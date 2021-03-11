@@ -2,19 +2,18 @@
 
 `libmatoya` is a cross-platform native app development library. It's a small static library and a [single header file](/src/matoya.h). Written mainly in C but uses Objective-C, JavaScript, and Java where necessary. No C++.
 
-The interface is a blend of window management (i.e. features of [`SDL`](https://github.com/libsdl-org/SDL) and [`GLFW`](https://github.com/glfw/glfw)), cross-platform convenience wrappers, and app management features that you might find in [`Electron`](https://github.com/electron/electron) or the browser's [`Web APIs`](https://developer.mozilla.org/en-US/docs/Web/API).
-
 #### Features
-- Full app and window management suite
-	- `OpenGL`, `D3D9`, `D3D11`, and `Metal` context creation
-    - Mouse, keyboard, and gamepad input
-	- Mouse and keyboard "grabbing"
-	- PNG cursor support
-	- Relative mouse mode
-    - Multiple windows
-	- Clipboard support
-	- Hotkey event system
-	- System tray and notifications
+
+- `MTY_App` is the top level object supporting multiple windows (`MTY_Window`)
+- `OpenGL`, `D3D9`, `D3D11`, and `Metal` context creation
+- System tray and notifications
+- Mouse, keyboard, and extensive game controller support
+- Mouse and keyboard window "grabbing"
+- PNG cursor support
+- Relative mouse mode
+- Clipboard support
+- Hotkeys
+- Simple HTTP/HTTPS requests and WebSockets
 - Simple audio playback
 - JSON parsing and construction
 - Image compression/decompression
@@ -24,25 +23,10 @@ The interface is a blend of window management (i.e. features of [`SDL`](https://
 - Simple commonly used data structures: `MTY_List`, thread-safe `MTY_Queue`, and `MTY_Hash`
 - Common cryptography tasks: CRC32, SHA1, SHA256, HMAC, AES-GCM, TLS/DTLS protocol
 - Many threading features including readers-writer locks and thread pools
-- HTTP/HTTPS and WebSockets using platform specific crypto libraries
 
 The name comes from a character in [Final Fantasy](https://en.wikipedia.org/wiki/Final_Fantasy_(video_game)) who needs a crystal eye to see.
 
 The development of this library is closely tied to [Merton](https://github.com/matoya/merton).
-
-## Code
-
-`libmatoya` is set up in a tree-like fashion where code in common with all platforms is at the root of [`/src`](/src). From there, as you go further up the tree towards the leaves, the code becomes more platform specific. A major development goal is to move as much code as possible towards the root and maintain as little as possible towards the leaves. `libmatoya` will never `#ifdef` based on platform, instead it uses the makefile to choose different paths through the tree.
-
-- [`/src/windows`](/src/windows)
-- [`/src/unix`](/src/unix)
-    - [`/src/unix/web`](/src/unix/web)
-    - [`/src/unix/apple`](/src/unix/apple)
-        - [`/src/unix/apple/macosx`](/src/unix/apple/macosx)
-        - [`/src/unix/apple/iphoneos`](/src/unix/apple/iphoneos)
-    - [`/src/unix/linux`](/src/unix/linux)
-        - [`/src/unix/linux/generic`](/src/unix/linux/generic)
-        - [`/src/unix/linux/android`](/src/unix/linux/android)
 
 ## Platform Support
 
@@ -58,28 +42,6 @@ The development of this library is closely tied to [Merton](https://github.com/m
 `*` Linux doesn't have a minimum version per se, but relies on certain dependencies being present on the system at run time.
 
 `**` Safari is currently not supported.
-
-## Dependencies
-
-A major goal of `libmatoya` is to avoid third-party dependencies and wrap system dependencies wherever possible. This approach keeps `libmatoya` very small while relying on performant and well-tested libraries shipped with the target platforms. Required system libraries are guaranteed to be present per [Platform Support](#platform-support). Third-party dependencies are compiled with `libmatoya` from the [`/deps`](/deps) directory.
-
-| Library                                                     | License | Role                                              |
-| ----------------------------------------------------------- | ------- | ------------------------------------------------- |
-| [`cJSON`](https://github.com/DaveGamble/cJSON)              | MIT     | JSON support                                      |
-| [`OpenGL`](https://github.com/KhronosGroup/OpenGL-Registry) | MIT     | OpenGL and OpenGLES headers                       |
-| [`miniz`](https://github.com/richgel999/miniz)              | MIT     | Decompression for HTTP requests                   |
-| [`stb`](https://github.com/nothings/stb)                    | MIT     | Image compression/decompression on Unix platforms |
-
-On Linux, you are required only to link against the C standard library. All other dependencies are queried at run time with `dlopen`. These "system" dependencies all have a long history of ABI stability and wide package manager support on the major distros.
-
-- `libX11.so.6`
-    - `libXi.so.6`
-	- `libXcursor.so.1`
-- `libGL.so.1`
-- `libasound.so.2`
-- `libudev.so.1`
-- `libcrypto.so.1.1 OR libcrypto.so.1.0.0`
-- `libssl.so.1.1 OR libssl.so.1.0.0`
 
 ## Building
 
