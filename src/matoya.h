@@ -1004,7 +1004,6 @@ MTY_RevertTimerResolution(uint32_t res);
 //- module App
 //- mdesc Application, window, and input management.
 
-#define MTY_TITLE_MAX   1024
 #define MTY_WINDOW_MAX  8
 
 #define MTY_DPAD(c)       ((c)->values[MTY_CVALUE_DPAD].data)
