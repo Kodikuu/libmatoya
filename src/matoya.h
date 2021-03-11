@@ -247,54 +247,6 @@ MTY_JSONLength(const MTY_JSON *json);
 MTY_EXPORT void
 MTY_JSONDestroy(MTY_JSON **json);
 
-MTY_EXPORT bool
-MTY_JSONToString(const MTY_JSON *json, char *value, size_t size);
-
-MTY_EXPORT bool
-MTY_JSONToInt(const MTY_JSON *json, int32_t *value);
-
-MTY_EXPORT bool
-MTY_JSONToUInt(const MTY_JSON *json, uint32_t *value);
-
-MTY_EXPORT bool
-MTY_JSONToInt16(const MTY_JSON *json, int16_t *value);
-
-MTY_EXPORT bool
-MTY_JSONToUInt16(const MTY_JSON *json, uint16_t *value);
-
-MTY_EXPORT bool
-MTY_JSONToInt8(const MTY_JSON *json, int8_t *value);
-
-MTY_EXPORT bool
-MTY_JSONToUInt8(const MTY_JSON *json, uint8_t *value);
-
-MTY_EXPORT bool
-MTY_JSONToFloat(const MTY_JSON *json, float *value);
-
-MTY_EXPORT bool
-MTY_JSONToBool(const MTY_JSON *json, bool *value);
-
-MTY_EXPORT bool
-MTY_JSONIsNull(const MTY_JSON *json);
-
-MTY_EXPORT MTY_JSON *
-MTY_JSONFromString(const char *value);
-
-MTY_EXPORT MTY_JSON *
-MTY_JSONFromInt(int32_t value);
-
-MTY_EXPORT MTY_JSON *
-MTY_JSONFromUInt(uint32_t value);
-
-MTY_EXPORT MTY_JSON *
-MTY_JSONFromFloat(float value);
-
-MTY_EXPORT MTY_JSON *
-MTY_JSONFromBool(bool value);
-
-MTY_EXPORT MTY_JSON *
-MTY_JSONNull(void);
-
 MTY_EXPORT MTY_JSON *
 MTY_JSONObj(void);
 
@@ -331,77 +283,89 @@ MTY_JSONArraySet(MTY_JSON *json, uint32_t index, const MTY_JSON *value);
 MTY_EXPORT void
 MTY_JSONArrayAppend(MTY_JSON *json, const MTY_JSON *value);
 
-#define MTY_JSONObjGetString(j, k, v, n) \
-	MTY_JSONToString(MTY_JSONObjGet(j, k), v, n)
+MTY_EXPORT bool
+MTY_JSONObjGetString(const MTY_JSON *json, const char *key, char *val, size_t size);
 
-#define MTY_JSONObjGetInt(j, k, v) \
-	MTY_JSONToInt(MTY_JSONObjGet(j, k), v)
+MTY_EXPORT bool
+MTY_JSONObjGetInt(const MTY_JSON *json, const char *key, int32_t *val);
 
-#define MTY_JSONObjGetUInt(j, k, v) \
-	MTY_JSONToUInt(MTY_JSONObjGet(j, k), v)
+MTY_EXPORT bool
+MTY_JSONObjGetUInt(const MTY_JSON *json, const char *key, uint32_t *val);
 
-#define MTY_JSONObjGetInt16(j, k, v) \
-	MTY_JSONToInt16(MTY_JSONObjGet(j, k), v)
+MTY_EXPORT bool
+MTY_JSONObjGetInt8(const MTY_JSON *json, const char *key, int8_t *val);
 
-#define MTY_JSONObjGetUInt16(j, k, v) \
-	MTY_JSONToUInt16(MTY_JSONObjGet(j, k), v)
+MTY_EXPORT bool
+MTY_JSONObjGetUInt8(const MTY_JSON *json, const char *key, uint8_t *val);
 
-#define MTY_JSONObjGetInt8(j, k, v) \
-	MTY_JSONToInt8(MTY_JSONObjGet(j, k), v)
+MTY_EXPORT bool
+MTY_JSONObjGetInt16(const MTY_JSON *json, const char *key, int16_t *val);
 
-#define MTY_JSONObjGetUInt8(j, k, v) \
-	MTY_JSONToUInt8(MTY_JSONObjGet(j, k), v)
+MTY_EXPORT bool
+MTY_JSONObjGetUInt16(const MTY_JSON *json, const char *key, uint16_t *val);
 
-#define MTY_JSONObjGetFloat(j, k, v) \
-	MTY_JSONToFloat(MTY_JSONObjGet(j, k), v)
+MTY_EXPORT bool
+MTY_JSONObjGetFloat(const MTY_JSON *json, const char *key, float *val);
 
-#define MTY_JSONObjGetBool(j, k, v) \
-	MTY_JSONToBool(MTY_JSONObjGet(j, k), v)
+MTY_EXPORT bool
+MTY_JSONObjGetBool(const MTY_JSON *json, const char *key, bool *val);
 
-#define MTY_JSONObjSetString(j, k, v) \
-	MTY_JSONObjSet(j, k, MTY_JSONFromString(v))
+MTY_EXPORT bool
+MTY_JSONObjValIsNull(const MTY_JSON *json, const char *key);
 
-#define MTY_JSONObjSetInt(j, k, v) \
-	MTY_JSONObjSet(j, k, MTY_JSONFromInt(v))
+MTY_EXPORT void
+MTY_JSONObjSetString(MTY_JSON *json, const char *key, const char *val);
 
-#define MTY_JSONObjSetUInt(j, k, v) \
-	MTY_JSONObjSet(j, k, MTY_JSONFromUInt(v))
+MTY_EXPORT void
+MTY_JSONObjSetInt(MTY_JSON *json, const char *key, int32_t val);
 
-#define MTY_JSONObjSetFloat(j, k, v) \
-	MTY_JSONObjSet(j, k, MTY_JSONFromFloat(v))
+MTY_EXPORT void
+MTY_JSONObjSetUInt(MTY_JSON *json, const char *key, uint32_t val);
 
-#define MTY_JSONObjSetBool(j, k, v) \
-	MTY_JSONObjSet(j, k, MTY_JSONFromBool(v))
+MTY_EXPORT void
+MTY_JSONObjSetFloat(MTY_JSON *json, const char *key, float val);
 
-#define MTY_JSONArrayGetString(j, i, v, n) \
-	MTY_JSONToString(MTY_JSONArrayGet(j, i), v, n)
+MTY_EXPORT void
+MTY_JSONObjSetBool(MTY_JSON *json, const char *key, bool val);
 
-#define MTY_JSONArrayGetInt(j, i, v) \
-	MTY_JSONToInt(MTY_JSONArrayGet(j, i), v)
+MTY_EXPORT void
+MTY_JSONObjSetNull(MTY_JSON *json, const char *key);
 
-#define MTY_JSONArrayGetUInt(j, i, v) \
-	MTY_JSONToUInt(MTY_JSONArrayGet(j, i), v)
+MTY_EXPORT bool
+MTY_JSONArrayGetString(const MTY_JSON *json, uint32_t index, char *val, size_t size);
 
-#define MTY_JSONArrayGetFloat(j, i, v) \
-	MTY_JSONToFloat(MTY_JSONArrayGet(j, i), v)
+MTY_EXPORT bool
+MTY_JSONArrayGetInt(const MTY_JSON *json, uint32_t index, int32_t *val);
 
-#define MTY_JSONArrayGetBool(j, i, v) \
-	MTY_JSONToBool(MTY_JSONArrayGet(j, i), v)
+MTY_EXPORT bool
+MTY_JSONArrayGetUInt(const MTY_JSON *json, uint32_t index, uint32_t *val);
 
-#define MTY_JSONArraySetString(j, i, v) \
-	MTY_JSONArraySet(j, i, MTY_JSONFromString(v))
+MTY_EXPORT bool
+MTY_JSONArrayGetFloat(const MTY_JSON *json, uint32_t index, float *val);
 
-#define MTY_JSONArraySetInt(j, i, v) \
-	MTY_JSONArraySet(j, i, MTY_JSONFromInt(v))
+MTY_EXPORT bool
+MTY_JSONArrayGetBool(const MTY_JSON *json, uint32_t index, bool *val);
 
-#define MTY_JSONArraySetUInt(j, i, v) \
-	MTY_JSONArraySet(j, i, MTY_JSONFromUInt(v))
+MTY_EXPORT bool
+MTY_JSONArrayValIsNull(const MTY_JSON *json, uint32_t index);
 
-#define MTY_JSONArraySetFloat(j, i, v) \
-	MTY_JSONArraySet(j, i, MTY_JSONFromFloat(v))
+MTY_EXPORT void
+MTY_JSONArraySetString(MTY_JSON *json, uint32_t index, const char *val);
 
-#define MTY_JSONArraySetBool(j, i, v) \
-	MTY_JSONArraySet(j, i, MTY_JSONFromBool(v))
+MTY_EXPORT void
+MTY_JSONArraySetInt(MTY_JSON *json, uint32_t index, int32_t val);
+
+MTY_EXPORT void
+MTY_JSONArraySetUInt(MTY_JSON *json, uint32_t index, uint32_t val);
+
+MTY_EXPORT void
+MTY_JSONArraySetFloat(MTY_JSON *json, uint32_t index, float val);
+
+MTY_EXPORT void
+MTY_JSONArraySetBool(MTY_JSON *json, uint32_t index, bool val);
+
+MTY_EXPORT void
+MTY_JSONArraySetNull(MTY_JSON *json, uint32_t index);
 
 
 //- module Log
@@ -539,16 +503,19 @@ MTY_Sort(void *base, size_t nElements, size_t size, MTY_CompareFunc func);
 //- module OS
 //- mdesc Interact with the OS outside of the application.
 
-#define MTY_OS_UNKNOWN 0x00000000
-#define MTY_OS_WINDOWS 0x01000000
-#define MTY_OS_MACOS   0x02000000
-#define MTY_OS_ANDROID 0x04000000
-#define MTY_OS_LINUX   0x08000000
-#define MTY_OS_WEB     0x10000000
-#define MTY_OS_IOS     0x20000000
-#define MTY_OS_TVOS    0x40000000
-
 typedef struct MTY_SO MTY_SO;
+
+typedef enum {
+	MTY_OS_UNKNOWN = 0x00000000,
+	MTY_OS_WINDOWS = 0x01000000,
+	MTY_OS_MACOS   = 0x02000000,
+	MTY_OS_ANDROID = 0x04000000,
+	MTY_OS_LINUX   = 0x08000000,
+	MTY_OS_WEB     = 0x10000000,
+	MTY_OS_IOS     = 0x20000000,
+	MTY_OS_TVOS    = 0x40000000,
+	MTY_OS_MAKE_32 = INT32_MAX,
+} MTY_OS;
 
 MTY_EXPORT MTY_SO *
 MTY_SOLoad(const char *name);

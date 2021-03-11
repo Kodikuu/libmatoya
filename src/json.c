@@ -77,129 +77,6 @@ void MTY_JSONDestroy(MTY_JSON **json)
 	*json = NULL;
 }
 
-bool MTY_JSONToString(const MTY_JSON *json, char *value, size_t size)
-{
-	cJSON *cj = (cJSON *) json;
-
-	if (!cj || !cJSON_IsString(cj))
-		return false;
-
-	snprintf(value, size, "%s", cj->valuestring);
-
-	return true;
-}
-
-bool MTY_JSONToInt(const MTY_JSON *json, int32_t *value)
-{
-	cJSON *cj = (cJSON *) json;
-
-	if (!cj || !cJSON_IsNumber(cj))
-		return false;
-
-	*value = cj->valueint;
-
-	return true;
-}
-
-bool MTY_JSONToUInt(const MTY_JSON *json, uint32_t *value)
-{
-	return MTY_JSONToInt(json, (int32_t *) value);
-}
-
-bool MTY_JSONToInt16(const MTY_JSON *json, int16_t *value)
-{
-	int32_t v = 0;
-	bool r = MTY_JSONToInt(json, &v);
-
-	*value = (int16_t) v;
-
-	return r;
-}
-
-bool MTY_JSONToUInt16(const MTY_JSON *json, uint16_t *value)
-{
-	return MTY_JSONToInt16(json, (int16_t *) value);
-}
-
-bool MTY_JSONToInt8(const MTY_JSON *json, int8_t *value)
-{
-	int32_t v = 0;
-	bool r = MTY_JSONToInt(json, &v);
-
-	*value = (int8_t) v;
-
-	return r;
-}
-
-bool MTY_JSONToUInt8(const MTY_JSON *json, uint8_t *value)
-{
-	return MTY_JSONToInt8(json, (int8_t *) value);
-}
-
-bool MTY_JSONToFloat(const MTY_JSON *json, float *value)
-{
-	cJSON *cj = (cJSON *) json;
-
-	if (!cj || !cJSON_IsNumber(cj))
-		return false;
-
-	*value = (float) cj->valuedouble;
-
-	return true;
-}
-
-bool MTY_JSONToBool(const MTY_JSON *json, bool *value)
-{
-	cJSON *cj = (cJSON *) json;
-
-	if (!cj || !cJSON_IsBool(cj))
-		return false;
-
-	// cJSON stores bool information as part of the type
-	// XXX DO NOT be tempted to use item->valueint!
-	*value = cj->type & cJSON_True;
-
-	return true;
-}
-
-bool MTY_JSONIsNull(const MTY_JSON *json)
-{
-	if (!json)
-		return false;
-
-	return cJSON_IsNull((cJSON *) json);
-}
-
-MTY_JSON *MTY_JSONFromString(const char *value)
-{
-	return (MTY_JSON *) cJSON_CreateString(value);
-}
-
-MTY_JSON *MTY_JSONFromInt(int32_t value)
-{
-	return (MTY_JSON *) cJSON_CreateNumber((double) value);
-}
-
-MTY_JSON *MTY_JSONFromUInt(uint32_t value)
-{
-	return MTY_JSONFromInt((int32_t) value);
-}
-
-MTY_JSON *MTY_JSONFromFloat(float value)
-{
-	return (MTY_JSON *) cJSON_CreateNumber((double) value);
-}
-
-MTY_JSON *MTY_JSONFromBool(bool value)
-{
-	return (MTY_JSON *) cJSON_CreateBool(value);
-}
-
-MTY_JSON *MTY_JSONNull(void)
-{
-	return (MTY_JSON *) cJSON_CreateNull();
-}
-
 MTY_JSON *MTY_JSONObj(void)
 {
 	return (MTY_JSON *) cJSON_CreateObject();
@@ -310,4 +187,225 @@ void MTY_JSONArrayAppend(MTY_JSON *json, const MTY_JSON *value)
 		return;
 
 	cJSON_AddItemToArray(cj, (cJSON *) value);
+}
+
+
+// Typed getters and setters
+
+static bool json_to_string(const MTY_JSON *json, char *value, size_t size)
+{
+	cJSON *cj = (cJSON *) json;
+
+	if (!cj || !cJSON_IsString(cj))
+		return false;
+
+	snprintf(value, size, "%s", cj->valuestring);
+
+	return true;
+}
+
+static bool json_to_int(const MTY_JSON *json, int32_t *value)
+{
+	cJSON *cj = (cJSON *) json;
+
+	if (!cj || !cJSON_IsNumber(cj))
+		return false;
+
+	*value = cj->valueint;
+
+	return true;
+}
+
+static bool json_to_int16(const MTY_JSON *json, int16_t *value)
+{
+	int32_t v = 0;
+	bool r = json_to_int(json, &v);
+
+	*value = (int16_t) v;
+
+	return r;
+}
+
+static bool json_to_int8(const MTY_JSON *json, int8_t *value)
+{
+	int32_t v = 0;
+	bool r = json_to_int(json, &v);
+
+	*value = (int8_t) v;
+
+	return r;
+}
+
+static bool json_to_float(const MTY_JSON *json, float *value)
+{
+	cJSON *cj = (cJSON *) json;
+
+	if (!cj || !cJSON_IsNumber(cj))
+		return false;
+
+	*value = (float) cj->valuedouble;
+
+	return true;
+}
+
+static bool json_to_bool(const MTY_JSON *json, bool *value)
+{
+	cJSON *cj = (cJSON *) json;
+
+	if (!cj || !cJSON_IsBool(cj))
+		return false;
+
+	// cJSON stores bool information as part of the type
+	// XXX DO NOT be tempted to use item->valueint!
+	*value = cj->type & cJSON_True;
+
+	return true;
+}
+
+static bool json_is_null(const MTY_JSON *json)
+{
+	if (!json)
+		return false;
+
+	return cJSON_IsNull((cJSON *) json);
+}
+
+bool MTY_JSONObjGetString(const MTY_JSON *json, const char *key, char *val, size_t size)
+{
+	return json_to_string(MTY_JSONObjGet(json, key), val, size);
+}
+
+bool MTY_JSONObjGetInt(const MTY_JSON *json, const char *key, int32_t *val)
+{
+	return json_to_int(MTY_JSONObjGet(json, key), val);
+}
+
+bool MTY_JSONObjGetUInt(const MTY_JSON *json, const char *key, uint32_t *val)
+{
+	return json_to_int(MTY_JSONObjGet(json, key), (int32_t *) val);
+}
+
+bool MTY_JSONObjGetInt8(const MTY_JSON *json, const char *key, int8_t *val)
+{
+	return json_to_int8(MTY_JSONObjGet(json, key), val);
+}
+
+bool MTY_JSONObjGetUInt8(const MTY_JSON *json, const char *key, uint8_t *val)
+{
+	return json_to_int8(MTY_JSONObjGet(json, key), (int8_t *) val);
+}
+
+bool MTY_JSONObjGetInt16(const MTY_JSON *json, const char *key, int16_t *val)
+{
+	return json_to_int16(MTY_JSONObjGet(json, key), val);
+}
+
+bool MTY_JSONObjGetUInt16(const MTY_JSON *json, const char *key, uint16_t *val)
+{
+	return json_to_int16(MTY_JSONObjGet(json, key), (int16_t *) val);
+}
+
+bool MTY_JSONObjGetFloat(const MTY_JSON *json, const char *key, float *val)
+{
+	return json_to_float(MTY_JSONObjGet(json, key), val);
+}
+
+bool MTY_JSONObjGetBool(const MTY_JSON *json, const char *key, bool *val)
+{
+	return json_to_bool(MTY_JSONObjGet(json, key), val);
+}
+
+bool MTY_JSONObjValIsNull(const MTY_JSON *json, const char *key)
+{
+	return json_is_null(MTY_JSONObjGet(json, key));
+}
+
+void MTY_JSONObjSetString(MTY_JSON *json, const char *key, const char *val)
+{
+	MTY_JSONObjSet(json, key, (MTY_JSON *) cJSON_CreateString(val));
+}
+
+void MTY_JSONObjSetInt(MTY_JSON *json, const char *key, int32_t val)
+{
+	MTY_JSONObjSet(json, key, (MTY_JSON *) cJSON_CreateNumber(val));
+}
+
+void MTY_JSONObjSetUInt(MTY_JSON *json, const char *key, uint32_t val)
+{
+	MTY_JSONObjSet(json, key, (MTY_JSON *) cJSON_CreateNumber(val));
+}
+
+void MTY_JSONObjSetFloat(MTY_JSON *json, const char *key, float val)
+{
+	MTY_JSONObjSet(json, key, (MTY_JSON *) cJSON_CreateNumber(val));
+}
+
+void MTY_JSONObjSetBool(MTY_JSON *json, const char *key, bool val)
+{
+	MTY_JSONObjSet(json, key, (MTY_JSON *) cJSON_CreateBool(val));
+}
+
+void MTY_JSONObjSetNull(MTY_JSON *json, const char *key)
+{
+	MTY_JSONObjSet(json, key, (MTY_JSON *) cJSON_CreateNull());
+}
+
+bool MTY_JSONArrayGetString(const MTY_JSON *json, uint32_t index, char *val, size_t size)
+{
+	return json_to_string(MTY_JSONArrayGet(json, index), val, size);
+}
+
+bool MTY_JSONArrayGetInt(const MTY_JSON *json, uint32_t index, int32_t *val)
+{
+	return json_to_int(MTY_JSONArrayGet(json, index), val);
+}
+
+bool MTY_JSONArrayGetUInt(const MTY_JSON *json, uint32_t index, uint32_t *val)
+{
+	return json_to_int(MTY_JSONArrayGet(json, index), (int32_t *) val);
+}
+
+bool MTY_JSONArrayGetFloat(const MTY_JSON *json, uint32_t index, float *val)
+{
+	return json_to_float(MTY_JSONArrayGet(json, index), val);
+}
+
+bool MTY_JSONArrayGetBool(const MTY_JSON *json, uint32_t index, bool *val)
+{
+	return json_to_bool(MTY_JSONArrayGet(json, index), val);
+}
+
+bool MTY_JSONArrayValIsNull(const MTY_JSON *json, uint32_t index)
+{
+	return json_is_null(MTY_JSONArrayGet(json, index));
+}
+
+void MTY_JSONArraySetString(MTY_JSON *json, uint32_t index, const char *val)
+{
+	MTY_JSONArraySet(json, index, (MTY_JSON *) cJSON_CreateString(val));
+}
+
+void MTY_JSONArraySetInt(MTY_JSON *json, uint32_t index, int32_t val)
+{
+	MTY_JSONArraySet(json, index, (MTY_JSON *) cJSON_CreateNumber(val));
+}
+
+void MTY_JSONArraySetUInt(MTY_JSON *json, uint32_t index, uint32_t val)
+{
+	MTY_JSONArraySet(json, index, (MTY_JSON *) cJSON_CreateNumber(val));
+}
+
+void MTY_JSONArraySetFloat(MTY_JSON *json, uint32_t index, float val)
+{
+	MTY_JSONArraySet(json, index, (MTY_JSON *) cJSON_CreateNumber(val));
+}
+
+void MTY_JSONArraySetBool(MTY_JSON *json, uint32_t index, bool val)
+{
+	MTY_JSONArraySet(json, index, (MTY_JSON *) cJSON_CreateBool(val));
+}
+
+void MTY_JSONArraySetNull(MTY_JSON *json, uint32_t index)
+{
+	MTY_JSONArraySet(json, index, (MTY_JSON *) cJSON_CreateNull());
 }
