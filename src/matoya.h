@@ -1013,12 +1013,10 @@ MTY_RevertTimerResolution(uint32_t res);
 #define MTY_DPAD_DOWN(c)  (MTY_DPAD(c) == 3 || MTY_DPAD(c) == 4 || MTY_DPAD(c) == 5)
 #define MTY_DPAD_LEFT(c)  (MTY_DPAD(c) == 5 || MTY_DPAD(c) == 6 || MTY_DPAD(c) == 7)
 
-struct MTY_Msg;
 typedef struct MTY_App MTY_App;
 typedef int8_t MTY_Window;
 
 typedef bool (*MTY_AppFunc)(void *opaque);
-typedef void (*MTY_MsgFunc)(const struct MTY_Msg *msg, void *opaque);
 typedef bool (*MTY_MenuItemCheckedFunc)(void *opaque);
 
 typedef enum {
@@ -1399,6 +1397,8 @@ typedef struct {
 	bool hidden;
 	bool vsync;
 } MTY_WindowDesc;
+
+typedef void (*MTY_MsgFunc)(const MTY_Msg *msg, void *opaque);
 
 MTY_EXPORT MTY_App *
 MTY_AppCreate(MTY_AppFunc appFunc, MTY_MsgFunc msgFunc, void *opaque);
