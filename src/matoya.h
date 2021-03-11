@@ -1298,59 +1298,66 @@ typedef struct {
 } MTY_Controller;
 
 typedef struct {
+	MTY_Key key;
+	MTY_Mod mod;
+	bool pressed;
+} MTY_KeyboardEvent;
+
+typedef struct {
+	int32_t x;
+	int32_t y;
+	bool pixels;
+} MTY_MouseWheelEvent;
+
+typedef struct {
+	int32_t x;
+	int32_t y;
+	bool pressed;
+	MTY_MouseButton button;
+} MTY_MouseButtonEvent;
+
+typedef struct {
+	bool relative;
+	bool synth;
+	bool click;
+	int32_t x;
+	int32_t y;
+} MTY_MouseMotionEvent;
+
+typedef struct {
+	const char *name;
+	const void *data;
+	size_t size;
+} MTY_DropEvent;
+
+typedef struct {
+	MTY_PenFlag flags;
+	uint16_t x;
+	uint16_t y;
+	uint16_t pressure;
+	uint16_t rotation;
+	int8_t tiltX;
+	int8_t tiltY;
+} MTY_PenEvent;
+
+typedef struct {
 	MTY_MsgType type;
 	MTY_Window window;
 
 	union {
 		MTY_Controller controller;
+		MTY_KeyboardEvent keyboard;
+		MTY_MouseWheelEvent mouseWheel;
+		MTY_MouseButtonEvent mouseButton;
+		MTY_MouseMotionEvent mouseMotion;
+		MTY_DropEvent drop;
+		MTY_PenEvent pen;
+
 		const char *arg;
 		uint32_t hotkey;
 		uint32_t trayID;
 		char text[8];
 		bool focus;
-
-		struct {
-			MTY_Key key;
-			MTY_Mod mod;
-			bool pressed;
-		} keyboard;
-
-		struct {
-			int32_t x;
-			int32_t y;
-			bool pixels;
-		} mouseWheel;
-
-		struct {
-			int32_t x;
-			int32_t y;
-			bool pressed;
-			MTY_MouseButton button;
-		} mouseButton;
-
-		struct {
-			bool relative;
-			bool synth;
-			bool click;
-			int32_t x;
-			int32_t y;
-		} mouseMotion;
-
-		struct {
-			const char *name;
-			const void *data;
-			size_t size;
-		} drop;
-
-		struct {
-			MTY_PenFlag flags;
-			uint16_t x;
-			uint16_t y;
-			uint16_t pressure;
-			uint16_t rotation;
-			int8_t tiltX;
-			int8_t tiltY;
-		} pen;
 	};
 } MTY_Msg;
 
