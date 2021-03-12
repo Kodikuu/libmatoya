@@ -305,7 +305,7 @@ static MTY_Window app_find_open_window(MTY_App *app)
 	return -1;
 }
 
-static MTY_Event window_event(Window *window, MTY_MsgType type)
+static MTY_Event window_event(Window *window, MTY_EventType type)
 {
 	MTY_Event evt = {0};
 	evt.type = type;
