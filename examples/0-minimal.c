@@ -32,6 +32,8 @@ int main(int argc, char **argv)
 	// Set up the application object and attach it to your context
 	struct context ctx = {0};
 	ctx.app = MTY_AppCreate(app_func, msg_func, &ctx);
+	if (!ctx.app)
+		return 1;
 
 	// Create a window
 	MTY_WindowDesc desc = {
