@@ -3,7 +3,6 @@
 // Your top level application context
 struct context {
 	MTY_App *app;
-	MTY_Window window;
 	bool quit;
 };
 
@@ -22,7 +21,7 @@ static bool app_func(void *opaque)
 {
 	struct context *ctx = opaque;
 
-	MTY_WindowPresent(ctx->app, ctx->window, 1);
+	MTY_WindowPresent(ctx->app, 0, 1);
 
 	return !ctx->quit;
 }
@@ -41,7 +40,8 @@ int main(int argc, char **argv)
 		.width = 800,
 		.height = 600,
 	};
-	ctx.window = MTY_WindowCreate(ctx.app, "My Window", &desc);
+
+	MTY_WindowCreate(ctx.app, "My Window", &desc);
 
 	// Run the app -- blocks until your app_func returns false
 	MTY_AppRun(ctx.app);
