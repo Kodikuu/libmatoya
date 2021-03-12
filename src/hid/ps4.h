@@ -120,7 +120,7 @@ static void mty_hid_ps4_init(struct hdevice *device)
 	mty_hid_ps4_rumble(device, 0, 0);
 }
 
-static void mty_hid_ps4_state(struct hdevice *device, const void *data, size_t dsize, MTY_Msg *wmsg)
+static void mty_hid_ps4_state(struct hdevice *device, const void *data, size_t dsize, MTY_Event *evt)
 {
 	const uint8_t *d8 = data;
 	const struct ps4 *state = NULL;
@@ -137,14 +137,14 @@ static void mty_hid_ps4_state(struct hdevice *device, const void *data, size_t d
 		return;
 	}
 
-	wmsg->type = MTY_MSG_CONTROLLER;
+	evt->type = MTY_EVENT_CONTROLLER;
 
-	MTY_Controller *c = &wmsg->controller;
+	MTY_ControllerEvent *c = &evt->controller;
 	c->vid = mty_hid_device_get_vid(device);
 	c->pid = mty_hid_device_get_pid(device);
 	c->numValues = 7;
 	c->numButtons = 14;
-	c->driver = MTY_HID_DRIVER_PS4;
+	c->type = MTY_CTYPE_PS4;
 	c->id = mty_hid_device_get_id(device);
 
 	c->buttons[MTY_CBUTTON_X] = state->buttons[0] & 0x10;

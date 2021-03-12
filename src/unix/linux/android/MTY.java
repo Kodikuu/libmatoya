@@ -72,7 +72,7 @@ public class MTY extends SurfaceView implements
 	native void app_check_scroller(boolean check);
 	native void app_mouse_motion(boolean relative, float x, float y);
 	native void app_mouse_button(boolean pressed, int button, float x, float y);
-	native void app_mouse_wheel(float x, float y);
+	native void app_generic_scroll(float x, float y);
 	native void app_button(int deviceId, boolean pressed, int code);
 	native void app_axis(int deviceId, float hatX, float hatY, float lX, float lY, float rX, float rY,
 		float lT, float rT, float lTalt, float rTalt);
@@ -334,7 +334,7 @@ public class MTY extends SurfaceView implements
 					app_mouse_motion(false, event.getX(0), event.getY(0));
 					return true;
 				case MotionEvent.ACTION_SCROLL:
-					app_mouse_wheel(event.getAxisValue(MotionEvent.AXIS_HSCROLL), event.getAxisValue(MotionEvent.AXIS_VSCROLL));
+					app_generic_scroll(event.getAxisValue(MotionEvent.AXIS_HSCROLL), event.getAxisValue(MotionEvent.AXIS_VSCROLL));
 					return true;
 				case MotionEvent.ACTION_BUTTON_PRESS:
 					app_mouse_button(true, event.getActionButton(), event.getX(0), event.getY(0));

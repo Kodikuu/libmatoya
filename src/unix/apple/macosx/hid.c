@@ -229,9 +229,9 @@ bool mty_hid_device_feature(struct hdevice *ctx, void *buf, size_t size, size_t 
 	return false;
 }
 
-void mty_hid_default_state(struct hdevice *ctx, const void *buf, size_t size, MTY_Msg *wmsg)
+void mty_hid_default_state(struct hdevice *ctx, const void *buf, size_t size, MTY_Event *evt)
 {
-	MTY_Controller *c = &wmsg->controller;
+	MTY_ControllerEvent *c = &evt->controller;
 
 	CFArrayRef elements = IOHIDDeviceCopyMatchingElements(ctx->device, NULL, kIOHIDOptionsTypeNone);
 
@@ -276,10 +276,10 @@ void mty_hid_default_state(struct hdevice *ctx, const void *buf, size_t size, MT
 
 	CFRelease(elements);
 
-	wmsg->type = MTY_MSG_CONTROLLER;
+	evt->type = MTY_EVENT_CONTROLLER;
 	c->vid = ctx->vid;
 	c->pid = ctx->pid;
-	c->driver = MTY_HID_DRIVER_DEFAULT;
+	c->type = MTY_CTYPE_DEFAULT;
 	c->id = ctx->id;
 }
 

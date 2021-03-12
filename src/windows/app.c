@@ -38,7 +38,7 @@ struct window {
 
 struct MTY_App {
 	MTY_AppFunc app_func;
-	MTY_MsgFunc msg_func;
+	MTY_EventFunc event_func;
 	void *opaque;
 
 	WNDCLASSEX wc;
@@ -66,7 +66,7 @@ struct MTY_App {
 	int32_t last_x;
 	int32_t last_y;
 	struct hid *hid;
-	MTY_MouseButton buttons;
+	MTY_Button buttons;
 	MTY_Detach detach;
 	MTY_Hash *hotkey;
 	MTY_Hash *ghotkey;
@@ -95,11 +95,11 @@ struct MTY_App {
 // MTY -> VK mouse map
 
 static const int APP_MOUSE_MAP[] = {
-	[MTY_MOUSE_BUTTON_LEFT]   = VK_LBUTTON,
-	[MTY_MOUSE_BUTTON_RIGHT]  = VK_RBUTTON,
-	[MTY_MOUSE_BUTTON_MIDDLE] = VK_MBUTTON,
-	[MTY_MOUSE_BUTTON_X1]     = VK_XBUTTON1,
-	[MTY_MOUSE_BUTTON_X2]     = VK_XBUTTON2,
+	[MTY_BUTTON_LEFT]   = VK_LBUTTON,
+	[MTY_BUTTON_RIGHT]  = VK_RBUTTON,
+	[MTY_BUTTON_MIDDLE] = VK_MBUTTON,
+	[MTY_BUTTON_X1]     = VK_XBUTTON1,
+	[MTY_BUTTON_X2]     = VK_XBUTTON2,
 };
 
 #define APP_MOUSE_MAX (sizeof(APP_MOUSE_MAP) / sizeof(int))
@@ -224,18 +224,18 @@ static void app_unregister_global_hotkeys(MTY_App *app)
 				MTY_Log("'UnregisterHotKey' failed with error 0x%X", GetLastError());
 }
 
-static void app_kb_to_hotkey(MTY_App *app, MTY_Msg *wmsg)
+static void app_kb_to_hotkey(MTY_App *app, MTY_Event *evt)
 {
-	MTY_Mod mod = wmsg->keyboard.mod & 0xFF;
-	uint32_t hotkey = (uint32_t) (uintptr_t) MTY_HashGetInt(app->hotkey, (mod << 16) | wmsg->keyboard.key);
+	MTY_Mod mod = evt->key.mod & 0xFF;
+	uint32_t hotkey = (uint32_t) (uintptr_t) MTY_HashGetInt(app->hotkey, (mod << 16) | evt->key.key);
 
 	if (hotkey != 0) {
-		if (wmsg->keyboard.pressed) {
-			wmsg->type = MTY_MSG_HOTKEY;
-			wmsg->hotkey = hotkey;
+		if (evt->key.pressed) {
+			evt->type = MTY_EVENT_HOTKEY;
+			evt->hotkey = hotkey;
 
 		} else {
-			wmsg->type = MTY_MSG_NONE;
+			evt->type = MTY_EVENT_NONE;
 		}
 	}
 }
@@ -416,7 +416,7 @@ static void app_tray_retry(MTY_App *app, struct window *ctx)
 	}
 }
 
-static void app_tray_msg(MTY_App *app, UINT msg, WPARAM wparam, LPARAM lparam, MTY_Msg *wmsg)
+static void app_tray_msg(MTY_App *app, UINT msg, WPARAM wparam, LPARAM lparam, MTY_Event *evt)
 {
 	struct window *ctx = app_get_main_window(app);
 	if (!ctx)
@@ -471,8 +471,8 @@ static void app_tray_msg(MTY_App *app, UINT msg, WPARAM wparam, LPARAM lparam, M
 		item.fMask = MIIM_ID | MIIM_DATA;
 
 		if (GetMenuItemInfo(app->tray.menu, (UINT) wparam, FALSE, &item)) {
-			wmsg->type = MTY_MSG_TRAY;
-			wmsg->trayID = (uint32_t) item.dwItemData;
+			evt->type = MTY_EVENT_TRAY;
+			evt->trayID = (uint32_t) item.dwItemData;
 		}
 	}
 }
@@ -560,7 +560,7 @@ static void app_make_movement(HWND hwnd)
 	app_hwnd_proc(hwnd, WM_MOUSEMOVE, 0x1100, p.x | (p.y << 16));
 }
 
-static void app_ri_relative_mouse(MTY_App *app, HWND hwnd, const RAWINPUT *ri, MTY_Msg *wmsg)
+static void app_ri_relative_mouse(MTY_App *app, HWND hwnd, const RAWINPUT *ri, MTY_Event *evt)
 {
 	const RAWMOUSE *mouse = &ri->data.mouse;
 
@@ -580,22 +580,22 @@ static void app_ri_relative_mouse(MTY_App *app, HWND hwnd, const RAWINPUT *ri, M
 			}
 
 			if (app->last_x != -1 && app->last_y != -1) {
-				wmsg->type = MTY_MSG_MOUSE_MOTION;
-				wmsg->mouseMotion.relative = true;
-				wmsg->mouseMotion.synth = true;
-				wmsg->mouseMotion.x = (int32_t) (x - app->last_x);
-				wmsg->mouseMotion.y = (int32_t) (y - app->last_y);
+				evt->type = MTY_EVENT_MOTION;
+				evt->motion.relative = true;
+				evt->motion.synth = true;
+				evt->motion.x = (int32_t) (x - app->last_x);
+				evt->motion.y = (int32_t) (y - app->last_y);
 			}
 
 			app->last_x = x;
 			app->last_y = y;
 
 		} else {
-			wmsg->type = MTY_MSG_MOUSE_MOTION;
-			wmsg->mouseMotion.relative = true;
-			wmsg->mouseMotion.synth = false;
-			wmsg->mouseMotion.x = mouse->lLastX;
-			wmsg->mouseMotion.y = mouse->lLastY;
+			evt->type = MTY_EVENT_MOTION;
+			evt->motion.relative = true;
+			evt->motion.synth = false;
+			evt->motion.x = mouse->lLastX;
+			evt->motion.y = mouse->lLastY;
 		}
 	}
 
@@ -738,7 +738,7 @@ static void app_apply_keyboard_state(MTY_App *app, bool focus)
 	}
 }
 
-static bool app_button_is_pressed(MTY_MouseButton button)
+static bool app_button_is_pressed(MTY_Button button)
 {
 	return (GetAsyncKeyState(APP_MOUSE_MAP[button]) & 0x8000) ? true : false;
 }
@@ -749,19 +749,19 @@ static void app_fix_mouse_buttons(MTY_App *ctx)
 		return;
 
 	bool flipped = GetSystemMetrics(SM_SWAPBUTTON);
-	MTY_MouseButton buttons = ctx->buttons;
+	MTY_Button buttons = ctx->buttons;
 
-	for (MTY_MouseButton x = 0; buttons > 0 && x < APP_MOUSE_MAX; x++) {
+	for (MTY_Button x = 0; buttons > 0 && x < APP_MOUSE_MAX; x++) {
 		if (buttons & 1) {
-			MTY_MouseButton b = flipped && x == MTY_MOUSE_BUTTON_LEFT ? MTY_MOUSE_BUTTON_RIGHT :
-				flipped && x == MTY_MOUSE_BUTTON_RIGHT ? MTY_MOUSE_BUTTON_LEFT : x;
+			MTY_Button b = flipped && x == MTY_BUTTON_LEFT ? MTY_BUTTON_RIGHT :
+				flipped && x == MTY_BUTTON_RIGHT ? MTY_BUTTON_LEFT : x;
 
 			if (!app_button_is_pressed(b)) {
-				MTY_Msg msg = {0};
-				msg.type = MTY_MSG_MOUSE_BUTTON;
-				msg.mouseButton.button = x;
+				MTY_Event evt = {0};
+				evt.type = MTY_EVENT_BUTTON;
+				evt.button.button = x;
 
-				ctx->msg_func(&msg, ctx->opaque);
+				ctx->event_func(&evt, ctx->opaque);
 				ctx->buttons &= ~(1 << x);
 			}
 		}
@@ -774,8 +774,8 @@ static LRESULT app_custom_hwnd_proc(struct window *ctx, HWND hwnd, UINT msg, WPA
 {
 	MTY_App *app = ctx->app;
 
-	MTY_Msg wmsg = {0};
-	wmsg.window = ctx->window;
+	MTY_Event evt = {0};
+	evt.window = ctx->window;
 
 	LRESULT r = 0;
 	bool creturn = false;
@@ -785,7 +785,7 @@ static LRESULT app_custom_hwnd_proc(struct window *ctx, HWND hwnd, UINT msg, WPA
 
 	switch (msg) {
 		case WM_CLOSE:
-			wmsg.type = MTY_MSG_CLOSE;
+			evt.type = MTY_EVENT_CLOSE;
 			break;
 		case WM_SIZE:
 			app->state++;
@@ -807,13 +807,13 @@ static LRESULT app_custom_hwnd_proc(struct window *ctx, HWND hwnd, UINT msg, WPA
 		}
 		case WM_SETFOCUS:
 		case WM_KILLFOCUS:
-			wmsg.type = MTY_MSG_FOCUS;
-			wmsg.focus = msg == WM_SETFOCUS;
+			evt.type = MTY_EVENT_FOCUS;
+			evt.focus = msg == WM_SETFOCUS;
 			app->state++;
 			break;
 		case WM_QUERYENDSESSION:
 		case WM_ENDSESSION:
-			wmsg.type = MTY_MSG_SHUTDOWN;
+			evt.type = MTY_EVENT_SHUTDOWN;
 			break;
 		case WM_GETMINMAXINFO: {
 			float scale = app_hwnd_get_scale(hwnd);
@@ -828,25 +828,25 @@ static LRESULT app_custom_hwnd_proc(struct window *ctx, HWND hwnd, UINT msg, WPA
 		case WM_KEYDOWN:
 		case WM_SYSKEYUP:
 		case WM_SYSKEYDOWN:
-			wmsg.type = MTY_MSG_KEYBOARD;
-			wmsg.keyboard.mod = app_get_keymod();
-			wmsg.keyboard.pressed = !(lparam >> 31);
-			wmsg.keyboard.key = lparam >> 16 & 0xFF;
+			evt.type = MTY_EVENT_KEYBOARD;
+			evt.key.mod = app_get_keymod();
+			evt.key.pressed = !(lparam >> 31);
+			evt.key.key = lparam >> 16 & 0xFF;
 			if (lparam >> 24 & 0x01)
-				wmsg.keyboard.key |= 0x0100;
+				evt.key.key |= 0x0100;
 
 			// Print Screen needs a synthesized WM_KEYDOWN
-			if (!wmsg.keyboard.pressed && wmsg.keyboard.key == MTY_KEY_PRINT_SCREEN)
+			if (!evt.key.pressed && evt.key.key == MTY_KEY_PRINT_SCREEN)
 				app_custom_hwnd_proc(ctx, hwnd, WM_KEYDOWN, wparam, lparam & 0x7FFFFFFF);
 			break;
 		case WM_MOUSEMOVE:
 			if (!app->filter_move && !pen_active && (!app->relative || app_hwnd_active(hwnd))) {
-				wmsg.type = MTY_MSG_MOUSE_MOTION;
-				wmsg.mouseMotion.relative = false;
-				wmsg.mouseMotion.synth = false;
-				wmsg.mouseMotion.x = GET_X_LPARAM(lparam);
-				wmsg.mouseMotion.y = GET_Y_LPARAM(lparam);
-				wmsg.mouseMotion.click = wparam == 0x1100; // Generated by MTY
+				evt.type = MTY_EVENT_MOTION;
+				evt.motion.relative = false;
+				evt.motion.synth = false;
+				evt.motion.x = GET_X_LPARAM(lparam);
+				evt.motion.y = GET_Y_LPARAM(lparam);
+				evt.motion.click = wparam == 0x1100; // Generated by MTY
 			}
 
 			app->filter_move = false;
@@ -854,43 +854,42 @@ static LRESULT app_custom_hwnd_proc(struct window *ctx, HWND hwnd, UINT msg, WPA
 		case WM_LBUTTONDOWN:
 		case WM_LBUTTONUP:
 			if (!pen_active) {
-				wmsg.type = MTY_MSG_MOUSE_BUTTON;
-				wmsg.mouseButton.button = MTY_MOUSE_BUTTON_LEFT;
-				wmsg.mouseButton.pressed = msg == WM_LBUTTONDOWN;
+				evt.type = MTY_EVENT_BUTTON;
+				evt.button.button = MTY_BUTTON_LEFT;
+				evt.button.pressed = msg == WM_LBUTTONDOWN;
 			}
 			break;
 		case WM_RBUTTONDOWN:
 		case WM_RBUTTONUP:
 			if (!pen_active) {
-				wmsg.type = MTY_MSG_MOUSE_BUTTON;
-				wmsg.mouseButton.button = MTY_MOUSE_BUTTON_RIGHT;
-				wmsg.mouseButton.pressed = msg == WM_RBUTTONDOWN;
+				evt.type = MTY_EVENT_BUTTON;
+				evt.button.button = MTY_BUTTON_RIGHT;
+				evt.button.pressed = msg == WM_RBUTTONDOWN;
 			}
 			break;
 		case WM_MBUTTONDOWN:
 		case WM_MBUTTONUP:
-			wmsg.type = MTY_MSG_MOUSE_BUTTON;
-			wmsg.mouseButton.button = MTY_MOUSE_BUTTON_MIDDLE;
-			wmsg.mouseButton.pressed = msg == WM_MBUTTONDOWN;
+			evt.type = MTY_EVENT_BUTTON;
+			evt.button.button = MTY_BUTTON_MIDDLE;
+			evt.button.pressed = msg == WM_MBUTTONDOWN;
 			break;
 		case WM_XBUTTONDOWN:
 		case WM_XBUTTONUP: {
 			UINT button = GET_XBUTTON_WPARAM(wparam);
-			wmsg.type = MTY_MSG_MOUSE_BUTTON;
-			wmsg.mouseButton.button = button == XBUTTON1 ? MTY_MOUSE_BUTTON_X1 :
-				MTY_MOUSE_BUTTON_X2;
-			wmsg.mouseButton.pressed = msg == WM_XBUTTONDOWN;
+			evt.type = MTY_EVENT_BUTTON;
+			evt.button.button = button == XBUTTON1 ? MTY_BUTTON_X1 : MTY_BUTTON_X2;
+			evt.button.pressed = msg == WM_XBUTTONDOWN;
 			break;
 		}
 		case WM_MOUSEWHEEL:
-			wmsg.type = MTY_MSG_MOUSE_WHEEL;
-			wmsg.mouseWheel.x = 0;
-			wmsg.mouseWheel.y = GET_WHEEL_DELTA_WPARAM(wparam);
+			evt.type = MTY_EVENT_SCROLL;
+			evt.scroll.x = 0;
+			evt.scroll.y = GET_WHEEL_DELTA_WPARAM(wparam);
 			break;
 		case WM_MOUSEHWHEEL:
-			wmsg.type = MTY_MSG_MOUSE_WHEEL;
-			wmsg.mouseWheel.x = GET_WHEEL_DELTA_WPARAM(wparam);
-			wmsg.mouseWheel.y = 0;
+			evt.type = MTY_EVENT_SCROLL;
+			evt.scroll.x = GET_WHEEL_DELTA_WPARAM(wparam);
+			evt.scroll.y = 0;
 			break;
 		case WM_POINTERENTER: {
 			if (!_GetPointerType)
@@ -924,11 +923,11 @@ static LRESULT app_custom_hwnd_proc(struct window *ctx, HWND hwnd, UINT msg, WPA
 				break;
 
 			POINTER_INFO *pi = &ppi.pointerInfo;
-			wmsg.type = MTY_MSG_PEN;
-			wmsg.pen.pressure = (uint16_t) ppi.pressure;
-			wmsg.pen.rotation = (uint16_t) ppi.rotation;
-			wmsg.pen.tiltX = (int8_t) ppi.tiltX;
-			wmsg.pen.tiltY = (int8_t) ppi.tiltY;
+			evt.type = MTY_EVENT_PEN;
+			evt.pen.pressure = (uint16_t) ppi.pressure;
+			evt.pen.rotation = (uint16_t) ppi.rotation;
+			evt.pen.tiltX = (int8_t) ppi.tiltX;
+			evt.pen.tiltY = (int8_t) ppi.tiltY;
 
 			ScreenToClient(hwnd, &pi->ptPixelLocation);
 
@@ -938,45 +937,45 @@ static LRESULT app_custom_hwnd_proc(struct window *ctx, HWND hwnd, UINT msg, WPA
 			if (pi->ptPixelLocation.y < 0)
 				pi->ptPixelLocation.y = 0;
 
-			wmsg.pen.x = (uint16_t) pi->ptPixelLocation.x;
-			wmsg.pen.y = (uint16_t) pi->ptPixelLocation.y;
+			evt.pen.x = (uint16_t) pi->ptPixelLocation.x;
+			evt.pen.y = (uint16_t) pi->ptPixelLocation.y;
 
-			wmsg.pen.flags = 0;
+			evt.pen.flags = 0;
 
 			if (!(pi->pointerFlags & POINTER_FLAG_INRANGE))
-				wmsg.pen.flags |= MTY_PEN_FLAG_LEAVE;
+				evt.pen.flags |= MTY_PEN_FLAG_LEAVE;
 
 			if (pi->pointerFlags & POINTER_FLAG_INCONTACT)
-				wmsg.pen.flags |= MTY_PEN_FLAG_TOUCHING;
+				evt.pen.flags |= MTY_PEN_FLAG_TOUCHING;
 
 			if (ppi.penFlags & PEN_FLAG_INVERTED)
-				wmsg.pen.flags |= MTY_PEN_FLAG_INVERTED;
+				evt.pen.flags |= MTY_PEN_FLAG_INVERTED;
 
 			if (ppi.penFlags & PEN_FLAG_ERASER)
-				wmsg.pen.flags |= MTY_PEN_FLAG_ERASER;
+				evt.pen.flags |= MTY_PEN_FLAG_ERASER;
 
 			if (ppi.penFlags & PEN_FLAG_BARREL)
-				wmsg.pen.flags |= MTY_PEN_FLAG_BARREL;
+				evt.pen.flags |= MTY_PEN_FLAG_BARREL;
 
 			defreturn = true;
 			break;
 		case WM_HOTKEY:
 			if (!app->ghk_disabled) {
-				wmsg.type = MTY_MSG_HOTKEY;
-				wmsg.hotkey = (uint32_t) (uintptr_t) MTY_HashGetInt(app->ghotkey, (uint32_t) wparam);
+				evt.type = MTY_EVENT_HOTKEY;
+				evt.hotkey = (uint32_t) (uintptr_t) MTY_HashGetInt(app->ghotkey, (uint32_t) wparam);
 			}
 			break;
 		case WM_CHAR: {
 			wchar_t wstr[2] = {0};
 			wstr[0] = (wchar_t) wparam;
-			if (MTY_WideToMulti(wstr, wmsg.text, 8))
-				wmsg.type = MTY_MSG_TEXT;
+			if (MTY_WideToMulti(wstr, evt.text, 8))
+				evt.type = MTY_EVENT_TEXT;
 			break;
 		}
 		case WM_CLIPBOARDUPDATE: {
 			DWORD cb_seq = GetClipboardSequenceNumber();
 			if (cb_seq != app->cb_seq) {
-				wmsg.type = MTY_MSG_CLIPBOARD;
+				evt.type = MTY_EVENT_CLIPBOARD;
 				app->cb_seq = cb_seq;
 			}
 			break;
@@ -988,11 +987,11 @@ static LRESULT app_custom_hwnd_proc(struct window *ctx, HWND hwnd, UINT msg, WPA
 				SetForegroundWindow(hwnd);
 
 				MTY_WideToMulti(namew, drop_name, MTY_PATH_MAX);
-				wmsg.drop.name = drop_name;
-				wmsg.drop.data = MTY_ReadFile(drop_name, &wmsg.drop.size);
+				evt.drop.name = drop_name;
+				evt.drop.data = MTY_ReadFile(drop_name, &evt.drop.size);
 
-				if (wmsg.drop.data)
-					wmsg.type = MTY_MSG_DROP;
+				if (evt.drop.data)
+					evt.type = MTY_EVENT_DROP;
 			}
 			break;
 		case WM_INPUT:
@@ -1005,7 +1004,7 @@ static LRESULT app_custom_hwnd_proc(struct window *ctx, HWND hwnd, UINT msg, WPA
 
 			RAWINPUTHEADER *header = &ctx->ri->header;
 			if (header->dwType == RIM_TYPEMOUSE) {
-				app_ri_relative_mouse(app, hwnd, ctx->ri, &wmsg);
+				app_ri_relative_mouse(app, hwnd, ctx->ri, &evt);
 
 			} else if (header->dwType == RIM_TYPEHID) {
 				mty_hid_win32_report(app->hid, (intptr_t) ctx->ri->header.hDevice,
@@ -1018,32 +1017,32 @@ static LRESULT app_custom_hwnd_proc(struct window *ctx, HWND hwnd, UINT msg, WPA
 	}
 
 	// Tray
-	app_tray_msg(app, msg, wparam, lparam, &wmsg);
+	app_tray_msg(app, msg, wparam, lparam, &evt);
 
 	// Transform keyboard into hotkey
-	if (wmsg.type == MTY_MSG_KEYBOARD)
-		app_kb_to_hotkey(app, &wmsg);
+	if (evt.type == MTY_EVENT_KEYBOARD)
+		app_kb_to_hotkey(app, &evt);
 
 	// Record pressed buttons
-	if (wmsg.type == MTY_MSG_MOUSE_BUTTON) {
-		if (wmsg.mouseButton.pressed) {
-			app->buttons |= 1 << wmsg.mouseButton.button;
+	if (evt.type == MTY_EVENT_BUTTON) {
+		if (evt.button.pressed) {
+			app->buttons |= 1 << evt.button.button;
 
 			// For robustness, generate a WM_MOUSEMOVE on a mousedown
 			if (!app->relative)
 				app_make_movement(hwnd);
 
 		} else {
-			app->buttons &= ~(1 << wmsg.mouseButton.button);
+			app->buttons &= ~(1 << evt.button.button);
 		}
 	}
 
 	// Process the message
-	if (wmsg.type != MTY_MSG_NONE) {
-		app->msg_func(&wmsg, app->opaque);
+	if (evt.type != MTY_EVENT_NONE) {
+		app->event_func(&evt, app->opaque);
 
-		if (wmsg.type == MTY_MSG_DROP)
-			MTY_Free((void *) wmsg.drop.data);
+		if (evt.type == MTY_EVENT_DROP)
+			MTY_Free((void *) evt.drop.data);
 
 		if (!defreturn)
 			return creturn ? r : 0;
@@ -1257,47 +1256,47 @@ static void app_mty_hid_connect(struct hdevice *device, void *opaque)
 
 	mty_hid_driver_init(device);
 
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_CONNECT;
-	msg.controller.vid = mty_hid_device_get_vid(device);
-	msg.controller.pid = mty_hid_device_get_pid(device);
-	msg.controller.id = mty_hid_device_get_id(device);
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_CONNECT;
+	evt.controller.vid = mty_hid_device_get_vid(device);
+	evt.controller.pid = mty_hid_device_get_pid(device);
+	evt.controller.id = mty_hid_device_get_id(device);
 
-	ctx->msg_func(&msg, ctx->opaque);
+	ctx->event_func(&evt, ctx->opaque);
 }
 
 static void app_mty_hid_disconnect(struct hdevice *device, void *opaque)
 {
 	MTY_App *ctx = opaque;
 
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_DISCONNECT;
-	msg.controller.vid = mty_hid_device_get_vid(device);
-	msg.controller.pid = mty_hid_device_get_pid(device);
-	msg.controller.id = mty_hid_device_get_id(device);
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_DISCONNECT;
+	evt.controller.vid = mty_hid_device_get_vid(device);
+	evt.controller.pid = mty_hid_device_get_pid(device);
+	evt.controller.id = mty_hid_device_get_id(device);
 
-	ctx->msg_func(&msg, ctx->opaque);
+	ctx->event_func(&evt, ctx->opaque);
 }
 
 static void app_mty_hid_report(struct hdevice *device, const void *buf, size_t size, void *opaque)
 {
 	MTY_App *ctx = opaque;
 
-	MTY_Msg msg = {0};
-	mty_hid_driver_state(device, buf, size, &msg);
+	MTY_Event evt = {0};
+	mty_hid_driver_state(device, buf, size, &evt);
 
 	// Prevent gamepad input while in the background
-	if (msg.type == MTY_MSG_CONTROLLER && MTY_AppIsActive(ctx))
-		ctx->msg_func(&msg, ctx->opaque);
+	if (evt.type == MTY_EVENT_CONTROLLER && MTY_AppIsActive(ctx))
+		ctx->event_func(&evt, ctx->opaque);
 }
 
-MTY_App *MTY_AppCreate(MTY_AppFunc appFunc, MTY_MsgFunc msgFunc, void *opaque)
+MTY_App *MTY_AppCreate(MTY_AppFunc appFunc, MTY_EventFunc eventFunc, void *opaque)
 {
 	bool r = true;
 
 	MTY_App *app = MTY_Alloc(1, sizeof(MTY_App));
 	app->app_func = appFunc;
-	app->msg_func = msgFunc;
+	app->event_func = eventFunc;
 	app->opaque = opaque;
 	app->hotkey = MTY_HashCreate(0);
 	app->ghotkey = MTY_HashCreate(0);
@@ -1400,7 +1399,7 @@ void MTY_AppRun(MTY_App *app)
 
 		// XInput
 		if (focus)
-			mty_hid_xinput_state(app->hid, app->msg_func, app->opaque);
+			mty_hid_xinput_state(app->hid, app->event_func, app->opaque);
 
 		// Tray retry in case of failure
 		app_tray_retry(app, window);

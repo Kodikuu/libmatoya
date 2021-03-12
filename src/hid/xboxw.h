@@ -6,18 +6,18 @@
 
 #pragma once
 
-static void mty_hid_xboxw_state(struct hdevice *device, const void *data, size_t size, MTY_Msg *wmsg)
+static void mty_hid_xboxw_state(struct hdevice *device, const void *data, size_t size, MTY_Event *evt)
 {
 	const uint8_t *d = data;
 
-	wmsg->type = MTY_MSG_CONTROLLER;
+	evt->type = MTY_EVENT_CONTROLLER;
 
-	MTY_Controller *c = &wmsg->controller;
+	MTY_ControllerEvent *c = &evt->controller;
 	c->vid = mty_hid_device_get_vid(device);
 	c->pid = mty_hid_device_get_pid(device);
 	c->numValues = 7;
 	c->numButtons = 13;
-	c->driver = MTY_HID_DRIVER_XBOXW;
+	c->type = MTY_CTYPE_XBOXW;
 	c->id = mty_hid_device_get_id(device);
 
 	c->buttons[MTY_CBUTTON_X] = d[3] & 0x40;

@@ -75,20 +75,20 @@ static void mty_hid_xbox_init(struct hdevice *device)
 	ctx->rumble = true;
 }
 
-static void mty_hid_xbox_state(struct hdevice *device, const void *data, size_t dsize, MTY_Msg *wmsg)
+static void mty_hid_xbox_state(struct hdevice *device, const void *data, size_t dsize, MTY_Event *evt)
 {
 	struct xbox_state *ctx = mty_hid_device_get_state(device);
 	const uint8_t *d8 = data;
 
 	if (d8[0] == 0x01) {
-		wmsg->type = MTY_MSG_CONTROLLER;
+		evt->type = MTY_EVENT_CONTROLLER;
 
-		MTY_Controller *c = &wmsg->controller;
+		MTY_ControllerEvent *c = &evt->controller;
 		c->vid = mty_hid_device_get_vid(device);
 		c->pid = mty_hid_device_get_pid(device);
 		c->numValues = 7;
 		c->numButtons = 14;
-		c->driver = MTY_HID_DRIVER_XBOX;
+		c->type = MTY_CTYPE_XBOX;
 		c->id = mty_hid_device_get_id(device);
 
 		if (ctx->proto == XBOX_PROTO_UNKNOWN && d8[15] & 0x10)

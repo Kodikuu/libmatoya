@@ -84,7 +84,7 @@ static bool mty_hid_default_swap_value(MTY_Value *values, MTY_CValue a, MTY_CVal
 	return false;
 }
 
-static void mty_hid_default_move_value(MTY_Controller *c, MTY_Value *v, uint16_t usage,
+static void mty_hid_default_move_value(MTY_ControllerEvent *c, MTY_Value *v, uint16_t usage,
 	int16_t data, int16_t min, int16_t max)
 {
 	if (v->usage != usage && c->numValues < MTY_CVALUE_MAX) {
@@ -107,7 +107,7 @@ static void mty_hid_default_move_value(MTY_Controller *c, MTY_Value *v, uint16_t
 	}
 }
 
-static void mty_hid_default_map_values(MTY_Controller *c)
+static void mty_hid_default_map_values(MTY_ControllerEvent *c)
 {
 	// Make sure there is enough room for the standard CVALUEs
 	if (c->numValues < MTY_CVALUE_DPAD + 1)
@@ -197,10 +197,10 @@ static void mty_hid_default_map_values(MTY_Controller *c)
 #include "xbox.h"
 #include "xboxw.h"
 
-static MTY_HIDDriver mty_hid_driver(struct hdevice *device)
+static MTY_CType mty_hid_driver(struct hdevice *device)
 {
 	if (mty_hid_device_force_default(device))
-		return MTY_HID_DRIVER_DEFAULT;
+		return MTY_CTYPE_DEFAULT;
 
 	uint16_t vid = mty_hid_device_get_vid(device);
 	uint16_t pid = mty_hid_device_get_pid(device);
@@ -212,24 +212,24 @@ static MTY_HIDDriver mty_hid_driver(struct hdevice *device)
 		case 0x057E2006: // Nintendo Switch Joycon
 		case 0x057E2007: // Nintendo Switch Joycon
 		case 0x057E2017: // Nintendo Switch SNES Controller
-			return MTY_HID_DRIVER_SWITCH;
+			return MTY_CTYPE_SWITCH;
 
 		// PS4
 		case 0x054C05C4: // Sony DualShock 4 Gen1
 		case 0x054C09CC: // Sony DualShock 4 Gen2
 		case 0x054C0BA0: // Sony PS4 Controller (Wireless dongle)
-			return MTY_HID_DRIVER_PS4;
+			return MTY_CTYPE_PS4;
 
 		// PS5
 		case 0x054C0CE6: // Sony DualSense
-			return MTY_HID_DRIVER_PS5;
+			return MTY_CTYPE_PS5;
 
 		// Xbox
 		case 0x045E02E0: // Microsoft X-Box One S pad (Bluetooth)
 		case 0x045E02FD: // Microsoft X-Box One S pad (Bluetooth)
 		case 0x045E0B05: // Microsoft X-Box One Elite Series 2 pad (Bluetooth)
 		case 0x045E0B13: // Microsoft X-Box Series X (Bluetooth)
-			return MTY_HID_DRIVER_XBOX;
+			return MTY_CTYPE_XBOX;
 
 		// Xbox Wired
 		case 0x045E028E: // Microsoft XBox 360
@@ -245,48 +245,48 @@ static MTY_HIDDriver mty_hid_driver(struct hdevice *device)
 		case 0x045E02EA: // Microsoft XBox One S
 		case 0x046DC21D: // Logitech F310
 		case 0x0E6F02A0: // PDP Xbox One
-			return MTY_HID_DRIVER_XBOXW;
+			return MTY_CTYPE_XBOXW;
 	}
 
-	return MTY_HID_DRIVER_DEFAULT;
+	return MTY_CTYPE_DEFAULT;
 }
 
 static void mty_hid_driver_init(struct hdevice *device)
 {
 	switch (mty_hid_driver(device)) {
-		case MTY_HID_DRIVER_SWITCH:
+		case MTY_CTYPE_SWITCH:
 			mty_hid_nx_init(device);
 			break;
-		case MTY_HID_DRIVER_PS4:
+		case MTY_CTYPE_PS4:
 			mty_hid_ps4_init(device);
 			break;
-		case MTY_HID_DRIVER_XBOX:
+		case MTY_CTYPE_XBOX:
 			mty_hid_xbox_init(device);
 			break;
 	}
 }
 
-static void mty_hid_driver_state(struct hdevice *device, const void *buf, size_t size, MTY_Msg *wmsg)
+static void mty_hid_driver_state(struct hdevice *device, const void *buf, size_t size, MTY_Event *evt)
 {
 	switch (mty_hid_driver(device)) {
-		case MTY_HID_DRIVER_SWITCH:
-			mty_hid_nx_state(device, buf, size, wmsg);
+		case MTY_CTYPE_SWITCH:
+			mty_hid_nx_state(device, buf, size, evt);
 			break;
-		case MTY_HID_DRIVER_PS4:
-			mty_hid_ps4_state(device, buf, size, wmsg);
+		case MTY_CTYPE_PS4:
+			mty_hid_ps4_state(device, buf, size, evt);
 			break;
-		case MTY_HID_DRIVER_PS5:
-			mty_hid_ps5_state(device, buf, size, wmsg);
+		case MTY_CTYPE_PS5:
+			mty_hid_ps5_state(device, buf, size, evt);
 			break;
-		case MTY_HID_DRIVER_XBOX:
-			mty_hid_xbox_state(device, buf, size, wmsg);
+		case MTY_CTYPE_XBOX:
+			mty_hid_xbox_state(device, buf, size, evt);
 			break;
-		case MTY_HID_DRIVER_XBOXW:
-			mty_hid_xboxw_state(device, buf, size, wmsg);
+		case MTY_CTYPE_XBOXW:
+			mty_hid_xboxw_state(device, buf, size, evt);
 			break;
-		case MTY_HID_DRIVER_DEFAULT:
-			mty_hid_default_state(device, buf, size, wmsg);
-			mty_hid_default_map_values(&wmsg->controller);
+		case MTY_CTYPE_DEFAULT:
+			mty_hid_default_state(device, buf, size, evt);
+			mty_hid_default_map_values(&evt->controller);
 			break;
 	}
 }
@@ -298,19 +298,19 @@ static void mty_hid_driver_rumble(struct hid *hid, uint32_t id, uint16_t low, ui
 		return;
 
 	switch (mty_hid_driver(device)) {
-		case MTY_HID_DRIVER_SWITCH:
+		case MTY_CTYPE_SWITCH:
 			mty_hid_nx_rumble(device, low > 0, high > 0);
 			break;
-		case MTY_HID_DRIVER_PS4:
+		case MTY_CTYPE_PS4:
 			mty_hid_ps4_rumble(device, low, high);
 			break;
-		case MTY_HID_DRIVER_PS5:
+		case MTY_CTYPE_PS5:
 			mty_hid_ps5_rumble(device, low, high);
 			break;
-		case MTY_HID_DRIVER_XBOX:
+		case MTY_CTYPE_XBOX:
 			mty_hid_xbox_rumble(device, low, high);
 			break;
-		case MTY_HID_DRIVER_DEFAULT:
+		case MTY_CTYPE_DEFAULT:
 			mty_hid_default_rumble(hid, id, low, high);
 			break;
 	}

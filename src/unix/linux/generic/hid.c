@@ -45,7 +45,7 @@ struct hat {
 };
 
 struct hdevice {
-	MTY_Controller state;
+	MTY_ControllerEvent state;
 	struct ff_effect ff;
 	bool gamepad; // PS4, XInput
 	bool rumble; // Can rumble
@@ -104,7 +104,7 @@ static void hid_device_add(struct hid *ctx, const char *devnode, const char *sys
 			hdev->id = fd;
 			hdev->slot = slot;
 
-			hdev->state.driver = MTY_HID_DRIVER_DEFAULT;
+			hdev->state.type = MTY_CTYPE_DEFAULT;
 			hdev->state.numValues = 1; // There's always a dummy 'hat' DPAD
 			hdev->state.numButtons = 15; // There's no good way to know how many buttons the device has
 			hdev->state.id = hdev->id;
@@ -298,7 +298,7 @@ static void hid_joystick_event(struct hid *ctx, int32_t fd)
 	if (!hdev)
 		return;
 
-	MTY_Controller *c = &hdev->state;
+	MTY_ControllerEvent *c = &hdev->state;
 	struct input_event event = {0};
 
 	if (read(fd, &event, sizeof(struct input_event)) != sizeof(struct input_event))
@@ -495,10 +495,10 @@ bool mty_hid_device_feature(struct hdevice *ctx, void *buf, size_t size, size_t 
 	return false;
 }
 
-void mty_hid_default_state(struct hdevice *ctx, const void *buf, size_t size, MTY_Msg *wmsg)
+void mty_hid_default_state(struct hdevice *ctx, const void *buf, size_t size, MTY_Event *evt)
 {
-	wmsg->type = MTY_MSG_CONTROLLER;
-	wmsg->controller = ctx->state;
+	evt->type = MTY_EVENT_CONTROLLER;
+	evt->controller = ctx->state;
 }
 
 void mty_hid_default_rumble(struct hid *ctx, uint32_t id, uint16_t low, uint16_t high)

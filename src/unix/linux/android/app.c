@@ -20,7 +20,7 @@
 #include "gfx/gl-ctx.h"
 
 static struct MTY_App {
-	MTY_MsgFunc msg_func;
+	MTY_EventFunc event_func;
 	MTY_AppFunc app_func;
 	MTY_Hash *hotkey;
 	MTY_Detach detach;
@@ -38,7 +38,7 @@ static struct MTY_App {
 	MTY_Thread *log_thread;
 	MTY_Thread *thread;
 	MTY_Input input;
-	MTY_MouseButton long_button;
+	MTY_Button long_button;
 	int32_t double_tap;
 	bool check_scroller;
 	bool log_thread_running;
@@ -48,13 +48,13 @@ static struct MTY_App {
 	struct gfx_ctx *gfx_ctx;
 } CTX;
 
-static const MTY_Controller APP_ZEROED_CTRL = {
+static const MTY_ControllerEvent APP_ZEROED_CTRL = {
 	.id = 0,
 	.pid = 0xCDD,
 	.vid = 0xCDD,
 	.numButtons = 13,
 	.numValues = 7,
-	.driver = MTY_HID_DRIVER_DEFAULT,
+	.type = MTY_CTYPE_DEFAULT,
 	.values = {
 		[MTY_CVALUE_THUMB_LX] = {
 			.usage = 0x30,
@@ -219,12 +219,12 @@ static jstring app_jni_strdup(MTY_App *ctx, const char *str)
 
 // JNI entry
 
-static void app_push_msg(MTY_App *ctx, MTY_Msg *msg)
+static void app_push_event(MTY_App *ctx, MTY_Event *evt)
 {
-	MTY_Msg *qmsg = MTY_QueueAcquireBuffer(ctx->events);
-	*qmsg = *msg;
+	MTY_Event *qevt = MTY_QueueAcquireBuffer(ctx->events);
+	*qevt = *evt;
 
-	MTY_QueuePush(ctx->events, sizeof(MTY_Msg));
+	MTY_QueuePush(ctx->events, sizeof(MTY_Event));
 }
 
 static void *app_log_thread(void *opaque)
@@ -282,7 +282,7 @@ JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1start(JNIEnv *env, jobject
 
 	mty_gfx_global_init();
 
-	CTX.events = MTY_QueueCreate(500, sizeof(MTY_Msg));
+	CTX.events = MTY_QueueCreate(500, sizeof(MTY_Event));
 	CTX.ctrls = MTY_HashCreate(0);
 	CTX.ctrl_mutex = MTY_MutexCreate();
 
@@ -298,9 +298,9 @@ JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1start(JNIEnv *env, jobject
 
 JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1stop(JNIEnv *env, jobject obj)
 {
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_SHUTDOWN;
-	app_push_msg(&CTX, &msg);
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_SHUTDOWN;
+	app_push_event(&CTX, &evt);
 
 	MTY_ThreadDestroy(&CTX.thread);
 
@@ -332,13 +332,13 @@ JNIEXPORT jboolean JNICALL Java_group_matoya_lib_MTY_app_1key(JNIEnv *env, jobje
 	if (pressed && jtext) {
 		const char *ctext = (*env)->GetStringUTFChars(env, jtext, NULL);
 
-		MTY_Msg msg = {0};
-		msg.type = MTY_MSG_TEXT;
-		snprintf(msg.text, 8, "%s", ctext);
+		MTY_Event evt = {0};
+		evt.type = MTY_EVENT_TEXT;
+		snprintf(evt.text, 8, "%s", ctext);
 
 		(*env)->ReleaseStringUTFChars(env, jtext, ctext);
 
-		app_push_msg(&CTX, &msg);
+		app_push_event(&CTX, &evt);
 		trap = true;
 	}
 
@@ -349,31 +349,31 @@ JNIEXPORT jboolean JNICALL Java_group_matoya_lib_MTY_app_1key(JNIEnv *env, jobje
 
 	// Back key has special meaning
 	if (pressed && code == AKEYCODE_BACK) {
-		MTY_Msg msg = {0};
-		msg.type = MTY_MSG_BACK;
-		app_push_msg(&CTX, &msg);
+		MTY_Event evt = {0};
+		evt.type = MTY_EVENT_BACK;
+		app_push_event(&CTX, &evt);
 		trap = true;
 	}
 
-	// Actual MTY_MSG_KEYBOARD events generated
+	// Actual MTY_EVENT_KEYBOARD events generated
 	if (code < (jint) APP_KEYS_MAX) {
 		MTY_Key key = APP_KEYS[code];
 
 		if (key != MTY_KEY_NONE) {
-			MTY_Msg msg = {0};
-			msg.type = MTY_MSG_KEYBOARD;
-			msg.keyboard.mod = app_keymods(mods);
-			msg.keyboard.pressed = pressed;
+			MTY_Event evt = {0};
+			evt.type = MTY_EVENT_KEYBOARD;
+			evt.key.mod = app_keymods(mods);
+			evt.key.pressed = pressed;
 
 			// The soft keyboard has shift implicitly held down for certain keys
 			// without ever sending the shift button, so send a shift key event
-			if (soft && (msg.keyboard.mod & MTY_MOD_SHIFT)) {
-				msg.keyboard.key = MTY_KEY_LSHIFT;
-				app_push_msg(&CTX, &msg);
+			if (soft && (evt.key.mod & MTY_MOD_SHIFT)) {
+				evt.key.key = MTY_KEY_LSHIFT;
+				app_push_event(&CTX, &evt);
 			}
 
-			msg.keyboard.key = key;
-			app_push_msg(&CTX, &msg);
+			evt.key.key = key;
+			app_push_event(&CTX, &evt);
 			trap = true;
 		}
 	}
@@ -388,39 +388,39 @@ static void app_cancel_long_button(MTY_App *ctx, int32_t x, int32_t y)
 {
 	ctx->double_tap = false;
 
-	if (ctx->long_button != MTY_MOUSE_BUTTON_NONE) {
-		MTY_Msg msg = {0};
-		msg.type = MTY_MSG_MOUSE_BUTTON;
-		msg.mouseButton.x = x;
-		msg.mouseButton.y = y;
-		msg.mouseButton.pressed = false;
-		msg.mouseButton.button = ctx->long_button;
-		app_push_msg(ctx, &msg);
+	if (ctx->long_button != MTY_BUTTON_NONE) {
+		MTY_Event evt = {0};
+		evt.type = MTY_EVENT_BUTTON;
+		evt.button.x = x;
+		evt.button.y = y;
+		evt.button.pressed = false;
+		evt.button.button = ctx->long_button;
+		app_push_event(ctx, &evt);
 
-		ctx->long_button = MTY_MOUSE_BUTTON_NONE;
+		ctx->long_button = MTY_BUTTON_NONE;
 	}
 }
 
-static void app_touch_mouse_button(MTY_App *ctx, int32_t x, int32_t y, MTY_MouseButton button)
+static void app_touch_mouse_button(MTY_App *ctx, int32_t x, int32_t y, MTY_Button button)
 {
 	app_cancel_long_button(ctx, x, y);
 
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_MOUSE_MOTION;
-	msg.mouseMotion.x = lrint(x);
-	msg.mouseMotion.y = lrint(y);
-	msg.mouseMotion.click = true;
-	app_push_msg(ctx, &msg);
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_MOTION;
+	evt.motion.x = lrint(x);
+	evt.motion.y = lrint(y);
+	evt.motion.click = true;
+	app_push_event(ctx, &evt);
 
-	msg.type = MTY_MSG_MOUSE_BUTTON;
-	msg.mouseButton.x = lrint(x);
-	msg.mouseButton.y = lrint(y);
-	msg.mouseButton.pressed = true;
-	msg.mouseButton.button = button;
-	app_push_msg(ctx, &msg);
+	evt.type = MTY_EVENT_BUTTON;
+	evt.button.x = lrint(x);
+	evt.button.y = lrint(y);
+	evt.button.pressed = true;
+	evt.button.button = button;
+	app_push_event(ctx, &evt);
 
-	msg.mouseButton.pressed = false;
-	app_push_msg(ctx, &msg);
+	evt.button.pressed = false;
+	app_push_event(ctx, &evt);
 }
 
 JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1check_1scroller(JNIEnv *env, jobject obj,
@@ -443,12 +443,12 @@ JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1unhandled_1touch(JNIEnv *e
 			case AMOTION_EVENT_ACTION_MOVE:
 				// While a long press is in effect, move events get reported here
 				// They do NOT come through in the onScroll gesture handler
-				if (CTX.long_button != MTY_MOUSE_BUTTON_NONE) {
-					MTY_Msg msg = {0};
-					msg.type = MTY_MSG_MOUSE_MOTION;
-					msg.mouseMotion.x = lrint(x);
-					msg.mouseMotion.y = lrint(y);
-					app_push_msg(&CTX, &msg);
+				if (CTX.long_button != MTY_BUTTON_NONE) {
+					MTY_Event evt = {0};
+					evt.type = MTY_EVENT_MOTION;
+					evt.motion.x = lrint(x);
+					evt.motion.y = lrint(y);
+					app_push_event(&CTX, &evt);
 				}
 				break;
 			case AMOTION_EVENT_ACTION_POINTER_DOWN:
@@ -458,7 +458,7 @@ JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1unhandled_1touch(JNIEnv *e
 				break;
 			case AMOTION_EVENT_ACTION_POINTER_UP:
 				if (CTX.double_tap)
-					app_touch_mouse_button(&CTX, x, y, MTY_MOUSE_BUTTON_RIGHT);
+					app_touch_mouse_button(&CTX, x, y, MTY_BUTTON_RIGHT);
 
 				CTX.double_tap = false;
 				break;
@@ -471,7 +471,7 @@ JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1single_1tap_1up(JNIEnv *en
 {
 	CTX.should_detach = false;
 
-	app_touch_mouse_button(&CTX, x, y, MTY_MOUSE_BUTTON_LEFT);
+	app_touch_mouse_button(&CTX, x, y, MTY_BUTTON_LEFT);
 }
 
 JNIEXPORT jboolean JNICALL Java_group_matoya_lib_MTY_app_1long_1press(JNIEnv *env, jobject obj,
@@ -482,35 +482,35 @@ JNIEXPORT jboolean JNICALL Java_group_matoya_lib_MTY_app_1long_1press(JNIEnv *en
 	app_cancel_long_button(&CTX, lrint(x), lrint(y));
 
 	// Long press always begins by moving to the event location
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_MOUSE_MOTION;
-	msg.mouseMotion.x = lrint(x);
-	msg.mouseMotion.y = lrint(y);
-	msg.mouseMotion.click = true;
-	app_push_msg(&CTX, &msg);
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_MOTION;
+	evt.motion.x = lrint(x);
+	evt.motion.y = lrint(y);
+	evt.motion.click = true;
+	app_push_event(&CTX, &evt);
 
 	// Long press in touchscreen mode is a simple right click
 	if (CTX.input == MTY_INPUT_TOUCHSCREEN) {
-		msg.type = MTY_MSG_MOUSE_BUTTON;
-		msg.mouseButton.x = lrint(x);
-		msg.mouseButton.y = lrint(y);
-		msg.mouseButton.pressed = true;
-		msg.mouseButton.button = MTY_MOUSE_BUTTON_RIGHT;
-		app_push_msg(&CTX, &msg);
+		evt.type = MTY_EVENT_BUTTON;
+		evt.button.x = lrint(x);
+		evt.button.y = lrint(y);
+		evt.button.pressed = true;
+		evt.button.button = MTY_BUTTON_RIGHT;
+		app_push_event(&CTX, &evt);
 
-		msg.mouseButton.pressed = false;
-		app_push_msg(&CTX, &msg);
+		evt.button.pressed = false;
+		app_push_event(&CTX, &evt);
 
 	// In trackpad mode, begin a mouse down and set the LONG_BUTTON state
 	} else {
-		CTX.long_button = MTY_MOUSE_BUTTON_LEFT;
+		CTX.long_button = MTY_BUTTON_LEFT;
 
-		msg.type = MTY_MSG_MOUSE_BUTTON;
-		msg.mouseButton.x = lrint(x);
-		msg.mouseButton.y = lrint(y);
-		msg.mouseButton.pressed = true;
-		msg.mouseButton.button = CTX.long_button;
-		app_push_msg(&CTX, &msg);
+		evt.type = MTY_EVENT_BUTTON;
+		evt.button.x = lrint(x);
+		evt.button.y = lrint(y);
+		evt.button.pressed = true;
+		evt.button.button = CTX.long_button;
+		app_push_event(&CTX, &evt);
 
 		return true;
 	}
@@ -526,33 +526,33 @@ JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1scroll(JNIEnv *env, jobjec
 	app_cancel_long_button(&CTX, lrint(abs_x), lrint(abs_y));
 
 	// Single finger scrolling in touchscreen mode OR two finger scrolling in
-	// trackpad mode moves to the touch location and produces a wheel event
+	// trackpad mode moves to the touch location and produces a scroll event
 	if (CTX.input == MTY_INPUT_TOUCHSCREEN ||
-		(CTX.long_button == MTY_MOUSE_BUTTON_NONE && fingers > 1))
+		(CTX.long_button == MTY_BUTTON_NONE && fingers > 1))
 	{
-		MTY_Msg msg = {0};
+		MTY_Event evt = {0};
 
 		// Negative init values mean "don't move the cursor"
 		if (abs_x > 0.0f || abs_y > 0.0f) {
-			msg.type = MTY_MSG_MOUSE_MOTION;
-			msg.mouseMotion.x = lrint(abs_x);
-			msg.mouseMotion.y = lrint(abs_y);
-			app_push_msg(&CTX, &msg);
+			evt.type = MTY_EVENT_MOTION;
+			evt.motion.x = lrint(abs_x);
+			evt.motion.y = lrint(abs_y);
+			app_push_event(&CTX, &evt);
 		}
 
-		msg.type = MTY_MSG_MOUSE_WHEEL;
-		msg.mouseWheel.pixels = true;
-		msg.mouseWheel.y = -lrint(y);
-		msg.mouseWheel.x = 0;
-		app_push_msg(&CTX, &msg);
+		evt.type = MTY_EVENT_SCROLL;
+		evt.scroll.pixels = true;
+		evt.scroll.y = -lrint(y);
+		evt.scroll.x = 0;
+		app_push_event(&CTX, &evt);
 
 	// While single finger scrolling in trackpad mode, convert to mouse motion
 	} else if (abs_x > 0.0f || abs_y > 0.0f) {
-		MTY_Msg msg = {0};
-		msg.type = MTY_MSG_MOUSE_MOTION;
-		msg.mouseMotion.x = lrint(abs_x);
-		msg.mouseMotion.y = lrint(abs_y);
-		app_push_msg(&CTX, &msg);
+		MTY_Event evt = {0};
+		evt.type = MTY_EVENT_MOTION;
+		evt.motion.x = lrint(abs_x);
+		evt.motion.y = lrint(abs_y);
+		app_push_event(&CTX, &evt);
 	}
 }
 
@@ -566,24 +566,24 @@ JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1mouse_1motion(JNIEnv *env,
 
 	app_cancel_long_button(&CTX, lrint(x), lrint(y));
 
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_MOUSE_MOTION;
-	msg.mouseMotion.relative = relative;
-	msg.mouseMotion.x = lrint(x);
-	msg.mouseMotion.y = lrint(y);
-	app_push_msg(&CTX, &msg);
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_MOTION;
+	evt.motion.relative = relative;
+	evt.motion.x = lrint(x);
+	evt.motion.y = lrint(y);
+	app_push_event(&CTX, &evt);
 }
 
-JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1mouse_1wheel(JNIEnv *env, jobject obj,
+JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1generic_1scroll(JNIEnv *env, jobject obj,
 	jfloat x, jfloat y)
 {
 	CTX.should_detach = true;
 
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_MOUSE_WHEEL;
-	msg.mouseWheel.x = x > 0.0f ? 120 : x < 0.0f ? -120 : 0;
-	msg.mouseWheel.y = y > 0.0f ? 120 : y < 0.0f ? -120 : 0;
-	app_push_msg(&CTX, &msg);
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_SCROLL;
+	evt.scroll.x = x > 0.0f ? 120 : x < 0.0f ? -120 : 0;
+	evt.scroll.y = y > 0.0f ? 120 : y < 0.0f ? -120 : 0;
+	app_push_event(&CTX, &evt);
 }
 
 JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1mouse_1button(JNIEnv *env, jobject obj,
@@ -593,54 +593,54 @@ JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1mouse_1button(JNIEnv *env,
 
 	app_cancel_long_button(&CTX, lrint(x), lrint(y));
 
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_MOUSE_BUTTON;
-	msg.mouseButton.x = lrint(x);
-	msg.mouseButton.y = lrint(y);
-	msg.mouseButton.pressed = pressed;
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_BUTTON;
+	evt.button.x = lrint(x);
+	evt.button.y = lrint(y);
+	evt.button.pressed = pressed;
 
 	switch (button) {
 		case AMOTION_EVENT_BUTTON_PRIMARY:
-			msg.mouseButton.button = MTY_MOUSE_BUTTON_LEFT;
+			evt.button.button = MTY_BUTTON_LEFT;
 			break;
 		case AMOTION_EVENT_BUTTON_SECONDARY:
-			msg.mouseButton.button = MTY_MOUSE_BUTTON_RIGHT;
+			evt.button.button = MTY_BUTTON_RIGHT;
 			break;
 		case AMOTION_EVENT_BUTTON_TERTIARY:
-			msg.mouseButton.button = MTY_MOUSE_BUTTON_MIDDLE;
+			evt.button.button = MTY_BUTTON_MIDDLE;
 			break;
 		case AMOTION_EVENT_BUTTON_BACK:
-			msg.mouseButton.button = MTY_MOUSE_BUTTON_X1;
+			evt.button.button = MTY_BUTTON_X1;
 			break;
 		case AMOTION_EVENT_BUTTON_FORWARD:
-			msg.mouseButton.button = MTY_MOUSE_BUTTON_X2;
+			evt.button.button = MTY_BUTTON_X2;
 			break;
 	}
 
-	if (msg.mouseButton.button != MTY_MOUSE_BUTTON_NONE) {
+	if (evt.button.button != MTY_BUTTON_NONE) {
 		if (!MTY_AppGetRelativeMouse(&CTX)) {
-			MTY_Msg mv = {0};
-			mv.type = MTY_MSG_MOUSE_MOTION;
-			mv.mouseMotion.x = lrint(x);
-			mv.mouseMotion.y = lrint(y);
-			mv.mouseMotion.click = true;
-			app_push_msg(&CTX, &mv);
+			MTY_Event mv = {0};
+			mv.type = MTY_EVENT_MOTION;
+			mv.motion.x = lrint(x);
+			mv.motion.y = lrint(y);
+			mv.motion.click = true;
+			app_push_event(&CTX, &mv);
 		}
 
-		app_push_msg(&CTX, &msg);
+		app_push_event(&CTX, &evt);
 	}
 }
 
 
 // JNI controller events
 
-static MTY_Controller *app_get_controller(MTY_App *ctx, int32_t deviceId)
+static MTY_ControllerEvent *app_get_controller(MTY_App *ctx, int32_t deviceId)
 {
-	MTY_Controller *c = MTY_HashGetInt(ctx->ctrls, deviceId);
+	MTY_ControllerEvent *c = MTY_HashGetInt(ctx->ctrls, deviceId);
 	if (!c) {
 		int32_t ids = app_int_method(ctx, "getHardwareIds", "(I)I", deviceId);
 
-		c = MTY_Alloc(1, sizeof(MTY_Controller));
+		c = MTY_Alloc(1, sizeof(MTY_ControllerEvent));
 		*c = APP_ZEROED_CTRL;
 
 		c->id = deviceId;
@@ -649,10 +649,10 @@ static MTY_Controller *app_get_controller(MTY_App *ctx, int32_t deviceId)
 
 		MTY_HashSetInt(ctx->ctrls, deviceId, c);
 
-		MTY_Msg msg = {0};
-		msg.type = MTY_MSG_CONNECT;
-		msg.controller = *c;
-		app_push_msg(ctx, &msg);
+		MTY_Event evt = {0};
+		evt.type = MTY_EVENT_CONNECT;
+		evt.controller = *c;
+		app_push_event(ctx, &evt);
 	}
 
 	return c;
@@ -660,27 +660,27 @@ static MTY_Controller *app_get_controller(MTY_App *ctx, int32_t deviceId)
 
 static void app_remove_controller(MTY_App *ctx, int32_t deviceId)
 {
-	MTY_Controller *c = MTY_HashGetInt(ctx->ctrls, deviceId);
+	MTY_ControllerEvent *c = MTY_HashGetInt(ctx->ctrls, deviceId);
 	if (c) {
 		*c = APP_ZEROED_CTRL;
 
 		c->id = deviceId;
 
-		MTY_Msg msg = {0};
-		msg.type = MTY_MSG_DISCONNECT;
-		msg.controller = *c;
-		app_push_msg(ctx, &msg);
+		MTY_Event evt = {0};
+		evt.type = MTY_EVENT_DISCONNECT;
+		evt.controller = *c;
+		app_push_event(ctx, &evt);
 
 		MTY_Free(MTY_HashPopInt(ctx->ctrls, deviceId));
 	}
 }
 
-static void app_push_cmsg(MTY_App *ctx, const MTY_Controller *c)
+static void app_push_controller_event(MTY_App *ctx, const MTY_ControllerEvent *c)
 {
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_CONTROLLER;
-	msg.controller = *c;
-	app_push_msg(ctx, &msg);
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_CONTROLLER;
+	evt.controller = *c;
+	app_push_event(ctx, &evt);
 }
 
 JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1button(JNIEnv *env, jobject obj,
@@ -688,7 +688,7 @@ JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1button(JNIEnv *env, jobjec
 {
 	MTY_MutexLock(CTX.ctrl_mutex);
 
-	MTY_Controller *c = app_get_controller(&CTX, deviceId);
+	MTY_ControllerEvent *c = app_get_controller(&CTX, deviceId);
 
 	switch (button) {
 		case AKEYCODE_DPAD_CENTER: c->buttons[MTY_CBUTTON_A] = pressed; break;
@@ -725,7 +725,7 @@ JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1button(JNIEnv *env, jobjec
 		}
 	}
 
-	app_push_cmsg(&CTX, c);
+	app_push_controller_event(&CTX, c);
 
 	MTY_MutexUnlock(CTX.ctrl_mutex);
 }
@@ -736,7 +736,7 @@ JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1axis(JNIEnv *env, jobject 
 {
 	MTY_MutexLock(CTX.ctrl_mutex);
 
-	MTY_Controller *c = app_get_controller(&CTX, deviceId);
+	MTY_ControllerEvent *c = app_get_controller(&CTX, deviceId);
 
 	c->values[MTY_CVALUE_THUMB_LX].data = lrint(lX * (float) (lX < 0.0f ? abs(INT16_MIN) : INT16_MAX));
 	c->values[MTY_CVALUE_THUMB_LY].data = lrint(-lY * (float) (-lY < 0.0f ? abs(INT16_MIN) : INT16_MAX));
@@ -763,7 +763,7 @@ JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1axis(JNIEnv *env, jobject 
 	c->values[MTY_CVALUE_DPAD].data = (up && right) ? 1 : (right && down) ? 3 :
 		(down && left) ? 5 : (left && up) ? 7 : up ? 0 : right ? 2 : down ? 4 : left ? 6 : 8;
 
-	app_push_cmsg(&CTX, c);
+	app_push_controller_event(&CTX, c);
 
 	MTY_MutexUnlock(CTX.ctrl_mutex);
 }
@@ -832,12 +832,12 @@ static float app_get_scale(MTY_App *ctx)
 	return app_float_method(ctx, "getDisplayDensity", "()F") * 0.85f;
 }
 
-MTY_App *MTY_AppCreate(MTY_AppFunc appFunc, MTY_MsgFunc msgFunc, void *opaque)
+MTY_App *MTY_AppCreate(MTY_AppFunc appFunc, MTY_EventFunc eventFunc, void *opaque)
 {
 	MTY_App *ctx = &CTX;
 
 	ctx->app_func = appFunc;
-	ctx->msg_func = msgFunc;
+	ctx->event_func = eventFunc;
 	ctx->opaque = opaque;
 	ctx->hotkey = MTY_HashCreate(0);
 
@@ -859,28 +859,28 @@ void MTY_AppDestroy(MTY_App **app)
 
 static bool app_check_focus(MTY_App *ctx, bool was_ready)
 {
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_FOCUS;
-	msg.focus = mty_gfx_is_ready();
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_FOCUS;
+	evt.focus = mty_gfx_is_ready();
 
-	if ((!was_ready && msg.focus) || (was_ready && !msg.focus))
-		ctx->msg_func(&msg, ctx->opaque);
+	if ((!was_ready && evt.focus) || (was_ready && !evt.focus))
+		ctx->event_func(&evt, ctx->opaque);
 
-	return msg.focus;
+	return evt.focus;
 }
 
-static void app_kb_to_hotkey(MTY_App *app, MTY_Msg *msg)
+static void app_kb_to_hotkey(MTY_App *app, MTY_Event *evt)
 {
-	MTY_Mod mod = msg->keyboard.mod & 0xFF;
-	uint32_t hotkey = (uint32_t) (uintptr_t) MTY_HashGetInt(app->hotkey, (mod << 16) | msg->keyboard.key);
+	MTY_Mod mod = evt->key.mod & 0xFF;
+	uint32_t hotkey = (uint32_t) (uintptr_t) MTY_HashGetInt(app->hotkey, (mod << 16) | evt->key.key);
 
 	if (hotkey != 0) {
-		if (msg->keyboard.pressed) {
-			msg->type = MTY_MSG_HOTKEY;
-			msg->hotkey = hotkey;
+		if (evt->key.pressed) {
+			evt->type = MTY_EVENT_HOTKEY;
+			evt->hotkey = hotkey;
 
 		} else {
-			msg->type = MTY_MSG_NONE;
+			evt->type = MTY_EVENT_NONE;
 		}
 	}
 }
@@ -888,15 +888,15 @@ static void app_kb_to_hotkey(MTY_App *app, MTY_Msg *msg)
 void MTY_AppRun(MTY_App *ctx)
 {
 	for (bool cont = true, was_ready = false; cont;) {
-		for (MTY_Msg *msg; MTY_QueuePop(ctx->events, 0, (void **) &msg, NULL);) {
-			if (msg->type == MTY_MSG_KEYBOARD)
-				app_kb_to_hotkey(ctx, msg);
+		for (MTY_Event *evt; MTY_QueuePop(ctx->events, 0, (void **) &evt, NULL);) {
+			if (evt->type == MTY_EVENT_KEYBOARD)
+				app_kb_to_hotkey(ctx, evt);
 
-			ctx->msg_func(msg, ctx->opaque);
+			ctx->event_func(evt, ctx->opaque);
 			MTY_QueueReleaseBuffer(ctx->events);
 		}
 
-		// Generate MTY_MSG_FOCUS events
+		// Generate MTY_EVENT_FOCUS events
 		was_ready = app_check_focus(ctx, was_ready);
 
 		// Generates scroll events after a fling has taken place

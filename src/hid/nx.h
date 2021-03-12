@@ -161,18 +161,18 @@ static void mty_hid_nx_expand_min_max(int16_t v, struct nx_min_max *mm)
 		mm->max = v;
 }
 
-static void mty_hid_nx_full_state(struct hdevice *device, const uint8_t *d, MTY_Msg *wmsg)
+static void mty_hid_nx_full_state(struct hdevice *device, const uint8_t *d, MTY_Event *evt)
 {
 	struct nx_state *ctx = mty_hid_device_get_state(device);
 
-	wmsg->type = MTY_MSG_CONTROLLER;
+	evt->type = MTY_EVENT_CONTROLLER;
 
-	MTY_Controller *c = &wmsg->controller;
+	MTY_ControllerEvent *c = &evt->controller;
 	c->vid = mty_hid_device_get_vid(device);
 	c->pid = mty_hid_device_get_pid(device);
 	c->numValues = 7;
 	c->numButtons = 14;
-	c->driver = MTY_HID_DRIVER_SWITCH;
+	c->type = MTY_CTYPE_SWITCH;
 	c->id = mty_hid_device_get_id(device);
 
 	c->buttons[MTY_CBUTTON_X] = d[3] & 0x01;
@@ -246,18 +246,18 @@ static void mty_hid_nx_full_state(struct hdevice *device, const uint8_t *d, MTY_
 	c->values[MTY_CVALUE_DPAD].max = 7;
 }
 
-static void mty_hid_nx_simple_state(struct hdevice *device, const uint8_t *d, MTY_Msg *wmsg)
+static void mty_hid_nx_simple_state(struct hdevice *device, const uint8_t *d, MTY_Event *evt)
 {
 	struct nx_state *ctx = mty_hid_device_get_state(device);
 
-	wmsg->type = MTY_MSG_CONTROLLER;
+	evt->type = MTY_EVENT_CONTROLLER;
 
-	MTY_Controller *c = &wmsg->controller;
+	MTY_ControllerEvent *c = &evt->controller;
 	c->vid = mty_hid_device_get_vid(device);
 	c->pid = mty_hid_device_get_pid(device);
 	c->numValues = 7;
 	c->numButtons = 14;
-	c->driver = MTY_HID_DRIVER_SWITCH;
+	c->type = MTY_CTYPE_SWITCH;
 	c->id = mty_hid_device_get_id(device);
 
 	c->buttons[MTY_CBUTTON_X] = d[1] & 0x04;
@@ -464,18 +464,18 @@ static void mty_hid_nx_state_machine(struct hdevice *device)
 	}
 }
 
-static void mty_hid_nx_state(struct hdevice *device, const void *data, size_t dsize, MTY_Msg *wmsg)
+static void mty_hid_nx_state(struct hdevice *device, const void *data, size_t dsize, MTY_Event *evt)
 {
 	struct nx_state *ctx = mty_hid_device_get_state(device);
 	const uint8_t *d = data;
 
 	// State (Full)
 	if (d[0] == 0x30 && ctx->calibrated) {
-		mty_hid_nx_full_state(device, d, wmsg);
+		mty_hid_nx_full_state(device, d, evt);
 
 	// State (Simple)
 	} else if (d[0] == 0x3F && ctx->calibrated) {
-		mty_hid_nx_simple_state(device, d, wmsg);
+		mty_hid_nx_simple_state(device, d, evt);
 
 	// USB Handshake Response
 	} else if (d[0] == 0x81 && (d[1] == 0x02 || d[1] == 0x03 || d[2] == 0x04)) {

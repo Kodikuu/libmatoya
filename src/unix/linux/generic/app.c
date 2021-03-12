@@ -44,7 +44,7 @@ struct MTY_App {
 	Window sel_owner;
 	XIM im;
 
-	MTY_MsgFunc msg_func;
+	MTY_EventFunc event_func;
 	MTY_AppFunc app_func;
 	MTY_Hash *hotkey;
 	MTY_Mutex *mutex;
@@ -290,9 +290,9 @@ static void app_handle_selection_notify(MTY_App *ctx, const XSelectionEvent *res
 		// We take back the selection so that we can be notified the next time a different app takes it
 		XSetSelectionOwner(ctx->display, XInternAtom(ctx->display, "CLIPBOARD", False), win0->window, CurrentTime);
 
-		MTY_Msg msg = {0};
-		msg.type = MTY_MSG_CLIPBOARD;
-		ctx->msg_func(&msg, ctx->opaque);
+		MTY_Event evt = {0};
+		evt.type = MTY_EVENT_CLIPBOARD;
+		ctx->event_func(&evt, ctx->opaque);
 	}
 }
 
@@ -497,37 +497,37 @@ static void app_mty_hid_connect(struct hdevice *device, void *opaque)
 
 	mty_hid_driver_init(device);
 
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_CONNECT;
-	msg.controller.vid = mty_hid_device_get_vid(device);
-	msg.controller.pid = mty_hid_device_get_pid(device);
-	msg.controller.id = mty_hid_device_get_id(device);
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_CONNECT;
+	evt.controller.vid = mty_hid_device_get_vid(device);
+	evt.controller.pid = mty_hid_device_get_pid(device);
+	evt.controller.id = mty_hid_device_get_id(device);
 
-	ctx->msg_func(&msg, ctx->opaque);
+	ctx->event_func(&evt, ctx->opaque);
 }
 
 static void app_mty_hid_disconnect(struct hdevice *device, void *opaque)
 {
 	MTY_App *ctx = opaque;
 
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_DISCONNECT;
-	msg.controller.vid = mty_hid_device_get_vid(device);
-	msg.controller.pid = mty_hid_device_get_pid(device);
-	msg.controller.id = mty_hid_device_get_id(device);
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_DISCONNECT;
+	evt.controller.vid = mty_hid_device_get_vid(device);
+	evt.controller.pid = mty_hid_device_get_pid(device);
+	evt.controller.id = mty_hid_device_get_id(device);
 
-	ctx->msg_func(&msg, ctx->opaque);
+	ctx->event_func(&evt, ctx->opaque);
 }
 
 static void app_mty_hid_report(struct hdevice *device, const void *buf, size_t size, void *opaque)
 {
 	MTY_App *ctx = opaque;
 
-	MTY_Msg msg = {0};
-	mty_hid_driver_state(device, buf, size, &msg);
+	MTY_Event evt = {0};
+	mty_hid_driver_state(device, buf, size, &evt);
 
-	if (msg.type != MTY_MSG_NONE && MTY_AppIsActive(ctx))
-		ctx->msg_func(&msg, ctx->opaque);
+	if (evt.type != MTY_EVENT_NONE && MTY_AppIsActive(ctx))
+		ctx->event_func(&evt, ctx->opaque);
 }
 
 static void app_refresh_scale(MTY_App *ctx)
@@ -540,7 +540,7 @@ static void app_refresh_scale(MTY_App *ctx)
 	XCloseDisplay(display);
 }
 
-MTY_App *MTY_AppCreate(MTY_AppFunc appFunc, MTY_MsgFunc msgFunc, void *opaque)
+MTY_App *MTY_AppCreate(MTY_AppFunc appFunc, MTY_EventFunc eventFunc, void *opaque)
 {
 	if (!x_dl_global_init())
 		return NULL;
@@ -552,7 +552,7 @@ MTY_App *MTY_AppCreate(MTY_AppFunc appFunc, MTY_MsgFunc msgFunc, void *opaque)
 	ctx->hotkey = MTY_HashCreate(0);
 	ctx->mutex = MTY_MutexCreate();
 	ctx->app_func = appFunc;
-	ctx->msg_func = msgFunc;
+	ctx->event_func = eventFunc;
 	ctx->opaque = opaque;
 	ctx->class_name = MTY_Strdup(MTY_GetFileName(MTY_ProcessName(), false));
 
@@ -646,28 +646,28 @@ static void window_text_event(MTY_App *ctx, XEvent *event)
 	if (!win)
 		return;
 
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_TEXT;
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_TEXT;
 
 	Status status = 0;
 	KeySym ks = 0;
 
-	if (Xutf8LookupString(win->ic, (XKeyPressedEvent *) event, msg.text, 8, &ks, &status) > 0)
-		ctx->msg_func(&msg, ctx->opaque);
+	if (Xutf8LookupString(win->ic, (XKeyPressedEvent *) event, evt.text, 8, &ks, &status) > 0)
+		ctx->event_func(&evt, ctx->opaque);
 }
 
-static void app_kb_to_hotkey(MTY_App *app, MTY_Msg *msg)
+static void app_kb_to_hotkey(MTY_App *app, MTY_Event *evt)
 {
-	MTY_Mod mod = msg->keyboard.mod & 0xFF;
-	uint32_t hotkey = (uint32_t) (uintptr_t) MTY_HashGetInt(app->hotkey, (mod << 16) | msg->keyboard.key);
+	MTY_Mod mod = evt->key.mod & 0xFF;
+	uint32_t hotkey = (uint32_t) (uintptr_t) MTY_HashGetInt(app->hotkey, (mod << 16) | evt->key.key);
 
 	if (hotkey != 0) {
-		if (msg->keyboard.pressed) {
-			msg->type = MTY_MSG_HOTKEY;
-			msg->hotkey = hotkey;
+		if (evt->key.pressed) {
+			evt->type = MTY_EVENT_HOTKEY;
+			evt->hotkey = hotkey;
 
 		} else {
-			msg->type = MTY_MSG_NONE;
+			evt->type = MTY_EVENT_NONE;
 		}
 	}
 }
@@ -683,20 +683,20 @@ static void app_make_movement(MTY_App *app, MTY_Window window)
 	int root_x, root_y, win_x = 0, win_y = 0;
 	XQueryPointer(app->display, win->window, &root, &child, &root_x, &root_y, &win_x, &win_y, &mask);
 
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_MOUSE_MOTION;
-	msg.window = window;
-	msg.mouseMotion.relative = false;
-	msg.mouseMotion.click = true;
-	msg.mouseMotion.x = win_x;
-	msg.mouseMotion.y = win_y;
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_MOTION;
+	evt.window = window;
+	evt.motion.relative = false;
+	evt.motion.click = true;
+	evt.motion.x = win_x;
+	evt.motion.y = win_y;
 
-	app->msg_func(&msg, app->opaque);
+	app->event_func(&evt, app->opaque);
 }
 
 static void app_event(MTY_App *ctx, XEvent *event)
 {
-	MTY_Msg msg = {0};
+	MTY_Event evt = {0};
 
 	switch (event->type) {
 		case KeyPress:
@@ -704,29 +704,29 @@ static void app_event(MTY_App *ctx, XEvent *event)
 			// Fall through
 
 		case KeyRelease: {
-			msg.keyboard.key = window_keycode_to_key(event->xkey.keycode);
+			evt.key.key = window_keycode_to_key(event->xkey.keycode);
 
-			if (msg.keyboard.key != MTY_KEY_NONE) {
-				msg.type = MTY_MSG_KEYBOARD;
-				msg.window = app_find_window(ctx, event->xkey.window);
-				msg.keyboard.pressed = event->type == KeyPress;
-				msg.keyboard.mod = window_keystate_to_keymod(msg.keyboard.key,
-					msg.keyboard.pressed, event->xkey.state);
+			if (evt.key.key != MTY_KEY_NONE) {
+				evt.type = MTY_EVENT_KEYBOARD;
+				evt.window = app_find_window(ctx, event->xkey.window);
+				evt.key.pressed = event->type == KeyPress;
+				evt.key.mod = window_keystate_to_keymod(evt.key.key,
+					evt.key.pressed, event->xkey.state);
 			}
 			break;
 		}
 		case ButtonPress:
 		case ButtonRelease:
-			msg.type = MTY_MSG_MOUSE_BUTTON;
-			msg.window = app_find_window(ctx, event->xbutton.window);
-			msg.mouseButton.pressed = event->type == ButtonPress;
+			evt.type = MTY_EVENT_BUTTON;
+			evt.window = app_find_window(ctx, event->xbutton.window);
+			evt.button.pressed = event->type == ButtonPress;
 
 			switch (event->xbutton.button) {
-				case 1: msg.mouseButton.button = MTY_MOUSE_BUTTON_LEFT;   break;
-				case 2: msg.mouseButton.button = MTY_MOUSE_BUTTON_MIDDLE; break;
-				case 3: msg.mouseButton.button = MTY_MOUSE_BUTTON_RIGHT;  break;
-				case 8: msg.mouseButton.button = MTY_MOUSE_BUTTON_X1;     break;
-				case 9: msg.mouseButton.button = MTY_MOUSE_BUTTON_X2;     break;
+				case 1: evt.button.button = MTY_BUTTON_LEFT;   break;
+				case 2: evt.button.button = MTY_BUTTON_MIDDLE; break;
+				case 3: evt.button.button = MTY_BUTTON_RIGHT;  break;
+				case 8: evt.button.button = MTY_BUTTON_X1;     break;
+				case 9: evt.button.button = MTY_BUTTON_X2;     break;
 
 				// Mouse wheel
 				case 4:
@@ -734,12 +734,12 @@ static void app_event(MTY_App *ctx, XEvent *event)
 				case 6:
 				case 7:
 					if (event->type == ButtonPress) {
-						msg.type = MTY_MSG_MOUSE_WHEEL;
-						msg.mouseWheel.x = event->xbutton.button == 6 ? -120 : event->xbutton.button == 7 ?  120 : 0;
-						msg.mouseWheel.y = event->xbutton.button == 4 ?  120 : event->xbutton.button == 5 ? -120 : 0;
+						evt.type = MTY_EVENT_SCROLL;
+						evt.scroll.x = event->xbutton.button == 6 ? -120 : event->xbutton.button == 7 ?  120 : 0;
+						evt.scroll.y = event->xbutton.button == 4 ?  120 : event->xbutton.button == 5 ? -120 : 0;
 
 					} else {
-						msg.type = MTY_MSG_NONE;
+						evt.type = MTY_EVENT_NONE;
 					}
 					break;
 			}
@@ -748,18 +748,18 @@ static void app_event(MTY_App *ctx, XEvent *event)
 			if (ctx->relative)
 				break;
 
-			msg.type = MTY_MSG_MOUSE_MOTION;
-			msg.window = app_find_window(ctx, event->xmotion.window);
-			msg.mouseMotion.relative = false;
-			msg.mouseMotion.x = event->xmotion.x;
-			msg.mouseMotion.y = event->xmotion.y;
+			evt.type = MTY_EVENT_MOTION;
+			evt.window = app_find_window(ctx, event->xmotion.window);
+			evt.motion.relative = false;
+			evt.motion.x = event->xmotion.x;
+			evt.motion.y = event->xmotion.y;
 			break;
 		case ClientMessage: {
 			Atom type = (Atom) event->xclient.data.l[0];
 
 			if (type == ctx->wm_close) {
-				msg.window = app_find_window(ctx, event->xclient.window);
-				msg.type = MTY_MSG_CLOSE;
+				evt.window = app_find_window(ctx, event->xclient.window);
+				evt.type = MTY_EVENT_CLOSE;
 
 			// Ping -> Pong
 			} else if (type == ctx->wm_ping) {
@@ -786,11 +786,11 @@ static void app_event(MTY_App *ctx, XEvent *event)
 
 					struct window *win = app_get_active_window(ctx);
 					if (win && (output[0] != 0 || output[1] != 0)) {
-						msg.type = MTY_MSG_MOUSE_MOTION;
-						msg.window = win->index;
-						msg.mouseMotion.relative = true;
-						msg.mouseMotion.x = output[0];
-						msg.mouseMotion.y = output[1];
+						evt.type = MTY_EVENT_MOTION;
+						evt.window = win->index;
+						evt.motion.relative = true;
+						evt.motion.x = output[0];
+						evt.motion.y = output[1];
 					}
 				}
 			}
@@ -809,24 +809,24 @@ static void app_event(MTY_App *ctx, XEvent *event)
 		case FocusOut:
 			// Do not respond to NotifyGrab or NotifyUngrab
 			if (event->xfocus.mode == NotifyNormal || event->xfocus.mode == NotifyWhileGrabbed) {
-				msg.type = MTY_MSG_FOCUS;
-				msg.focus = event->type == FocusIn;
+				evt.type = MTY_EVENT_FOCUS;
+				evt.focus = event->type == FocusIn;
 			}
 			ctx->state++;
 			break;
 	}
 
 	// Transform keyboard into hotkey
-	if (msg.type == MTY_MSG_KEYBOARD)
-		app_kb_to_hotkey(ctx, &msg);
+	if (evt.type == MTY_EVENT_KEYBOARD)
+		app_kb_to_hotkey(ctx, &evt);
 
 	// For robustness, generate a MOUSE_MOTION event to where the click happens
-	if (msg.type == MTY_MSG_MOUSE_BUTTON && msg.mouseButton.pressed && !ctx->relative)
-		app_make_movement(ctx, msg.window);
+	if (evt.type == MTY_EVENT_BUTTON && evt.button.pressed && !ctx->relative)
+		app_make_movement(ctx, evt.window);
 
 	// Handle the message
-	if (msg.type != MTY_MSG_NONE)
-		ctx->msg_func(&msg, ctx->opaque);
+	if (evt.type != MTY_EVENT_NONE)
+		ctx->event_func(&evt, ctx->opaque);
 }
 
 static void app_suspend_ss(MTY_App *ctx)

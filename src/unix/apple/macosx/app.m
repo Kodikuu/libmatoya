@@ -23,7 +23,7 @@
 	@property(strong) NSCursor *cursor;
 	@property IOPMAssertionID assertion;
 	@property MTY_AppFunc app_func;
-	@property MTY_MsgFunc msg_func;
+	@property MTY_EventFunc event_func;
 	@property MTY_Hash *hotkey;
 	@property MTY_Detach detach;
 	@property void *opaque;
@@ -43,15 +43,15 @@
 	@property struct hid *hid;
 @end
 
-static const MTY_MouseButton APP_MOUSE_MAP[] = {
-	MTY_MOUSE_BUTTON_LEFT,
-	MTY_MOUSE_BUTTON_RIGHT,
-	MTY_MOUSE_BUTTON_MIDDLE,
-	MTY_MOUSE_BUTTON_X1,
-	MTY_MOUSE_BUTTON_X2,
+static const MTY_Button APP_MOUSE_MAP[] = {
+	MTY_BUTTON_LEFT,
+	MTY_BUTTON_RIGHT,
+	MTY_BUTTON_MIDDLE,
+	MTY_BUTTON_X1,
+	MTY_BUTTON_X2,
 };
 
-#define APP_MOUSE_MAX (sizeof(APP_MOUSE_MAP) / sizeof(MTY_MouseButton))
+#define APP_MOUSE_MAX (sizeof(APP_MOUSE_MAP) / sizeof(MTY_Button))
 
 static void app_schedule_func(App *ctx)
 {
@@ -95,10 +95,10 @@ static void app_poll_clipboard(App *ctx)
 	uint32_t cb_seq = [[NSPasteboard generalPasteboard] changeCount];
 
 	if (cb_seq > ctx.cb_seq) {
-		MTY_Msg msg = {0};
-		msg.type = MTY_MSG_CLIPBOARD;
+		MTY_Event evt = {0};
+		evt.type = MTY_EVENT_CLIPBOARD;
 
-		ctx.msg_func(&msg, ctx.opaque);
+		ctx.event_func(&evt, ctx.opaque);
 		ctx.cb_seq = cb_seq;
 	}
 }
@@ -113,11 +113,11 @@ static void app_fix_mouse_buttons(App *ctx)
 
 	for (NSUInteger x = 0; buttons > 0 && x < APP_MOUSE_MAX; x++) {
 		if ((buttons & 1) && !(pressed & 1)) {
-			MTY_Msg msg = {0};
-			msg.type = MTY_MSG_MOUSE_BUTTON;
-			msg.mouseButton.button = APP_MOUSE_MAP[x];
+			MTY_Event evt = {0};
+			evt.type = MTY_EVENT_BUTTON;
+			evt.button.button = APP_MOUSE_MAP[x];
 
-			ctx.msg_func(&msg, ctx.opaque);
+			ctx.event_func(&evt, ctx.opaque);
 			ctx.buttons &= ~(1 << x);
 		}
 
@@ -152,20 +152,20 @@ static void app_fix_mouse_buttons(App *ctx)
 
 	- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
 	{
-		MTY_Msg msg = {0};
-		msg.type = MTY_MSG_QUIT;
+		MTY_Event evt = {0};
+		evt.type = MTY_EVENT_QUIT;
 
-		self.msg_func(&msg, self.opaque);
+		self.event_func(&evt, self.opaque);
 
 		return NSTerminateCancel;
 	}
 
 	- (void)appQuit
 	{
-		MTY_Msg msg = {0};
-		msg.type = MTY_MSG_QUIT;
+		MTY_Event evt = {0};
+		evt.type = MTY_EVENT_QUIT;
 
-		self.msg_func(&msg, self.opaque);
+		self.event_func(&evt, self.opaque);
 	}
 
 	- (void)appClose
@@ -175,11 +175,11 @@ static void app_fix_mouse_buttons(App *ctx)
 
 	- (void)appRestart
 	{
-		MTY_Msg msg = {0};
-		msg.type = MTY_MSG_TRAY;
-		msg.trayID = 3; // FIXME Arbitrary!
+		MTY_Event evt = {0};
+		evt.type = MTY_EVENT_TRAY;
+		evt.trayID = 3; // FIXME Arbitrary!
 
-		self.msg_func(&msg, self.opaque);
+		self.event_func(&evt, self.opaque);
 	}
 
 	- (void)appMinimize
@@ -237,11 +237,11 @@ static void app_fix_mouse_buttons(App *ctx)
 		NSString *url = [[event paramDescriptorForKeyword:keyDirectObject] stringValue];
 
 		if (url) {
-			MTY_Msg msg = {0};
-			msg.type = MTY_MSG_REOPEN;
-			msg.arg = [url UTF8String];
+			MTY_Event evt = {0};
+			evt.type = MTY_EVENT_REOPEN;
+			evt.arg = [url UTF8String];
 
-			self.msg_func(&msg, self.opaque);
+			self.event_func(&evt, self.opaque);
 		}
 	}
 
@@ -305,13 +305,13 @@ static MTY_Window app_find_open_window(MTY_App *app)
 	return -1;
 }
 
-static MTY_Msg window_msg(Window *window, MTY_MsgType type)
+static MTY_Event window_event(Window *window, MTY_MsgType type)
 {
-	MTY_Msg msg = {0};
-	msg.type = type;
-	msg.window = window.window;
+	MTY_Event evt = {0};
+	evt.type = type;
+	evt.window = window.window;
 
-	return msg;
+	return evt;
 }
 
 
@@ -407,43 +407,43 @@ static void window_pen_event(Window *window, NSEvent *event)
 		return;
 
 	CGFloat scale = cur.screen.backingScaleFactor;
-	MTY_Msg msg = window_msg(cur, MTY_MSG_PEN);
-	msg.pen.pressure = (uint16_t) lrint(event.pressure * 1024.0f);
-	msg.pen.rotation = (uint16_t) lrint(event.rotation * 359.0f);
-	msg.pen.tiltX = (int8_t) lrint(event.tilt.x * 90.0f);
-	msg.pen.tiltY = (int8_t) lrint(event.tilt.y * 90.0f);
-	msg.pen.x = lrint(p.x * scale);
-	msg.pen.y = lrint(p.y * scale);
+	MTY_Event evt = window_event(cur, MTY_EVENT_PEN);
+	evt.pen.pressure = (uint16_t) lrint(event.pressure * 1024.0f);
+	evt.pen.rotation = (uint16_t) lrint(event.rotation * 359.0f);
+	evt.pen.tiltX = (int8_t) lrint(event.tilt.x * 90.0f);
+	evt.pen.tiltY = (int8_t) lrint(event.tilt.y * 90.0f);
+	evt.pen.x = lrint(p.x * scale);
+	evt.pen.y = lrint(p.y * scale);
 
 	bool touching = event.buttonMask & NSEventButtonMaskPenTip;
 
 	// INVERTED must be set while hovering, but ERASER should only be set by
 	// while TOUCHING is also true
 	if (window.app.eraser) {
-		msg.pen.flags |= MTY_PEN_FLAG_INVERTED;
+		evt.pen.flags |= MTY_PEN_FLAG_INVERTED;
 
 		if (touching) {
-			msg.pen.flags |= MTY_PEN_FLAG_TOUCHING;
-			msg.pen.flags |= MTY_PEN_FLAG_ERASER;
+			evt.pen.flags |= MTY_PEN_FLAG_TOUCHING;
+			evt.pen.flags |= MTY_PEN_FLAG_ERASER;
 		}
 
 	} else if (touching) {
-		msg.pen.flags |= MTY_PEN_FLAG_TOUCHING;
+		evt.pen.flags |= MTY_PEN_FLAG_TOUCHING;
 	}
 
 	// While BARREL is held, TOUCHING must also be set
 	if (event.buttonMask & NSEventButtonMaskPenLowerSide) {
-		msg.pen.flags |= MTY_PEN_FLAG_BARREL;
-		msg.pen.flags |= MTY_PEN_FLAG_TOUCHING;
+		evt.pen.flags |= MTY_PEN_FLAG_BARREL;
+		evt.pen.flags |= MTY_PEN_FLAG_TOUCHING;
 	}
 
 	// LEAVE is set when the pen moves out of the tracking area (only once)
 	if (window.app.pen_left) {
-		msg.pen.flags |= MTY_PEN_FLAG_LEAVE;
+		evt.pen.flags |= MTY_PEN_FLAG_LEAVE;
 		window.app.pen_left = false;
 	}
 
-	window.app.msg_func(&msg, window.app.opaque);
+	window.app.event_func(&evt, window.app.opaque);
 }
 
 
@@ -459,24 +459,24 @@ static void window_mouse_button_event(Window *window, NSUInteger index, bool pre
 	if (index >= APP_MOUSE_MAX)
 		return;
 
-	MTY_MouseButton button = APP_MOUSE_MAP[index];
+	MTY_Button button = APP_MOUSE_MAP[index];
 
 	if (pressed && !cur.app.relative) {
-		MTY_Msg msg = window_msg(cur, MTY_MSG_MOUSE_MOTION);
+		MTY_Event evt = window_event(cur, MTY_EVENT_MOTION);
 		CGFloat scale = cur.screen.backingScaleFactor;
-		msg.mouseMotion.relative = false;
-		msg.mouseMotion.click = true;
-		msg.mouseMotion.x = lrint(scale * p.x);
-		msg.mouseMotion.y = lrint(scale * p.y);
+		evt.motion.relative = false;
+		evt.motion.click = true;
+		evt.motion.x = lrint(scale * p.x);
+		evt.motion.y = lrint(scale * p.y);
 
-		window.app.msg_func(&msg, window.app.opaque);
+		window.app.event_func(&evt, window.app.opaque);
 	}
 
-	MTY_Msg msg = window_msg(cur, MTY_MSG_MOUSE_BUTTON);
-	msg.mouseButton.pressed = pressed;
-	msg.mouseButton.button = button;
+	MTY_Event evt = window_event(cur, MTY_EVENT_BUTTON);
+	evt.button.pressed = pressed;
+	evt.button.button = button;
 
-	window.app.msg_func(&msg, window.app.opaque);
+	window.app.event_func(&evt, window.app.opaque);
 
 	if (pressed) {
 		window.app.buttons |= 1 << index;
@@ -543,12 +543,12 @@ static void window_confine_cursor(void)
 static void window_mouse_motion_event(Window *window, NSEvent *event, bool pen_in_range)
 {
 	if (window.app.relative && window.app.detach == MTY_DETACH_NONE && !pen_in_range) {
-		MTY_Msg msg = window_msg(window, MTY_MSG_MOUSE_MOTION);
-		msg.mouseMotion.relative = true;
-		msg.mouseMotion.x = event.deltaX;
-		msg.mouseMotion.y = event.deltaY;
+		MTY_Event evt = window_event(window, MTY_EVENT_MOTION);
+		evt.motion.relative = true;
+		evt.motion.x = event.deltaX;
+		evt.motion.y = event.deltaY;
 
-		window.app.msg_func(&msg, window.app.opaque);
+		window.app.event_func(&evt, window.app.opaque);
 
 	} else {
 		NSPoint p = {0};
@@ -559,14 +559,14 @@ static void window_mouse_motion_event(Window *window, NSEvent *event, bool pen_i
 				window_confine_cursor();
 
 			} else {
-				MTY_Msg msg = window_msg(cur, MTY_MSG_MOUSE_MOTION);
+				MTY_Event evt = window_event(cur, MTY_EVENT_MOTION);
 
 				CGFloat scale = cur.screen.backingScaleFactor;
-				msg.mouseMotion.relative = false;
-				msg.mouseMotion.x = lrint(scale * p.x);
-				msg.mouseMotion.y = lrint(scale * p.y);
+				evt.motion.relative = false;
+				evt.motion.x = lrint(scale * p.x);
+				evt.motion.y = lrint(scale * p.y);
 
-				window.app.msg_func(&msg, window.app.opaque);
+				window.app.event_func(&evt, window.app.opaque);
 			}
 
 		} else if (window.app.grab_mouse && window.app.detach == MTY_DETACH_NONE) {
@@ -587,16 +587,16 @@ static void window_motion_event(Window *window, NSEvent *event)
 	}
 }
 
-static void window_wheel_event(Window *window, NSEvent *event)
+static void window_scroll_event(Window *window, NSEvent *event)
 {
 	CGFloat scale = window.screen.backingScaleFactor;
 	int32_t delta = event.hasPreciseScrollingDeltas ? scale : scale * 80.0f;
 
-	MTY_Msg msg = window_msg(window, MTY_MSG_MOUSE_WHEEL);
-	msg.mouseWheel.x = lrint(-event.scrollingDeltaX * delta);
-	msg.mouseWheel.y = lrint(event.scrollingDeltaY * delta);
+	MTY_Event evt = window_event(window, MTY_EVENT_SCROLL);
+	evt.scroll.x = lrint(-event.scrollingDeltaX * delta);
+	evt.scroll.y = lrint(event.scrollingDeltaY * delta);
 
-	window.app.msg_func(&msg, window.app.opaque);
+	window.app.event_func(&evt, window.app.opaque);
 }
 
 
@@ -606,58 +606,58 @@ static void window_text_event(Window *window, const char *text)
 {
 	// Make sure visible ASCII
 	if (text && text[0] && text[0] >= 0x20 && text[0] != 0x7F) {
-		MTY_Msg msg = window_msg(window, MTY_MSG_TEXT);
-		snprintf(msg.text, 8, "%s", text);
+		MTY_Event evt = window_event(window, MTY_EVENT_TEXT);
+		snprintf(evt.text, 8, "%s", text);
 
-		window.app.msg_func(&msg, window.app.opaque);
+		window.app.event_func(&evt, window.app.opaque);
 	}
 }
 
 static void window_keyboard_event(Window *window, int16_t key_code, NSEventModifierFlags flags, bool pressed)
 {
-	MTY_Msg msg = window_msg(window, MTY_MSG_KEYBOARD);
-	msg.keyboard.key = window_keycode_to_key(key_code);
-	msg.keyboard.mod = window_modifier_flags_to_keymod(flags);
-	msg.keyboard.pressed = pressed;
+	MTY_Event evt = window_event(window, MTY_EVENT_KEYBOARD);
+	evt.key.key = window_keycode_to_key(key_code);
+	evt.key.mod = window_modifier_flags_to_keymod(flags);
+	evt.key.pressed = pressed;
 
-	MTY_Mod mod = msg.keyboard.mod & 0xFF;
+	MTY_Mod mod = evt.key.mod & 0xFF;
 
-	uint32_t hotkey = (uint32_t) (uintptr_t) MTY_HashGetInt(window.app.hotkey, (mod << 16) | msg.keyboard.key);
+	uint32_t hotkey = (uint32_t) (uintptr_t) MTY_HashGetInt(window.app.hotkey, (mod << 16) | evt.key.key);
 
 	if (hotkey != 0) {
 		if (pressed) {
-			msg.type = MTY_MSG_HOTKEY;
-			msg.hotkey = hotkey;
+			evt.type = MTY_EVENT_HOTKEY;
+			evt.hotkey = hotkey;
 
-			window.app.msg_func(&msg, window.app.opaque);
+			window.app.event_func(&evt, window.app.opaque);
 		}
 
 	} else {
-		if (msg.keyboard.key != MTY_KEY_NONE)
-			window.app.msg_func(&msg, window.app.opaque);
+		if (evt.key.key != MTY_KEY_NONE)
+			window.app.event_func(&evt, window.app.opaque);
 	}
 }
 
 static void window_mod_event(Window *window, NSEvent *event)
 {
-	MTY_Msg msg = window_msg(window, MTY_MSG_KEYBOARD);
-	msg.keyboard.key = window_keycode_to_key(event.keyCode);
-	msg.keyboard.mod = window_modifier_flags_to_keymod(event.modifierFlags);
+	MTY_Event evt = window_event(window, MTY_EVENT_KEYBOARD);
+	evt.key.key = window_keycode_to_key(event.keyCode);
+	evt.key.mod = window_modifier_flags_to_keymod(event.modifierFlags);
 
-	switch (msg.keyboard.key) {
-		case MTY_KEY_LSHIFT: msg.keyboard.pressed = msg.keyboard.mod & MTY_MOD_LSHIFT; break;
-		case MTY_KEY_LCTRL:  msg.keyboard.pressed = msg.keyboard.mod & MTY_MOD_LCTRL;  break;
-		case MTY_KEY_LALT:   msg.keyboard.pressed = msg.keyboard.mod & MTY_MOD_LALT;   break;
-		case MTY_KEY_LWIN:   msg.keyboard.pressed = msg.keyboard.mod & MTY_MOD_LWIN;   break;
-		case MTY_KEY_RSHIFT: msg.keyboard.pressed = msg.keyboard.mod & MTY_MOD_RSHIFT; break;
-		case MTY_KEY_RCTRL:  msg.keyboard.pressed = msg.keyboard.mod & MTY_MOD_RCTRL;  break;
-		case MTY_KEY_RALT:   msg.keyboard.pressed = msg.keyboard.mod & MTY_MOD_RALT;   break;
-		case MTY_KEY_RWIN:   msg.keyboard.pressed = msg.keyboard.mod & MTY_MOD_RWIN;   break;
+	switch (evt.key.key) {
+		case MTY_KEY_LSHIFT: evt.key.pressed = evt.key.mod & MTY_MOD_LSHIFT; break;
+		case MTY_KEY_LCTRL:  evt.key.pressed = evt.key.mod & MTY_MOD_LCTRL;  break;
+		case MTY_KEY_LALT:   evt.key.pressed = evt.key.mod & MTY_MOD_LALT;   break;
+		case MTY_KEY_LWIN:   evt.key.pressed = evt.key.mod & MTY_MOD_LWIN;   break;
+		case MTY_KEY_RSHIFT: evt.key.pressed = evt.key.mod & MTY_MOD_RSHIFT; break;
+		case MTY_KEY_RCTRL:  evt.key.pressed = evt.key.mod & MTY_MOD_RCTRL;  break;
+		case MTY_KEY_RALT:   evt.key.pressed = evt.key.mod & MTY_MOD_RALT;   break;
+		case MTY_KEY_RWIN:   evt.key.pressed = evt.key.mod & MTY_MOD_RWIN;   break;
 		default:
 			return;
 	}
 
-	window.app.msg_func(&msg, window.app.opaque);
+	window.app.event_func(&evt, window.app.opaque);
 }
 
 @implementation Window : NSWindow
@@ -684,16 +684,16 @@ static void window_mod_event(Window *window, NSEvent *event)
 
 	- (BOOL)windowShouldClose:(NSWindow *)sender
 	{
-		MTY_Msg msg = window_msg(self, MTY_MSG_CLOSE);
-		self.app.msg_func(&msg, self.app.opaque);
+		MTY_Event evt = window_event(self, MTY_EVENT_CLOSE);
+		self.app.event_func(&evt, self.app.opaque);
 
 		return NO;
 	}
 
 	- (void)windowDidResignKey:(NSNotification *)notification
 	{
-		MTY_Msg msg = window_msg(self, MTY_MSG_FOCUS);
-		msg.focus = false;
+		MTY_Event evt = window_event(self, MTY_EVENT_FOCUS);
+		evt.focus = false;
 
 		// When in full screen and the window loses focus (changing spaces etc)
 		// we need to set the window level back to normal and change the content size.
@@ -708,15 +708,15 @@ static void window_mod_event(Window *window, NSEvent *event)
 			[self setContentSize:cur];
 		}
 
-		self.app.msg_func(&msg, self.app.opaque);
+		self.app.event_func(&evt, self.app.opaque);
 	}
 
 	- (void)windowDidBecomeKey:(NSNotification *)notification
 	{
-		MTY_Msg msg = window_msg(self, MTY_MSG_FOCUS);
-		msg.focus = true;
+		MTY_Event evt = window_event(self, MTY_EVENT_FOCUS);
+		evt.focus = true;
 
-		self.app.msg_func(&msg, self.app.opaque);
+		self.app.event_func(&evt, self.app.opaque);
 	}
 
 	- (void)windowDidChangeScreen:(NSNotification *)notification
@@ -810,7 +810,7 @@ static void window_mod_event(Window *window, NSEvent *event)
 
 	- (void)scrollWheel:(NSEvent *)event
 	{
-		window_wheel_event(self, event);
+		window_scroll_event(self, event);
 	}
 
 	- (void)tabletProximity:(NSEvent *)event
@@ -1038,37 +1038,37 @@ static void app_mty_hid_connect(struct hdevice *device, void *opaque)
 
 	mty_hid_driver_init(device);
 
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_CONNECT;
-	msg.controller.vid = mty_hid_device_get_vid(device);
-	msg.controller.pid = mty_hid_device_get_pid(device);
-	msg.controller.id = mty_hid_device_get_id(device);
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_CONNECT;
+	evt.controller.vid = mty_hid_device_get_vid(device);
+	evt.controller.pid = mty_hid_device_get_pid(device);
+	evt.controller.id = mty_hid_device_get_id(device);
 
-	ctx.msg_func(&msg, ctx.opaque);
+	ctx.event_func(&evt, ctx.opaque);
 }
 
 static void app_mty_hid_disconnect(struct hdevice *device, void *opaque)
 {
 	App *ctx = (__bridge App *) opaque;
 
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_DISCONNECT;
-	msg.controller.vid = mty_hid_device_get_vid(device);
-	msg.controller.pid = mty_hid_device_get_pid(device);
-	msg.controller.id = mty_hid_device_get_id(device);
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_DISCONNECT;
+	evt.controller.vid = mty_hid_device_get_vid(device);
+	evt.controller.pid = mty_hid_device_get_pid(device);
+	evt.controller.id = mty_hid_device_get_id(device);
 
-	ctx.msg_func(&msg, ctx.opaque);
+	ctx.event_func(&evt, ctx.opaque);
 }
 
 static void app_mty_hid_report(struct hdevice *device, const void *buf, size_t size, void *opaque)
 {
 	App *ctx = (__bridge App *) opaque;
 
-	MTY_Msg msg = {0};
-	mty_hid_driver_state(device, buf, size, &msg);
+	MTY_Event evt = {0};
+	mty_hid_driver_state(device, buf, size, &evt);
 
-	if (msg.type != MTY_MSG_NONE && MTY_AppIsActive((MTY_App *) opaque))
-		ctx.msg_func(&msg, ctx.opaque);
+	if (evt.type != MTY_EVENT_NONE && MTY_AppIsActive((MTY_App *) opaque))
+		ctx.event_func(&evt, ctx.opaque);
 }
 
 static void app_pump_events(App *ctx, NSDate *until)
@@ -1086,13 +1086,13 @@ static void app_pump_events(App *ctx, NSDate *until)
 	}
 }
 
-MTY_App *MTY_AppCreate(MTY_AppFunc appFunc, MTY_MsgFunc msgFunc, void *opaque)
+MTY_App *MTY_AppCreate(MTY_AppFunc appFunc, MTY_EventFunc eventFunc, void *opaque)
 {
 	App *ctx = [App new];
 	MTY_App *app = (__bridge_retained MTY_App *) ctx;
 
 	ctx.app_func = appFunc;
-	ctx.msg_func = msgFunc;
+	ctx.event_func = eventFunc;
 	ctx.opaque = opaque;
 	ctx.cursor_showing = true;
 	ctx.cont = true;

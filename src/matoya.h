@@ -1000,28 +1000,28 @@ typedef enum {
 } MTY_Orientation;
 
 typedef enum {
-	MTY_MSG_NONE         = 0,
-	MTY_MSG_CLOSE        = 1,
-	MTY_MSG_QUIT         = 2,
-	MTY_MSG_SHUTDOWN     = 3,
-	MTY_MSG_FOCUS        = 4,
-	MTY_MSG_KEYBOARD     = 5,
-	MTY_MSG_HOTKEY       = 6,
-	MTY_MSG_TEXT         = 7,
-	MTY_MSG_MOUSE_WHEEL  = 8,
-	MTY_MSG_MOUSE_BUTTON = 9,
-	MTY_MSG_MOUSE_MOTION = 10,
-	MTY_MSG_CONTROLLER   = 11,
-	MTY_MSG_CONNECT      = 12,
-	MTY_MSG_DISCONNECT   = 13,
-	MTY_MSG_PEN          = 14,
-	MTY_MSG_DROP         = 15,
-	MTY_MSG_CLIPBOARD    = 16,
-	MTY_MSG_TRAY         = 17,
-	MTY_MSG_REOPEN       = 18,
-	MTY_MSG_BACK         = 19,
-	MTY_MSG_MAKE_32      = INT32_MAX,
-} MTY_MsgType;
+	MTY_EVENT_NONE         = 0,
+	MTY_EVENT_CLOSE        = 1,
+	MTY_EVENT_QUIT         = 2,
+	MTY_EVENT_SHUTDOWN     = 3,
+	MTY_EVENT_FOCUS        = 4,
+	MTY_EVENT_KEYBOARD     = 5,
+	MTY_EVENT_HOTKEY       = 6,
+	MTY_EVENT_TEXT         = 7,
+	MTY_EVENT_SCROLL       = 8,
+	MTY_EVENT_BUTTON       = 9,
+	MTY_EVENT_MOTION       = 10,
+	MTY_EVENT_CONTROLLER   = 11,
+	MTY_EVENT_CONNECT      = 12,
+	MTY_EVENT_DISCONNECT   = 13,
+	MTY_EVENT_PEN          = 14,
+	MTY_EVENT_DROP         = 15,
+	MTY_EVENT_CLIPBOARD    = 16,
+	MTY_EVENT_TRAY         = 17,
+	MTY_EVENT_REOPEN       = 18,
+	MTY_EVENT_BACK         = 19,
+	MTY_EVENT_MAKE_32      = INT32_MAX,
+} MTY_EventType;
 
 typedef enum {
 	MTY_KEY_NONE           = 0x000,
@@ -1175,14 +1175,14 @@ typedef enum {
 } MTY_Mod;
 
 typedef enum {
-	MTY_MOUSE_BUTTON_NONE    = 0,
-	MTY_MOUSE_BUTTON_LEFT    = 1,
-	MTY_MOUSE_BUTTON_RIGHT   = 2,
-	MTY_MOUSE_BUTTON_MIDDLE  = 3,
-	MTY_MOUSE_BUTTON_X1      = 4,
-	MTY_MOUSE_BUTTON_X2      = 5,
-	MTY_MOUSE_BUTTON_MAKE_32 = INT32_MAX,
-} MTY_MouseButton;
+	MTY_BUTTON_NONE    = 0,
+	MTY_BUTTON_LEFT    = 1,
+	MTY_BUTTON_RIGHT   = 2,
+	MTY_BUTTON_MIDDLE  = 3,
+	MTY_BUTTON_X1      = 4,
+	MTY_BUTTON_X2      = 5,
+	MTY_BUTTON_MAKE_32 = INT32_MAX,
+} MTY_Button;
 
 typedef enum {
 	MTY_HOTKEY_LOCAL   = 1,
@@ -1200,15 +1200,15 @@ typedef enum {
 } MTY_PenFlag;
 
 typedef enum {
-	MTY_HID_DRIVER_DEFAULT = 1,
-	MTY_HID_DRIVER_XINPUT  = 2,
-	MTY_HID_DRIVER_SWITCH  = 3,
-	MTY_HID_DRIVER_PS4     = 4,
-	MTY_HID_DRIVER_PS5     = 5,
-	MTY_HID_DRIVER_XBOX    = 6,
-	MTY_HID_DRIVER_XBOXW   = 7,
-	MTY_HID_DRIVER_MAKE_32 = INT32_MAX,
-} MTY_HIDDriver;
+	MTY_CTYPE_DEFAULT = 1,
+	MTY_CTYPE_XINPUT  = 2,
+	MTY_CTYPE_SWITCH  = 3,
+	MTY_CTYPE_PS4     = 4,
+	MTY_CTYPE_PS5     = 5,
+	MTY_CTYPE_XBOX    = 6,
+	MTY_CTYPE_XBOXW   = 7,
+	MTY_CTYPE_MAKE_32 = INT32_MAX,
+} MTY_CType;
 
 typedef enum {
 	MTY_CBUTTON_X              = 0,
@@ -1269,42 +1269,42 @@ typedef struct {
 } MTY_Value;
 
 typedef struct {
+	MTY_CType type;
+	MTY_Value values[MTY_CVALUE_MAX];
 	uint32_t id;
 	uint16_t vid;
 	uint16_t pid;
 	uint8_t numButtons;
 	uint8_t numValues;
 	bool buttons[MTY_CBUTTON_MAX];
-	MTY_Value values[MTY_CVALUE_MAX];
-	MTY_HIDDriver driver;
-} MTY_Controller;
+} MTY_ControllerEvent;
 
 typedef struct {
 	MTY_Key key;
 	MTY_Mod mod;
 	bool pressed;
-} MTY_KeyboardEvent;
+} MTY_KeyEvent;
 
 typedef struct {
 	int32_t x;
 	int32_t y;
 	bool pixels;
-} MTY_MouseWheelEvent;
+} MTY_ScrollEvent;
 
 typedef struct {
+	MTY_Button button;
 	int32_t x;
 	int32_t y;
 	bool pressed;
-	MTY_MouseButton button;
-} MTY_MouseButtonEvent;
+} MTY_ButtonEvent;
 
 typedef struct {
+	int32_t x;
+	int32_t y;
 	bool relative;
 	bool synth;
 	bool click;
-	int32_t x;
-	int32_t y;
-} MTY_MouseMotionEvent;
+} MTY_MotionEvent;
 
 typedef struct {
 	const char *name;
@@ -1322,18 +1322,18 @@ typedef struct {
 	int8_t tiltY;
 } MTY_PenEvent;
 
-typedef struct MTY_Msg {
-	MTY_MsgType type;
+typedef struct MTY_Event {
+	MTY_EventType type;
 	MTY_Window window;
 
 	union {
-		MTY_Controller controller;
-		MTY_KeyboardEvent keyboard;
-		MTY_MouseWheelEvent mouseWheel;
-		MTY_MouseButtonEvent mouseButton;
-		MTY_MouseMotionEvent mouseMotion;
+		MTY_ControllerEvent controller;
+		MTY_ScrollEvent scroll;
+		MTY_ButtonEvent button;
+		MTY_MotionEvent motion;
 		MTY_DropEvent drop;
 		MTY_PenEvent pen;
+		MTY_KeyEvent key;
 
 		const char *arg;
 		uint32_t hotkey;
@@ -1341,7 +1341,7 @@ typedef struct MTY_Msg {
 		char text[8];
 		bool focus;
 	};
-} MTY_Msg;
+} MTY_Event;
 
 typedef struct {
 	const char *label;
@@ -1364,10 +1364,10 @@ typedef struct {
 	bool vsync;
 } MTY_WindowDesc;
 
-typedef void (*MTY_MsgFunc)(const MTY_Msg *msg, void *opaque);
+typedef void (*MTY_EventFunc)(const MTY_Event *evt, void *opaque);
 
 MTY_EXPORT MTY_App *
-MTY_AppCreate(MTY_AppFunc appFunc, MTY_MsgFunc msgFunc, void *opaque);
+MTY_AppCreate(MTY_AppFunc appFunc, MTY_EventFunc eventFunc, void *opaque);
 
 MTY_EXPORT void
 MTY_AppDestroy(MTY_App **app);

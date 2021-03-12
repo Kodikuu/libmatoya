@@ -325,9 +325,9 @@ bool mty_hid_device_force_default(struct hdevice *ctx)
 	return false;
 }
 
-void mty_hid_default_state(struct hdevice *ctx, const void *buf, size_t size, MTY_Msg *wmsg)
+void mty_hid_default_state(struct hdevice *ctx, const void *buf, size_t size, MTY_Event *evt)
 {
-	MTY_Controller *c = &wmsg->controller;
+	MTY_ControllerEvent *c = &evt->controller;
 
 	// Note: Some of these functions use PCHAR for a const buffer, thus the cast
 
@@ -382,10 +382,10 @@ void mty_hid_default_state(struct hdevice *ctx, const void *buf, size_t size, MT
 		}
 	}
 
-	wmsg->type = MTY_MSG_CONTROLLER;
+	evt->type = MTY_EVENT_CONTROLLER;
 	c->vid = (uint16_t) ctx->di.hid.dwVendorId;
 	c->pid = (uint16_t) ctx->di.hid.dwProductId;
-	c->driver = MTY_HID_DRIVER_DEFAULT;
+	c->type = MTY_CTYPE_DEFAULT;
 	c->id = ctx->id;
 }
 
@@ -447,10 +447,10 @@ void mty_hid_win32_listen(void *hwnd)
 
 // XInput interop
 
-static void hid_xinput_to_mty(const XINPUT_STATE *xstate, MTY_Msg *wmsg)
+static void hid_xinput_to_mty(const XINPUT_STATE *xstate, MTY_Event *evt)
 {
 	WORD b = xstate->Gamepad.wButtons;
-	MTY_Controller *c = &wmsg->controller;
+	MTY_ControllerEvent *c = &evt->controller;
 
 	c->buttons[MTY_CBUTTON_X] = b & XINPUT_GAMEPAD_X;
 	c->buttons[MTY_CBUTTON_A] = b & XINPUT_GAMEPAD_A;
@@ -524,17 +524,17 @@ void mty_hid_xinput_rumble(struct hid *ctx, uint32_t id, uint16_t low, uint16_t 
 	}
 }
 
-void mty_hid_xinput_state(struct hid *ctx, MTY_MsgFunc func, void *opaque)
+void mty_hid_xinput_state(struct hid *ctx, MTY_EventFunc func, void *opaque)
 {
 	for (uint8_t x = 0; x < 4; x++) {
 		struct xip *xip = &ctx->xinput[x];
 
 		if (!xip->disabled) {
-			MTY_Msg wmsg = {0};
-			wmsg.controller.driver = MTY_HID_DRIVER_XINPUT;
-			wmsg.controller.numButtons = 13;
-			wmsg.controller.numValues = 7;
-			wmsg.controller.id = x;
+			MTY_Event evt = {0};
+			evt.controller.type = MTY_CTYPE_XINPUT;
+			evt.controller.numButtons = 13;
+			evt.controller.numValues = 7;
+			evt.controller.id = x;
 
 			XINPUT_STATE xstate;
 			if (ctx->XInputGetState(x, &xstate) == ERROR_SUCCESS) {
@@ -552,12 +552,12 @@ void mty_hid_xinput_state(struct hid *ctx, MTY_MsgFunc func, void *opaque)
 				}
 
 				if (xstate.dwPacketNumber != xip->packet) {
-					wmsg.type = MTY_MSG_CONTROLLER;
-					wmsg.controller.vid = xip->bbi.vid;
-					wmsg.controller.pid = xip->bbi.pid;
+					evt.type = MTY_EVENT_CONTROLLER;
+					evt.controller.vid = xip->bbi.vid;
+					evt.controller.pid = xip->bbi.pid;
 
-					hid_xinput_to_mty(&xstate, &wmsg);
-					func(&wmsg, opaque);
+					hid_xinput_to_mty(&xstate, &evt);
+					func(&evt, opaque);
 
 					xip->packet = xstate.dwPacketNumber;
 				}
@@ -565,8 +565,8 @@ void mty_hid_xinput_state(struct hid *ctx, MTY_MsgFunc func, void *opaque)
 				xip->disabled = true;
 
 				if (xip->was_enabled) {
-					wmsg.type = MTY_MSG_DISCONNECT;
-					func(&wmsg, opaque);
+					evt.type = MTY_EVENT_DISCONNECT;
+					func(&evt, opaque);
 
 					xip->was_enabled = false;
 				}

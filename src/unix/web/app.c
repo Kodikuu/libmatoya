@@ -16,10 +16,10 @@
 
 struct MTY_App {
 	MTY_Hash *hotkey;
-	MTY_MsgFunc msg_func;
+	MTY_EventFunc event_func;
 	MTY_AppFunc app_func;
 	MTY_Detach detach;
-	MTY_Controller cmsg[4];
+	MTY_ControllerEvent cevt[4];
 	void *opaque;
 
 	MTY_GFX api;
@@ -41,65 +41,65 @@ static void __attribute__((constructor)) app_global_init(void)
 
 static void window_mouse_motion(MTY_App *ctx, bool relative, int32_t x, int32_t y)
 {
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_MOUSE_MOTION;
-	msg.mouseMotion.relative = relative;
-	msg.mouseMotion.x = x;
-	msg.mouseMotion.y = y;
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_MOTION;
+	evt.motion.relative = relative;
+	evt.motion.x = x;
+	evt.motion.y = y;
 
-	ctx->msg_func(&msg, ctx->opaque);
+	ctx->event_func(&evt, ctx->opaque);
 }
 
 static void window_mouse_button(MTY_App *ctx, bool pressed, int32_t button, int32_t x, int32_t y)
 {
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_MOUSE_BUTTON;
-	msg.mouseButton.pressed = pressed;
-	msg.mouseButton.button =
-		button == 0 ? MTY_MOUSE_BUTTON_LEFT :
-		button == 1 ? MTY_MOUSE_BUTTON_MIDDLE :
-		button == 2 ? MTY_MOUSE_BUTTON_RIGHT :
-		button == 3 ? MTY_MOUSE_BUTTON_X1 :
-		button == 4 ? MTY_MOUSE_BUTTON_X2 :
-		MTY_MOUSE_BUTTON_NONE;
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_BUTTON;
+	evt.button.pressed = pressed;
+	evt.button.button =
+		button == 0 ? MTY_BUTTON_LEFT :
+		button == 1 ? MTY_BUTTON_MIDDLE :
+		button == 2 ? MTY_BUTTON_RIGHT :
+		button == 3 ? MTY_BUTTON_X1 :
+		button == 4 ? MTY_BUTTON_X2 :
+		MTY_BUTTON_NONE;
 
 	// Simulate movement to where the click occurs
 	if (pressed && !web_get_relative()) {
-		MTY_Msg mmsg = {0};
-		mmsg.type = MTY_MSG_MOUSE_MOTION;
-		mmsg.mouseMotion.relative = false;
-		mmsg.mouseMotion.click = true;
-		mmsg.mouseMotion.x = x;
-		mmsg.mouseMotion.y = y;
+		MTY_Event mevt = {0};
+		mevt.type = MTY_EVENT_MOTION;
+		mevt.motion.relative = false;
+		mevt.motion.click = true;
+		mevt.motion.x = x;
+		mevt.motion.y = y;
 
-		ctx->msg_func(&mmsg, ctx->opaque);
+		ctx->event_func(&mevt, ctx->opaque);
 	}
 
-	ctx->msg_func(&msg, ctx->opaque);
+	ctx->event_func(&evt, ctx->opaque);
 }
 
-static void window_mouse_wheel(MTY_App *ctx, int32_t x, int32_t y)
+static void window_mouse_scroll(MTY_App *ctx, int32_t x, int32_t y)
 {
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_MOUSE_WHEEL;
-	msg.mouseWheel.x = x;
-	msg.mouseWheel.y = -y;
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_SCROLL;
+	evt.scroll.x = x;
+	evt.scroll.y = -y;
 
-	ctx->msg_func(&msg, ctx->opaque);
+	ctx->event_func(&evt, ctx->opaque);
 }
 
-static void app_kb_to_hotkey(MTY_App *app, MTY_Msg *msg)
+static void app_kb_to_hotkey(MTY_App *app, MTY_Event *evt)
 {
-	MTY_Mod mod = msg->keyboard.mod & 0xFF;
-	uint32_t hotkey = (uint32_t) (uintptr_t) MTY_HashGetInt(app->hotkey, (mod << 16) | msg->keyboard.key);
+	MTY_Mod mod = evt->key.mod & 0xFF;
+	uint32_t hotkey = (uint32_t) (uintptr_t) MTY_HashGetInt(app->hotkey, (mod << 16) | evt->key.key);
 
 	if (hotkey != 0) {
-		if (msg->keyboard.pressed) {
-			msg->type = MTY_MSG_HOTKEY;
-			msg->hotkey = hotkey;
+		if (evt->key.pressed) {
+			evt->type = MTY_EVENT_HOTKEY;
+			evt->hotkey = hotkey;
 
 		} else {
-			msg->type = MTY_MSG_NONE;
+			evt->type = MTY_EVENT_NONE;
 		}
 	}
 }
@@ -130,31 +130,31 @@ static bool window_allow_default(MTY_Mod mod, MTY_Key key)
 
 static bool window_keyboard(MTY_App *ctx, bool pressed, MTY_Key key, const char *text, uint32_t mods)
 {
-	MTY_Msg msg = {0};
+	MTY_Event evt = {0};
 
 	if (text) {
-		msg.type = MTY_MSG_TEXT;
-		snprintf(msg.text, 8, "%s", text);
+		evt.type = MTY_EVENT_TEXT;
+		snprintf(evt.text, 8, "%s", text);
 
-		ctx->msg_func(&msg, ctx->opaque);
+		ctx->event_func(&evt, ctx->opaque);
 	}
 
 	if (key != 0) {
-		msg.type = MTY_MSG_KEYBOARD;
-		msg.keyboard.key = key;
-		msg.keyboard.pressed = pressed;
+		evt.type = MTY_EVENT_KEYBOARD;
+		evt.key.key = key;
+		evt.key.pressed = pressed;
 
-		if (mods & 0x01) msg.keyboard.mod |= MTY_MOD_LSHIFT;
-		if (mods & 0x02) msg.keyboard.mod |= MTY_MOD_LCTRL;
-		if (mods & 0x04) msg.keyboard.mod |= MTY_MOD_LALT;
-		if (mods & 0x08) msg.keyboard.mod |= MTY_MOD_LWIN;
-		if (mods & 0x10) msg.keyboard.mod |= MTY_MOD_CAPS;
-		if (mods & 0x20) msg.keyboard.mod |= MTY_MOD_NUM;
+		if (mods & 0x01) evt.key.mod |= MTY_MOD_LSHIFT;
+		if (mods & 0x02) evt.key.mod |= MTY_MOD_LCTRL;
+		if (mods & 0x04) evt.key.mod |= MTY_MOD_LALT;
+		if (mods & 0x08) evt.key.mod |= MTY_MOD_LWIN;
+		if (mods & 0x10) evt.key.mod |= MTY_MOD_CAPS;
+		if (mods & 0x20) evt.key.mod |= MTY_MOD_NUM;
 
-		app_kb_to_hotkey(ctx, &msg);
-		ctx->msg_func(&msg, ctx->opaque);
+		app_kb_to_hotkey(ctx, &evt);
+		ctx->event_func(&evt, ctx->opaque);
 
-		return !window_allow_default(msg.keyboard.mod, msg.keyboard.key) || ctx->kb_grab;
+		return !window_allow_default(evt.key.mod, evt.key.key) || ctx->kb_grab;
 	}
 
 	return true;
@@ -162,22 +162,22 @@ static bool window_keyboard(MTY_App *ctx, bool pressed, MTY_Key key, const char 
 
 static void window_focus(MTY_App *ctx, bool focus)
 {
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_FOCUS;
-	msg.focus = focus;
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_FOCUS;
+	evt.focus = focus;
 
-	ctx->msg_func(&msg, ctx->opaque);
+	ctx->event_func(&evt, ctx->opaque);
 }
 
 static void window_drop(MTY_App *ctx, const char *name, const void *data, size_t size)
 {
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_DROP;
-	msg.drop.name = name;
-	msg.drop.data = data;
-	msg.drop.size = size;
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_DROP;
+	evt.drop.name = name;
+	evt.drop.data = data;
+	evt.drop.size = size;
 
-	ctx->msg_func(&msg, ctx->opaque);
+	ctx->event_func(&evt, ctx->opaque);
 }
 
 static void window_clean_value(int16_t *value)
@@ -197,12 +197,12 @@ static void window_controller(MTY_App *ctx, uint32_t id, uint32_t state, uint32_
 	#define TESTB(i) \
 		((buttons & (i)) == (i))
 
-	MTY_Msg msg = {0};
-	msg.type = MTY_MSG_CONTROLLER;
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_CONTROLLER;
 
-	MTY_Controller *c = &msg.controller;
-	MTY_Controller *prev = &ctx->cmsg[id];
-	c->driver = MTY_HID_DRIVER_DEFAULT;
+	MTY_ControllerEvent *c = &evt.controller;
+	MTY_ControllerEvent *prev = &ctx->cevt[id];
+	c->type = MTY_CTYPE_DEFAULT;
 	c->numButtons = 16;
 	c->numValues = 7;
 	c->vid = 0xCDD;
@@ -266,13 +266,13 @@ static void window_controller(MTY_App *ctx, uint32_t id, uint32_t state, uint32_
 
 	// Connect
 	if (state == 1) {
-		MTY_Msg cmsg = msg;
-		cmsg.type = MTY_MSG_CONNECT;
-		ctx->msg_func(&cmsg, ctx->opaque);
+		MTY_Event cevt = evt;
+		cevt.type = MTY_EVENT_CONNECT;
+		ctx->event_func(&cevt, ctx->opaque);
 
 	// Disconnect
 	} else if (state == 2) {
-		msg.type = MTY_MSG_DISCONNECT;
+		evt.type = MTY_EVENT_DISCONNECT;
 	}
 
 	// Axis dead zone, precision reduction -- helps with deduplication
@@ -285,10 +285,10 @@ static void window_controller(MTY_App *ctx, uint32_t id, uint32_t state, uint32_
 	bool button_diff = memcmp(c->buttons, prev->buttons, c->numButtons * sizeof(bool));
 	bool values_diff = memcmp(c->values, prev->values, c->numValues * sizeof(MTY_Value));
 
-	if (button_diff || values_diff || msg.type != MTY_MSG_CONTROLLER)
-		ctx->msg_func(&msg, ctx->opaque);
+	if (button_diff || values_diff || evt.type != MTY_EVENT_CONTROLLER)
+		ctx->event_func(&evt, ctx->opaque);
 
-	*prev = msg.controller;
+	*prev = evt.controller;
 }
 
 
@@ -350,15 +350,15 @@ bool MTY_AppCanWarpCursor(MTY_App *ctx)
 	return false;
 }
 
-MTY_App *MTY_AppCreate(MTY_AppFunc appFunc, MTY_MsgFunc msgFunc, void *opaque)
+MTY_App *MTY_AppCreate(MTY_AppFunc appFunc, MTY_EventFunc eventFunc, void *opaque)
 {
 	MTY_App *ctx = MTY_Alloc(1, sizeof(MTY_App));
 	ctx->app_func = appFunc;
-	ctx->msg_func = msgFunc;
+	ctx->event_func = eventFunc;
 	ctx->opaque = opaque;
 
 	web_attach_events(ctx, window_mouse_motion, window_mouse_button,
-		window_mouse_wheel, window_keyboard, window_focus, window_drop);
+		window_mouse_scroll, window_keyboard, window_focus, window_drop);
 
 	ctx->hotkey = MTY_HashCreate(0);
 

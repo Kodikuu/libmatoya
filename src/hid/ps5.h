@@ -57,7 +57,7 @@ static void mty_hid_ps5_init(struct hdevice *device)
 	mty_hid_ps5_rumble(device, 0, 0);
 }
 
-static void mty_hid_ps5_state(struct hdevice *device, const void *data, size_t dsize, MTY_Msg *wmsg)
+static void mty_hid_ps5_state(struct hdevice *device, const void *data, size_t dsize, MTY_Event *evt)
 {
 	struct ps5_state *ctx = mty_hid_device_get_state(device);
 
@@ -87,14 +87,14 @@ static void mty_hid_ps5_state(struct hdevice *device, const void *data, size_t d
 			t -= 3;
 		}
 
-		wmsg->type = MTY_MSG_CONTROLLER;
+		evt->type = MTY_EVENT_CONTROLLER;
 
-		MTY_Controller *c = &wmsg->controller;
+		MTY_ControllerEvent *c = &evt->controller;
 		c->vid = mty_hid_device_get_vid(device);
 		c->pid = mty_hid_device_get_pid(device);
 		c->numValues = 7;
 		c->numButtons = 15;
-		c->driver = MTY_HID_DRIVER_PS5;
+		c->type = MTY_CTYPE_PS5;
 		c->id = mty_hid_device_get_id(device);
 
 		c->buttons[MTY_CBUTTON_X] = b[5] & 0x10;
