@@ -40,7 +40,7 @@ static void mty_hid_xbox_do_rumble(struct hdevice *device)
 {
 	struct xbox_state *ctx = mty_hid_device_get_state(device);
 
-	uint64_t ts = MTY_Timestamp();
+	uint64_t ts = MTY_GetTime();
 	float diff = MTY_TimeDiff(ctx->rumble_ts, ts);
 	bool non_zero = ctx->low > 0 || ctx->high > 0;
 

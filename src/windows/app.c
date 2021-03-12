@@ -407,7 +407,7 @@ static void app_tray_recreate(MTY_App *app, struct window *ctx)
 static void app_tray_retry(MTY_App *app, struct window *ctx)
 {
 	if (!app->tray.init && app->tray.want) {
-		int64_t now = MTY_Timestamp();
+		int64_t now = MTY_GetTime();
 
 		if (MTY_TimeDiff(app->tray.rctimer, now) > 2000.0f) {
 			app_tray_recreate(app, ctx);
@@ -429,7 +429,7 @@ static void app_tray_msg(MTY_App *app, UINT msg, WPARAM wparam, LPARAM lparam, M
 				MTY_AppActivate(app, true);
 				break;
 			case WM_LBUTTONUP:
-				int64_t now = MTY_Timestamp();
+				int64_t now = MTY_GetTime();
 
 				if (MTY_TimeDiff(app->tray.ts, now) > GetDoubleClickTime() * 2) {
 					MTY_AppActivate(app, true);
@@ -482,7 +482,7 @@ void MTY_AppSetTray(MTY_App *app, const char *tooltip, const MTY_MenuItem *items
 	MTY_AppRemoveTray(app);
 
 	app->tray.want = true;
-	app->tray.rctimer = MTY_Timestamp();
+	app->tray.rctimer = MTY_GetTime();
 	app->tray.items = MTY_Alloc(len, sizeof(struct menu_item));
 	app->tray.len = len;
 

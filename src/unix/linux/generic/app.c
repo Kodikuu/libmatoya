@@ -831,7 +831,7 @@ static void app_event(MTY_App *ctx, XEvent *event)
 
 static void app_suspend_ss(MTY_App *ctx)
 {
-	int64_t now = MTY_Timestamp();
+	int64_t now = MTY_GetTime();
 
 	// Keep screen saver disabled in 30s intervals
 	if (MTY_TimeDiff(ctx->suspend_ts, now) > 30000.0f) {

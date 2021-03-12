@@ -13,7 +13,7 @@
 static MTY_TLOCAL bool TIME_FREQ_INIT;
 static MTY_TLOCAL float TIME_FREQUENCY;
 
-int64_t MTY_Timestamp(void)
+int64_t MTY_GetTime(void)
 {
 	return mty_timestamp();
 }

@@ -321,7 +321,7 @@ MTY_WebSocket *MTY_WebSocketConnect(const char *host, uint16_t port, bool secure
 		goto except;
 
 	ctx->connected = true;
-	ctx->last_ping = ctx->last_pong = MTY_Timestamp();
+	ctx->last_ping = ctx->last_pong = MTY_GetTime();
 
 	except:
 
@@ -356,7 +356,7 @@ MTY_WebSocket *MTY_WebSocketAccept(MTY_WebSocket *ws, const char * const *origin
 
 		if (ws_accept(ws_child, origins, numOrigins, secureOrigin, timeout)) {
 			ws_child->connected = true;
-			ws_child->last_ping = ws_child->last_pong = MTY_Timestamp();
+			ws_child->last_ping = ws_child->last_pong = MTY_GetTime();
 
 		} else {
 			MTY_WebSocketDestroy(&ws_child);
@@ -389,7 +389,7 @@ void MTY_WebSocketDestroy(MTY_WebSocket **ws)
 MTY_Async MTY_WebSocketRead(MTY_WebSocket *ws, char *msg, size_t size, uint32_t timeout)
 {
 	// Implicit ping handler
-	int64_t now = MTY_Timestamp();
+	int64_t now = MTY_GetTime();
 
 	if (MTY_TimeDiff(ws->last_ping, now) > WS_PING_INTERVAL) {
 		if (!ws_write(ws, "ping", 4, WS_OPCODE_PING))
@@ -414,7 +414,7 @@ MTY_Async MTY_WebSocketRead(MTY_WebSocket *ws, char *msg, size_t size, uint32_t 
 				r = ws_write(ws, msg, read, WS_OPCODE_PONG) ? MTY_ASYNC_CONTINUE : MTY_ASYNC_ERROR;
 				break;
 			case WS_OPCODE_PONG:
-				ws->last_pong = MTY_Timestamp();
+				ws->last_pong = MTY_GetTime();
 				r = MTY_ASYNC_CONTINUE;
 				break;
 			case WS_OPCODE_TEXT:
@@ -434,7 +434,7 @@ MTY_Async MTY_WebSocketRead(MTY_WebSocket *ws, char *msg, size_t size, uint32_t 
 	}
 
 	// If we haven't gotten a pong within WS_PONG_TO, error
-	if (MTY_TimeDiff(ws->last_pong, MTY_Timestamp()) > WS_PONG_TO)
+	if (MTY_TimeDiff(ws->last_pong, MTY_GetTime()) > WS_PONG_TO)
 		r = MTY_ASYNC_ERROR;
 
 	return r;

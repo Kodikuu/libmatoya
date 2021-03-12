@@ -89,7 +89,7 @@ static void mty_hid_nx_write_hs(struct hdevice *device, uint8_t cmd)
 
 	mty_hid_device_write(device, buf, HID_NX_USB_MAX);
 
-	ctx->write_ts = MTY_Timestamp();
+	ctx->write_ts = MTY_GetTime();
 	ctx->wready = false;
 }
 
@@ -109,7 +109,7 @@ static void mty_hid_nx_write_command(struct hdevice *device, uint8_t command, co
 
 	mty_hid_device_write(device, buf, ctx->bluetooth ? HID_NX_BT_MAX : HID_NX_USB_MAX);
 
-	ctx->write_ts = MTY_Timestamp();
+	ctx->write_ts = MTY_GetTime();
 	ctx->wready = false;
 }
 
@@ -385,7 +385,7 @@ static void mty_hid_nx_state_machine(struct hdevice *device)
 {
 	struct nx_state *ctx = mty_hid_device_get_state(device);
 
-	int64_t now = MTY_Timestamp();
+	int64_t now = MTY_GetTime();
 	bool timeout = MTY_TimeDiff(ctx->write_ts, now) > 500.0f;
 
 	// USB Handshake is used to decide whether we're dealing with bluetooth or not

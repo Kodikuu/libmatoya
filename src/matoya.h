@@ -952,7 +952,7 @@ MTY_GlobalUnlock(MTY_Atomic32 *lock);
 typedef int64_t MTY_Time;
 
 MTY_EXPORT MTY_Time
-MTY_Timestamp(void);
+MTY_GetTime(void);
 
 MTY_EXPORT float
 MTY_TimeDiff(MTY_Time begin, MTY_Time end);
