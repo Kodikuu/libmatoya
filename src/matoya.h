@@ -716,9 +716,9 @@ typedef struct MTY_List MTY_List;
 typedef void (*MTY_FreeFunc)(void *ptr);
 
 typedef struct MTY_ListNode {
-	void *value;
 	struct MTY_ListNode *prev;
 	struct MTY_ListNode *next;
+	void *value;
 } MTY_ListNode;
 
 MTY_EXPORT MTY_Hash *
@@ -1269,8 +1269,8 @@ typedef struct {
 } MTY_Value;
 
 typedef struct {
-	MTY_CType type;
 	MTY_Value values[MTY_CVALUE_MAX];
+	MTY_CType type;
 	uint32_t id;
 	uint16_t vid;
 	uint16_t pid;
@@ -1323,9 +1323,6 @@ typedef struct {
 } MTY_PenEvent;
 
 typedef struct MTY_Event {
-	MTY_EventType type;
-	MTY_Window window;
-
 	union {
 		MTY_ControllerEvent controller;
 		MTY_ScrollEvent scroll;
@@ -1341,12 +1338,15 @@ typedef struct MTY_Event {
 		char text[8];
 		bool focus;
 	};
+
+	MTY_EventType type;
+	MTY_Window window;
 } MTY_Event;
 
 typedef struct {
+	MTY_MenuItemCheckedFunc checked;
 	const char *label;
 	uint32_t trayID;
-	MTY_MenuItemCheckedFunc checked;
 } MTY_MenuItem;
 
 typedef struct {
