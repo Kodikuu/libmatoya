@@ -170,7 +170,7 @@ static void app_hotkey_init(void)
 	}
 }
 
-void MTY_AppHotkeyToString(MTY_Mod mod, MTY_Key key, char *str, size_t len)
+void MTY_HotkeyToString(MTY_Mod mod, MTY_Key key, char *str, size_t len)
 {
 	memset(str, 0, len);
 

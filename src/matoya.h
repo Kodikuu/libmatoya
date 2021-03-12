@@ -1447,9 +1447,6 @@ MTY_EXPORT bool
 MTY_AppCanWarpCursor(MTY_App *ctx);
 
 MTY_EXPORT void
-MTY_AppHotkeyToString(MTY_Mod mod, MTY_Key key, char *str, size_t len);
-
-MTY_EXPORT void
 MTY_AppEnableGlobalHotkeys(MTY_App *ctx, bool enable);
 
 MTY_EXPORT void
@@ -1545,6 +1542,9 @@ MTY_WindowGFXState(MTY_App *app, MTY_Window window);
 
 //- module AppMisc
 //- mdesc Miscellanous application related tasks.
+
+MTY_EXPORT void
+MTY_HotkeyToString(MTY_Mod mod, MTY_Key key, char *str, size_t len);
 
 MTY_EXPORT void *
 MTY_GLGetProcAddress(const char *name);

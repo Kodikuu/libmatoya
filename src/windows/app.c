@@ -253,7 +253,7 @@ static bool app_key_to_str(MTY_Key key, char *str, size_t len)
 	return false;
 }
 
-void MTY_AppHotkeyToString(MTY_Mod mod, MTY_Key key, char *str, size_t len)
+void MTY_HotkeyToString(MTY_Mod mod, MTY_Key key, char *str, size_t len)
 {
 	memset(str, 0, len);
 

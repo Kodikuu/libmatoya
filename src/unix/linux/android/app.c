@@ -781,7 +781,7 @@ JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1unplug(JNIEnv *env, jobjec
 
 // App
 
-void MTY_AppHotkeyToString(MTY_Mod mod, MTY_Key key, char *str, size_t len)
+void MTY_HotkeyToString(MTY_Mod mod, MTY_Key key, char *str, size_t len)
 {
 	memset(str, 0, len);
 

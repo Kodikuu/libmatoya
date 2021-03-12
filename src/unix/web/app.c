@@ -294,7 +294,7 @@ static void window_controller(MTY_App *ctx, uint32_t id, uint32_t state, uint32_
 
 // App / Window
 
-void MTY_AppHotkeyToString(MTY_Mod mod, MTY_Key key, char *str, size_t len)
+void MTY_HotkeyToString(MTY_Mod mod, MTY_Key key, char *str, size_t len)
 {
 	memset(str, 0, len);
 
