@@ -1,8 +1,8 @@
 // Copyright (c) Christopher D. Dickson <cdd@matoya.group>
 //
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+// This Source Code Form is subject to the terms of the MIT License.
+// If a copy of the MIT License was not distributed with this file,
+// You can obtain one at https://spdx.org/licenses/MIT.html.
 
 static void mty_wsize_client(const MTY_WindowDesc *desc, float scale, int32_t screen_h,
 	int32_t *x, int32_t *y, int32_t *w, int32_t *h)
