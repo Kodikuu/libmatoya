@@ -78,11 +78,10 @@ MTY_GetProgramIcon(const char *path, uint32_t *width, uint32_t *height);
 //- module Crypto
 //- mdesc Common cryptography tasks.
 
-#define MTY_SHA1_SIZE       20
-#define MTY_SHA1_HEX_SIZE   41
-
-#define MTY_SHA256_SIZE     32
-#define MTY_SHA256_HEX_SIZE 65
+#define MTY_SHA1_SIZE      20
+#define MTY_SHA1_HEX_MAX   48
+#define MTY_SHA256_SIZE    32
+#define MTY_SHA256_HEX_MAX 72
 
 typedef struct MTY_AESGCM MTY_AESGCM;
 
@@ -371,6 +370,12 @@ MTY_JSONArraySetNull(MTY_JSON *json, uint32_t index);
 //- module Log
 //- mdesc Add logs, set logging callback, and log getters.
 
+#define MTY_Log(msg, ...) \
+	MTY_LogParams(__FUNCTION__, msg, ##__VA_ARGS__)
+
+#define MTY_Fatal(msg, ...) \
+	MTY_FatalParams(__FUNCTION__, msg, ##__VA_ARGS__)
+
 typedef void (*MTY_LogFunc)(const char *msg, void *opaque);
 
 MTY_EXPORT void
@@ -388,15 +393,21 @@ MTY_FatalParams(const char *func, const char *msg, ...);
 MTY_EXPORT const char *
 MTY_GetLog(void);
 
-#define MTY_Log(msg, ...) \
-	MTY_LogParams(__FUNCTION__, msg, ##__VA_ARGS__)
-
-#define MTY_Fatal(msg, ...) \
-	MTY_FatalParams(__FUNCTION__, msg, ##__VA_ARGS__)
-
 
 //- module Memory
 //- mdesc Memory allocation and manipulation.
+
+#define MTY_MIN(a, b) \
+	((a) > (b) ? (b) : (a))
+
+#define MTY_MAX(a, b) \
+	((a) > (b) ? (a) : (b))
+
+#define MTY_ALIGN16(v) \
+	((v) + 0xF & ~((uintptr_t) 0xF))
+
+#define MTY_ALIGN32(v) \
+	((v) + 0x1F & ~((uintptr_t) 0x1F))
 
 typedef int32_t (*MTY_CompareFunc)(const void *a, const void *b);
 
@@ -486,18 +497,6 @@ MTY_IsTLSApplicationData(const void *buf, size_t size);
 
 MTY_EXPORT void
 MTY_Sort(void *base, size_t nElements, size_t size, MTY_CompareFunc func);
-
-#define MTY_MIN(a, b) \
-	((a) > (b) ? (b) : (a))
-
-#define MTY_MAX(a, b) \
-	((a) > (b) ? (a) : (b))
-
-#define MTY_Align16(v) \
-	((v) + 0xF & ~((uintptr_t) 0xF))
-
-#define MTY_Align32(v) \
-	((v) + 0x1F & ~((uintptr_t) 0x1F))
 
 
 //- module OS
@@ -971,13 +970,22 @@ MTY_RevertTimerResolution(uint32_t res);
 //- module App
 //- mdesc Application, window, and input management.
 
-#define MTY_WINDOW_MAX  8
+#define MTY_WINDOW_MAX 8
 
-#define MTY_DPAD(c)       ((c)->values[MTY_CVALUE_DPAD].data)
-#define MTY_DPAD_UP(c)    (MTY_DPAD(c) == 7 || MTY_DPAD(c) == 0 || MTY_DPAD(c) == 1)
-#define MTY_DPAD_RIGHT(c) (MTY_DPAD(c) == 1 || MTY_DPAD(c) == 2 || MTY_DPAD(c) == 3)
-#define MTY_DPAD_DOWN(c)  (MTY_DPAD(c) == 3 || MTY_DPAD(c) == 4 || MTY_DPAD(c) == 5)
-#define MTY_DPAD_LEFT(c)  (MTY_DPAD(c) == 5 || MTY_DPAD(c) == 6 || MTY_DPAD(c) == 7)
+#define MTY_DPAD(c) \
+	((c)->values[MTY_CVALUE_DPAD].data)
+
+#define MTY_DPAD_UP(c) \
+	(MTY_DPAD(c) == 7 || MTY_DPAD(c) == 0 || MTY_DPAD(c) == 1)
+
+#define MTY_DPAD_RIGHT(c) \
+	(MTY_DPAD(c) == 1 || MTY_DPAD(c) == 2 || MTY_DPAD(c) == 3)
+
+#define MTY_DPAD_DOWN(c) \
+	(MTY_DPAD(c) == 3 || MTY_DPAD(c) == 4 || MTY_DPAD(c) == 5)
+
+#define MTY_DPAD_LEFT(c) \
+	(MTY_DPAD(c) == 5 || MTY_DPAD(c) == 6 || MTY_DPAD(c) == 7)
 
 typedef struct MTY_App MTY_App;
 typedef int8_t MTY_Window;
@@ -1624,7 +1632,7 @@ MTY_WebSocketGetCloseCode(MTY_WebSocket *ctx);
 //- module TLS
 //- mdesc TLS/DTLS protocol wrapper.
 
-#define MTY_FINGERPRINT_MAX 512
+#define MTY_FINGERPRINT_MAX (MTY_SHA256_HEX_MAX + 8)
 
 typedef struct MTY_Cert MTY_Cert;
 typedef struct MTY_TLS MTY_TLS;
