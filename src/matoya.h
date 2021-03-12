@@ -1331,6 +1331,9 @@ typedef struct {
 } MTY_PenEvent;
 
 typedef struct MTY_Event {
+	MTY_EventType type;
+	MTY_Window window;
+
 	union {
 		MTY_ControllerEvent controller;
 		MTY_ScrollEvent scroll;
@@ -1346,9 +1349,6 @@ typedef struct MTY_Event {
 		char text[8];
 		bool focus;
 	};
-
-	MTY_EventType type;
-	MTY_Window window;
 } MTY_Event;
 
 typedef struct {
