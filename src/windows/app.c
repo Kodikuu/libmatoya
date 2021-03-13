@@ -76,8 +76,8 @@ struct MTY_App {
 	struct {
 		HMENU menu;
 		NOTIFYICONDATA nid;
-		int64_t ts;
-		int64_t rctimer;
+		MTY_Time ts;
+		MTY_Time rctimer;
 		bool init;
 		bool want;
 
@@ -407,7 +407,7 @@ static void app_tray_recreate(MTY_App *app, struct window *ctx)
 static void app_tray_retry(MTY_App *app, struct window *ctx)
 {
 	if (!app->tray.init && app->tray.want) {
-		int64_t now = MTY_GetTime();
+		MTY_Time now = MTY_GetTime();
 
 		if (MTY_TimeDiff(app->tray.rctimer, now) > 2000.0f) {
 			app_tray_recreate(app, ctx);
@@ -429,7 +429,7 @@ static void app_tray_msg(MTY_App *app, UINT msg, WPARAM wparam, LPARAM lparam, M
 				MTY_AppActivate(app, true);
 				break;
 			case WM_LBUTTONUP:
-				int64_t now = MTY_GetTime();
+				MTY_Time now = MTY_GetTime();
 
 				if (MTY_TimeDiff(app->tray.ts, now) > GetDoubleClickTime() * 2) {
 					MTY_AppActivate(app, true);

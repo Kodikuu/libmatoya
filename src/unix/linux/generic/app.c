@@ -51,7 +51,7 @@ struct MTY_App {
 	struct hid *hid;
 	struct window *windows[MTY_WINDOW_MAX];
 	uint32_t timeout;
-	int64_t suspend_ts;
+	MTY_Time suspend_ts;
 	bool relative;
 	bool suspend_ss;
 	bool mgrab;
@@ -831,7 +831,7 @@ static void app_event(MTY_App *ctx, XEvent *event)
 
 static void app_suspend_ss(MTY_App *ctx)
 {
-	int64_t now = MTY_GetTime();
+	MTY_Time now = MTY_GetTime();
 
 	// Keep screen saver disabled in 30s intervals
 	if (MTY_TimeDiff(ctx->suspend_ts, now) > 30000.0f) {

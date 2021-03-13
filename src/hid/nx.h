@@ -65,8 +65,8 @@ struct nx_state {
 	struct nx_min_max rx, srx;
 	struct nx_min_max ry, sry;
 	struct nx_rumble rumble[2];
-	int64_t write_ts;
-	int64_t rumble_ts;
+	MTY_Time write_ts;
+	MTY_Time rumble_ts;
 };
 
 
@@ -385,7 +385,7 @@ static void mty_hid_nx_state_machine(struct hdevice *device)
 {
 	struct nx_state *ctx = mty_hid_device_get_state(device);
 
-	int64_t now = MTY_GetTime();
+	MTY_Time now = MTY_GetTime();
 	bool timeout = MTY_TimeDiff(ctx->write_ts, now) > 500.0f;
 
 	// USB Handshake is used to decide whether we're dealing with bluetooth or not

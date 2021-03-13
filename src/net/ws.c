@@ -27,8 +27,8 @@ struct MTY_WebSocket {
 	bool connected;
 	bool mask;
 
-	int64_t last_ping;
-	int64_t last_pong;
+	MTY_Time last_ping;
+	MTY_Time last_pong;
 	uint16_t close_code;
 
 	uint8_t *buf;
@@ -389,7 +389,7 @@ void MTY_WebSocketDestroy(MTY_WebSocket **ws)
 MTY_Async MTY_WebSocketRead(MTY_WebSocket *ws, char *msg, size_t size, uint32_t timeout)
 {
 	// Implicit ping handler
-	int64_t now = MTY_GetTime();
+	MTY_Time now = MTY_GetTime();
 
 	if (MTY_TimeDiff(ws->last_ping, now) > WS_PING_INTERVAL) {
 		if (!ws_write(ws, "ping", 4, WS_OPCODE_PING))

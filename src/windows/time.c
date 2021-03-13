@@ -14,7 +14,7 @@
 static MTY_TLOCAL bool TIME_FREQ_INIT;
 static MTY_TLOCAL float TIME_FREQUENCY;
 
-int64_t MTY_GetTime(void)
+MTY_Time MTY_GetTime(void)
 {
 	LARGE_INTEGER ts;
 	QueryPerformanceCounter(&ts);
@@ -22,7 +22,7 @@ int64_t MTY_GetTime(void)
 	return ts.QuadPart;
 }
 
-float MTY_TimeDiff(int64_t begin, int64_t end)
+float MTY_TimeDiff(MTY_Time begin, MTY_Time end)
 {
 	if (!TIME_FREQ_INIT) {
 		LARGE_INTEGER frequency;
