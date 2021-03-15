@@ -6,12 +6,12 @@ struct context {
 	bool quit;
 };
 
-// This function will fire once for each event
-static void msg_func(const MTY_Msg *msg, void *opaque)
+// This function will fire for each event
+static void event_func(const MTY_Event *evt, void *opaque)
 {
 	struct context *ctx = opaque;
 
-	if (msg->type == MTY_MSG_CLOSE)
+	if (evt->type == MTY_EVENT_CLOSE)
 		ctx->quit = true;
 }
 
@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 {
 	// Set up the application object and attach it to your context
 	struct context ctx = {0};
-	ctx.app = MTY_AppCreate(app_func, msg_func, &ctx);
+	ctx.app = MTY_AppCreate(app_func, event_func, &ctx);
 	if (!ctx.app)
 		return 1;
 
