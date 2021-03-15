@@ -719,6 +719,18 @@ static void window_mod_event(Window *window, NSEvent *event)
 		}
 	}
 
+	- (void)windowDidResize:(NSNotification *)notification
+	{
+		MTY_Event evt = window_event(self, MTY_EVENT_SIZE);
+		self.app.event_func(&evt, self.app.opaque);
+	}
+
+	- (void)windowDidMove:(NSNotification *)notification
+	{
+		MTY_Event evt = window_event(self, MTY_EVENT_MOVE);
+		self.app.event_func(&evt, self.app.opaque);
+	}
+
 	- (void)keyUp:(NSEvent *)event
 	{
 		window_keyboard_event(self, event.keyCode, event.modifierFlags, false);

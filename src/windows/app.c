@@ -790,6 +790,10 @@ static LRESULT app_custom_hwnd_proc(struct window *ctx, HWND hwnd, UINT msg, WPA
 			break;
 		case WM_SIZE:
 			app->state++;
+			evt.type = MTY_EVENT_SIZE;
+			break;
+		case WM_MOVE:
+			evt.type = MTY_EVENT_MOVE;
 			break;
 		case WM_SETCURSOR:
 			if (LOWORD(lparam) == HTCLIENT) {

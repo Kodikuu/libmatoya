@@ -1028,6 +1028,8 @@ typedef enum {
 	MTY_EVENT_TRAY         = 17,
 	MTY_EVENT_REOPEN       = 18,
 	MTY_EVENT_BACK         = 19,
+	MTY_EVENT_SIZE         = 20,
+	MTY_EVENT_MOVE         = 21,
 	MTY_EVENT_MAKE_32      = INT32_MAX,
 } MTY_EventType;
 
