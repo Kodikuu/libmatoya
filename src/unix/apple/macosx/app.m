@@ -943,7 +943,7 @@ void MTY_HotkeyToString(MTY_Mod mod, MTY_Key key, char *str, size_t len)
 	}
 }
 
-void MTY_AppSetHotkey(MTY_App *app, MTY_Hotkey mode, MTY_Mod mod, MTY_Key key, uint32_t id)
+void MTY_AppSetHotkey(MTY_App *app, MTY_Scope scope, MTY_Mod mod, MTY_Key key, uint32_t id)
 {
 	App *ctx = (__bridge App *) app;
 
@@ -951,7 +951,7 @@ void MTY_AppSetHotkey(MTY_App *app, MTY_Hotkey mode, MTY_Mod mod, MTY_Key key, u
 	MTY_HashSetInt(ctx.hotkey, (mod << 16) | key, (void *) (uintptr_t) id);
 }
 
-void MTY_AppRemoveHotkeys(MTY_App *app, MTY_Hotkey mode)
+void MTY_AppRemoveHotkeys(MTY_App *app, MTY_Scope scope)
 {
 	App *ctx = (__bridge App *) app;
 

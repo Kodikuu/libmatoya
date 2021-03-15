@@ -275,11 +275,11 @@ void MTY_AppEnableGlobalHotkeys(MTY_App *app, bool enable)
 	app->ghk_disabled = !enable;
 }
 
-void MTY_AppSetHotkey(MTY_App *app, MTY_Hotkey mode, MTY_Mod mod, MTY_Key key, uint32_t id)
+void MTY_AppSetHotkey(MTY_App *app, MTY_Scope scope, MTY_Mod mod, MTY_Key key, uint32_t id)
 {
 	mod &= 0xFF;
 
-	if (mode == MTY_HOTKEY_LOCAL) {
+	if (scope == MTY_SCOPE_LOCAL) {
 		MTY_HashSetInt(app->hotkey, (mod << 16) | key, (void *) (uintptr_t) id);
 
 	} else {
@@ -310,15 +310,15 @@ void MTY_AppSetHotkey(MTY_App *app, MTY_Hotkey mode, MTY_Mod mod, MTY_Key key, u
 	}
 }
 
-void MTY_AppRemoveHotkeys(MTY_App *app, MTY_Hotkey mode)
+void MTY_AppRemoveHotkeys(MTY_App *app, MTY_Scope scope)
 {
-	if (mode == MTY_HOTKEY_GLOBAL) {
+	if (scope == MTY_SCOPE_GLOBAL) {
 		app_unregister_global_hotkeys(app);
 
 		MTY_HashDestroy(&app->ghotkey, NULL);
 		app->ghotkey = MTY_HashCreate(0);
 
-	} else if (mode == MTY_HOTKEY_LOCAL) {
+	} else if (scope == MTY_SCOPE_LOCAL) {
 		MTY_HashDestroy(&app->hotkey, NULL);
 		app->hotkey = MTY_HashCreate(0);
 	}

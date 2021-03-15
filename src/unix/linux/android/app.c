@@ -780,13 +780,13 @@ void MTY_HotkeyToString(MTY_Mod mod, MTY_Key key, char *str, size_t len)
 	}
 }
 
-void MTY_AppSetHotkey(MTY_App *ctx, MTY_Hotkey mode, MTY_Mod mod, MTY_Key key, uint32_t id)
+void MTY_AppSetHotkey(MTY_App *ctx, MTY_Scope scope, MTY_Mod mod, MTY_Key key, uint32_t id)
 {
 	mod &= 0xFF;
 	MTY_HashSetInt(ctx->hotkey, (mod << 16) | key, (void *) (uintptr_t) id);
 }
 
-void MTY_AppRemoveHotkeys(MTY_App *ctx, MTY_Hotkey mode)
+void MTY_AppRemoveHotkeys(MTY_App *ctx, MTY_Scope scope)
 {
 	MTY_HashDestroy(&ctx->hotkey, NULL);
 	ctx->hotkey = MTY_HashCreate(0);

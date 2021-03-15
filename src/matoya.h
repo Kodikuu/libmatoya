@@ -1195,10 +1195,10 @@ typedef enum {
 } MTY_Button;
 
 typedef enum {
-	MTY_HOTKEY_LOCAL   = 1,
-	MTY_HOTKEY_GLOBAL  = 2,
-	MTY_HOTKEY_MAKE_32 = INT32_MAX,
-} MTY_Hotkey;
+	MTY_SCOPE_LOCAL   = 1,
+	MTY_SCOPE_GLOBAL  = 2,
+	MTY_SCOPE_MAKE_32 = INT32_MAX,
+} MTY_Scope;
 
 typedef enum {
 	MTY_PEN_FLAG_LEAVE    = 0x01,
@@ -1424,10 +1424,10 @@ MTY_EXPORT void
 MTY_AppNotification(MTY_App *ctx, const char *title, const char *msg);
 
 MTY_EXPORT void
-MTY_AppSetHotkey(MTY_App *ctx, MTY_Hotkey mode, MTY_Mod mod, MTY_Key key, uint32_t id);
+MTY_AppSetHotkey(MTY_App *ctx, MTY_Scope scope, MTY_Mod mod, MTY_Key key, uint32_t id);
 
 MTY_EXPORT void
-MTY_AppRemoveHotkeys(MTY_App *ctx, MTY_Hotkey mode);
+MTY_AppRemoveHotkeys(MTY_App *ctx, MTY_Scope scope);
 
 MTY_EXPORT bool
 MTY_AppGetRelativeMouse(MTY_App *ctx);
@@ -1450,11 +1450,11 @@ MTY_AppCanWarpCursor(MTY_App *ctx);
 MTY_EXPORT void
 MTY_AppEnableGlobalHotkeys(MTY_App *ctx, bool enable);
 
-MTY_EXPORT void
-MTY_AppShowSoftKeyboard(MTY_App *ctx, bool show);
-
 MTY_EXPORT bool
 MTY_AppSoftKeyboardIsShowing(MTY_App *app);
+
+MTY_EXPORT void
+MTY_AppShowSoftKeyboard(MTY_App *ctx, bool show);
 
 MTY_EXPORT void
 MTY_AppSetOrientation(MTY_App *ctx, MTY_Orientation orientation);

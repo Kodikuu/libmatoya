@@ -12,11 +12,11 @@ void MTY_HotkeyToString(MTY_Mod mod, MTY_Key key, char *str, size_t len)
 {
 }
 
-void MTY_AppSetHotkey(MTY_App *app, MTY_Hotkey mode, MTY_Mod mod, MTY_Key key, uint32_t id)
+void MTY_AppSetHotkey(MTY_App *app, MTY_Scope scope, MTY_Mod mod, MTY_Key key, uint32_t id)
 {
 }
 
-void MTY_AppRemoveHotkeys(MTY_App *app, MTY_Hotkey mode)
+void MTY_AppRemoveHotkeys(MTY_App *app, MTY_Scope scope)
 {
 }
 
