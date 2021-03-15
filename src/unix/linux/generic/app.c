@@ -60,6 +60,11 @@ struct MTY_App {
 	char *clip;
 	float scale;
 
+	int32_t last_width;
+	int32_t last_height;
+	int32_t last_pos_x;
+	int32_t last_pos_y;
+
 	uint64_t state;
 	uint64_t prev_state;
 };
@@ -785,6 +790,19 @@ static void app_event(MTY_App *ctx, XEvent *event)
 			app_refresh_scale(ctx);
 			ctx->state++;
 			break;
+		case ConfigureNotify:
+			if (ctx->last_width != event->xconfigure.width || ctx->last_height != event->xconfigure.height) {
+				evt.type = MTY_EVENT_SIZE;
+				ctx->last_width = event->xconfigure.width;
+				ctx->last_height = event->xconfigure.height;
+			}
+
+			if (ctx->last_pos_x != event->xconfigure.x || ctx->last_pos_y != event->xconfigure.y) {
+				evt.type = MTY_EVENT_MOVE;
+				ctx->last_pos_x = event->xconfigure.x;
+				ctx->last_pos_y = event->xconfigure.y;
+			}
+			break;
 		case FocusIn:
 		case FocusOut:
 			// Do not respond to NotifyGrab or NotifyUngrab
@@ -993,7 +1011,7 @@ MTY_Window MTY_WindowCreate(MTY_App *app, const char *title, const MTY_WindowDes
 	XSetWindowAttributes swa = {0};
 	swa.colormap = XCreateColormap(app->display, root, app->vis->visual, AllocNone);
 	swa.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask |
-		ButtonReleaseMask | PointerMotionMask | FocusChangeMask;
+		ButtonReleaseMask | PointerMotionMask | FocusChangeMask | StructureNotifyMask;
 
 	XWindowAttributes attr = {0};
 	XGetWindowAttributes(app->display, root, &attr);

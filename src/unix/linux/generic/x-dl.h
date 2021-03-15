@@ -365,12 +365,27 @@ typedef struct {
 	int detail;
 } XFocusChangeEvent;
 
+typedef struct {
+	int type;
+	unsigned long serial;
+	Bool send_event;
+	Display *display;
+	Window event;
+	Window window;
+	int x, y;
+	int width, height;
+	int border_width;
+	Window above;
+	Bool override_redirect;
+} XConfigureEvent;
+
 typedef union _XEvent {
 	int type;
 	XKeyEvent xkey;
 	XButtonEvent xbutton;
 	XMotionEvent xmotion;
 	XFocusChangeEvent xfocus;
+	XConfigureEvent xconfigure;
 	XSelectionRequestEvent xselectionrequest;
 	XSelectionEvent xselection;
 	XClientMessageEvent xclient;
