@@ -1633,7 +1633,7 @@ MTY_WebSocketGetCloseCode(MTY_WebSocket *ctx);
 //- module TLS
 //- mdesc TLS/DTLS protocol wrapper.
 
-#define MTY_FINGERPRINT_MAX (MTY_SHA256_HEX_MAX + 8)
+#define MTY_FINGERPRINT_MAX (MTY_SHA256_HEX_MAX + 40)
 
 typedef struct MTY_Cert MTY_Cert;
 typedef struct MTY_TLS MTY_TLS;
