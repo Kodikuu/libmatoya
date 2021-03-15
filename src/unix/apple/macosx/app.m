@@ -459,22 +459,13 @@ static void window_mouse_button_event(Window *window, NSUInteger index, bool pre
 	if (index >= APP_MOUSE_MAX)
 		return;
 
-	MTY_Button button = APP_MOUSE_MAP[index];
-
-	if (pressed && !cur.app.relative) {
-		MTY_Event evt = window_event(cur, MTY_EVENT_MOTION);
-		CGFloat scale = cur.screen.backingScaleFactor;
-		evt.motion.relative = false;
-		evt.motion.click = true;
-		evt.motion.x = lrint(scale * p.x);
-		evt.motion.y = lrint(scale * p.y);
-
-		window.app.event_func(&evt, window.app.opaque);
-	}
+	CGFloat scale = cur.screen.backingScaleFactor;
 
 	MTY_Event evt = window_event(cur, MTY_EVENT_BUTTON);
+	evt.button.button = APP_MOUSE_MAP[index];
 	evt.button.pressed = pressed;
-	evt.button.button = button;
+	evt.button.x = lrint(scale * p.x);
+	evt.button.y = lrint(scale * p.y);
 
 	window.app.event_func(&evt, window.app.opaque);
 

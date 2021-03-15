@@ -405,13 +405,6 @@ static void app_touch_mouse_button(MTY_App *ctx, int32_t x, int32_t y, MTY_Butto
 {
 	app_cancel_long_button(ctx, x, y);
 
-	MTY_Event evt = {0};
-	evt.type = MTY_EVENT_MOTION;
-	evt.motion.x = lrint(x);
-	evt.motion.y = lrint(y);
-	evt.motion.click = true;
-	app_push_event(ctx, &evt);
-
 	evt.type = MTY_EVENT_BUTTON;
 	evt.button.x = lrint(x);
 	evt.button.y = lrint(y);
@@ -480,14 +473,6 @@ JNIEXPORT jboolean JNICALL Java_group_matoya_lib_MTY_app_1long_1press(JNIEnv *en
 	CTX.should_detach = false;
 
 	app_cancel_long_button(&CTX, lrint(x), lrint(y));
-
-	// Long press always begins by moving to the event location
-	MTY_Event evt = {0};
-	evt.type = MTY_EVENT_MOTION;
-	evt.motion.x = lrint(x);
-	evt.motion.y = lrint(y);
-	evt.motion.click = true;
-	app_push_event(&CTX, &evt);
 
 	// Long press in touchscreen mode is a simple right click
 	if (CTX.input == MTY_INPUT_TOUCHSCREEN) {
@@ -617,18 +602,8 @@ JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1mouse_1button(JNIEnv *env,
 			break;
 	}
 
-	if (evt.button.button != MTY_BUTTON_NONE) {
-		if (!MTY_AppGetRelativeMouse(&CTX)) {
-			MTY_Event mv = {0};
-			mv.type = MTY_EVENT_MOTION;
-			mv.motion.x = lrint(x);
-			mv.motion.y = lrint(y);
-			mv.motion.click = true;
-			app_push_event(&CTX, &mv);
-		}
-
+	if (evt.button.button != MTY_BUTTON_NONE)
 		app_push_event(&CTX, &evt);
-	}
 }
 
 

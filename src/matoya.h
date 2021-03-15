@@ -1311,7 +1311,6 @@ typedef struct {
 	int32_t y;
 	bool relative;
 	bool synth;
-	bool click;
 } MTY_MotionEvent;
 
 typedef struct {

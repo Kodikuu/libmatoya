@@ -672,28 +672,6 @@ static void app_kb_to_hotkey(MTY_App *app, MTY_Event *evt)
 	}
 }
 
-static void app_make_movement(MTY_App *app, MTY_Window window)
-{
-	struct window *win = app_get_window(app, window);
-	if (!win)
-		return;
-
-	Window root, child;
-	unsigned int mask;
-	int root_x, root_y, win_x = 0, win_y = 0;
-	XQueryPointer(app->display, win->window, &root, &child, &root_x, &root_y, &win_x, &win_y, &mask);
-
-	MTY_Event evt = {0};
-	evt.type = MTY_EVENT_MOTION;
-	evt.window = window;
-	evt.motion.relative = false;
-	evt.motion.click = true;
-	evt.motion.x = win_x;
-	evt.motion.y = win_y;
-
-	app->event_func(&evt, app->opaque);
-}
-
 static void app_event(MTY_App *ctx, XEvent *event)
 {
 	MTY_Event evt = {0};
@@ -720,6 +698,8 @@ static void app_event(MTY_App *ctx, XEvent *event)
 			evt.type = MTY_EVENT_BUTTON;
 			evt.window = app_find_window(ctx, event->xbutton.window);
 			evt.button.pressed = event->type == ButtonPress;
+			evt.button.x = event->xbutton.x;
+			evt.button.y = event->xbutton.y;
 
 			switch (event->xbutton.button) {
 				case 1: evt.button.button = MTY_BUTTON_LEFT;   break;
@@ -819,10 +799,6 @@ static void app_event(MTY_App *ctx, XEvent *event)
 	// Transform keyboard into hotkey
 	if (evt.type == MTY_EVENT_KEYBOARD)
 		app_kb_to_hotkey(ctx, &evt);
-
-	// For robustness, generate a MOUSE_MOTION event to where the click happens
-	if (evt.type == MTY_EVENT_BUTTON && evt.button.pressed && !ctx->relative)
-		app_make_movement(ctx, evt.window);
 
 	// Handle the message
 	if (evt.type != MTY_EVENT_NONE)

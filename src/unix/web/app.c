@@ -63,17 +63,8 @@ static void window_mouse_button(MTY_App *ctx, bool pressed, int32_t button, int3
 		button == 4 ? MTY_BUTTON_X2 :
 		MTY_BUTTON_NONE;
 
-	// Simulate movement to where the click occurs
-	if (pressed && !web_get_relative()) {
-		MTY_Event mevt = {0};
-		mevt.type = MTY_EVENT_MOTION;
-		mevt.motion.relative = false;
-		mevt.motion.click = true;
-		mevt.motion.x = x;
-		mevt.motion.y = y;
-
-		ctx->event_func(&mevt, ctx->opaque);
-	}
+	evt.button.x = x;
+	evt.button.y = y;
 
 	ctx->event_func(&evt, ctx->opaque);
 }
