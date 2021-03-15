@@ -1,4 +1,4 @@
-First, [build `libmatoya`](https://github.com/matoya/libmatoya/wiki/Building). The following compiler commands assume that your working directory is this example directory, the `libmatoya` static library resides in the [`/bin`](/bin) directory, and an `x86_64` platform.
+First, [build `libmatoya`](https://github.com/matoya/libmatoya/wiki/Building). The following compiler commands assume that your working directory is this example directory, the `libmatoya` static library resides in the `../bin` directory, and an `x86_64` platform.
 
 #### Windows
 
