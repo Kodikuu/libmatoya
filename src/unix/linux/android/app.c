@@ -405,6 +405,7 @@ static void app_touch_mouse_button(MTY_App *ctx, int32_t x, int32_t y, MTY_Butto
 {
 	app_cancel_long_button(ctx, x, y);
 
+	MTY_Event evt = {0};
 	evt.type = MTY_EVENT_BUTTON;
 	evt.button.x = lrint(x);
 	evt.button.y = lrint(y);
@@ -476,6 +477,7 @@ JNIEXPORT jboolean JNICALL Java_group_matoya_lib_MTY_app_1long_1press(JNIEnv *en
 
 	// Long press in touchscreen mode is a simple right click
 	if (CTX.input == MTY_INPUT_TOUCHSCREEN) {
+		MTY_Event evt = {0};
 		evt.type = MTY_EVENT_BUTTON;
 		evt.button.x = lrint(x);
 		evt.button.y = lrint(y);
@@ -490,6 +492,7 @@ JNIEXPORT jboolean JNICALL Java_group_matoya_lib_MTY_app_1long_1press(JNIEnv *en
 	} else {
 		CTX.long_button = MTY_BUTTON_LEFT;
 
+		MTY_Event evt = {0};
 		evt.type = MTY_EVENT_BUTTON;
 		evt.button.x = lrint(x);
 		evt.button.y = lrint(y);
@@ -780,6 +783,13 @@ void MTY_HotkeyToString(MTY_Mod mod, MTY_Key key, char *str, size_t len)
 	}
 }
 
+uint32_t MTY_AppGetHotkey(MTY_App *ctx, MTY_Scope scope, MTY_Mod mod, MTY_Key key)
+{
+	mod &= 0xFF;
+
+	return (uint32_t) (uintptr_t) MTY_HashGetInt(ctx->hotkey, (mod << 16) | key);
+}
+
 void MTY_AppSetHotkey(MTY_App *ctx, MTY_Scope scope, MTY_Mod mod, MTY_Key key, uint32_t id)
 {
 	mod &= 0xFF;
@@ -909,6 +919,11 @@ void MTY_AppShowSoftKeyboard(MTY_App *app, bool show)
 bool MTY_AppSoftKeyboardIsShowing(MTY_App *app)
 {
 	return app_bool_method(app, "keyboardIsShowing", "()Z");
+}
+
+MTY_Orientation MTY_AppGetOrientation(MTY_App *ctx)
+{
+	return app_int_method(ctx, "getOrientation", "()I");
 }
 
 void MTY_AppSetOrientation(MTY_App *app, MTY_Orientation orientation)

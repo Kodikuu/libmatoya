@@ -275,6 +275,29 @@ void MTY_AppEnableGlobalHotkeys(MTY_App *app, bool enable)
 	app->ghk_disabled = !enable;
 }
 
+static uint32_t app_global_hotkey_lookup(MTY_Mod mod, MTY_Key key)
+{
+	UINT wmod = MOD_NOREPEAT |
+		((mod & MTY_MOD_ALT) ? MOD_ALT : 0) |
+		((mod & MTY_MOD_CTRL) ? MOD_CONTROL : 0) |
+		((mod & MTY_MOD_SHIFT) ? MOD_SHIFT : 0) |
+		((mod & MTY_MOD_WIN) ? MOD_WIN : 0);
+
+	UINT vk = MapVirtualKey(key & 0xFF, MAPVK_VSC_TO_VK);
+
+	return vk > 0 ? ((wmod << 8) | vk) : 0;
+}
+
+uint32_t MTY_AppGetHotkey(MTY_App *ctx, MTY_Scope scope, MTY_Mod mod, MTY_Key key)
+{
+	mod &= 0xFF;
+
+	if (scope == MTY_SCOPE_GLOBAL)
+		return (uint32_t) (uintptr_t) MTY_HashGetInt(ctx->ghotkey, app_global_hotkey_lookup(mod, key));
+
+	return (uint32_t) (uintptr_t) MTY_HashGetInt(ctx->hotkey, (mod << 16) | key);
+}
+
 void MTY_AppSetHotkey(MTY_App *app, MTY_Scope scope, MTY_Mod mod, MTY_Key key, uint32_t id)
 {
 	mod &= 0xFF;
@@ -284,29 +307,28 @@ void MTY_AppSetHotkey(MTY_App *app, MTY_Scope scope, MTY_Mod mod, MTY_Key key, u
 
 	} else {
 		HWND hwnd = app_get_main_hwnd(app);
-		if (hwnd) {
-			UINT wmod = MOD_NOREPEAT |
-				((mod & MTY_MOD_ALT) ? MOD_ALT : 0) |
-				((mod & MTY_MOD_CTRL) ? MOD_CONTROL : 0) |
-				((mod & MTY_MOD_SHIFT) ? MOD_SHIFT : 0) |
-				((mod & MTY_MOD_WIN) ? MOD_SHIFT : 0);
+		if (!hwnd)
+			return;
 
-			UINT vk = MapVirtualKey(key & 0xFF, MAPVK_VSC_TO_VK);
+		uint32_t lookup = app_global_hotkey_lookup(mod, key);
+		if (lookup == 0)
+			return;
 
-			if (vk > 0) {
-				uint32_t lookup = (wmod << 8) | vk;
-
-				if (MTY_HashGetInt(app->ghotkey, lookup) || id == 0)
-					if (!UnregisterHotKey(hwnd, lookup))
-						MTY_Log("'UnregisterHotKey' failed with error 0x%X", GetLastError());
-
-				if (id > 0)
-					if (!RegisterHotKey(hwnd, lookup, wmod, vk))
-						MTY_Log("'RegisterHotKey' failed with error 0x%X", GetLastError());
-
-				MTY_HashSetInt(app->ghotkey, lookup, (void *) (uintptr_t) id);
+		if (MTY_HashGetInt(app->ghotkey, lookup) || id == 0) {
+			if (!UnregisterHotKey(hwnd, lookup)) {
+				MTY_Log("'UnregisterHotKey' failed with error 0x%X", GetLastError());
+				return;
 			}
 		}
+
+		if (id > 0) {
+			if (!RegisterHotKey(hwnd, lookup, lookup >> 8, lookup & 0xFF)) {
+				MTY_Log("'RegisterHotKey' failed with error 0x%X", GetLastError());
+				return;
+			}
+		}
+
+		MTY_HashSetInt(app->ghotkey, lookup, (void *) (uintptr_t) id);
 	}
 }
 
@@ -1914,6 +1936,11 @@ void MTY_AppShowSoftKeyboard(MTY_App *app, bool show)
 bool MTY_AppSoftKeyboardIsShowing(MTY_App *app)
 {
 	return false;
+}
+
+MTY_Orientation MTY_AppGetOrientation(MTY_App *ctx)
+{
+	return MTY_ORIENTATION_USER;
 }
 
 void MTY_AppSetOrientation(MTY_App *app, MTY_Orientation orientation)

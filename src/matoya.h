@@ -1429,6 +1429,9 @@ MTY_AppRemoveTray(MTY_App *ctx);
 MTY_EXPORT void
 MTY_AppNotification(MTY_App *ctx, const char *title, const char *msg);
 
+MTY_EXPORT uint32_t
+MTY_AppGetHotkey(MTY_App *ctx, MTY_Scope scope, MTY_Mod mod, MTY_Key key);
+
 MTY_EXPORT void
 MTY_AppSetHotkey(MTY_App *ctx, MTY_Scope scope, MTY_Mod mod, MTY_Key key, uint32_t id);
 
@@ -1461,6 +1464,9 @@ MTY_AppSoftKeyboardIsShowing(MTY_App *app);
 
 MTY_EXPORT void
 MTY_AppShowSoftKeyboard(MTY_App *ctx, bool show);
+
+MTY_EXPORT MTY_Orientation
+MTY_AppGetOrientation(MTY_App *ctx);
 
 MTY_EXPORT void
 MTY_AppSetOrientation(MTY_App *ctx, MTY_Orientation orientation);

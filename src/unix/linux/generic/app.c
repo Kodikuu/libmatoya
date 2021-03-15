@@ -192,6 +192,13 @@ void MTY_HotkeyToString(MTY_Mod mod, MTY_Key key, char *str, size_t len)
 	MTY_Strcat(str, len, APP_KEYS[key]);
 }
 
+uint32_t MTY_AppGetHotkey(MTY_App *ctx, MTY_Scope scope, MTY_Mod mod, MTY_Key key)
+{
+	mod &= 0xFF;
+
+	return (uint32_t) (uintptr_t) MTY_HashGetInt(ctx->hotkey, (mod << 16) | key);
+}
+
 void MTY_AppSetHotkey(MTY_App *ctx, MTY_Scope scope, MTY_Mod mod, MTY_Key key, uint32_t id)
 {
 	mod &= 0xFF;
@@ -1340,6 +1347,11 @@ void MTY_AppShowSoftKeyboard(MTY_App *app, bool show)
 bool MTY_AppSoftKeyboardIsShowing(MTY_App *app)
 {
 	return false;
+}
+
+MTY_Orientation MTY_AppGetOrientation(MTY_App *ctx)
+{
+	return MTY_ORIENTATION_USER;
 }
 
 void MTY_AppSetOrientation(MTY_App *app, MTY_Orientation orientation)

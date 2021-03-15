@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.res.Configuration;
 import android.content.pm.ActivityInfo;
 import android.hardware.input.InputManager;
 import android.util.Log;
@@ -598,6 +599,17 @@ public class MTY extends SurfaceView implements
 		}
 
 		this.kbShowing = show;
+	}
+
+	public int getOrientation() {
+		switch (this.activity.getResources().getConfiguration().orientation) {
+			case Configuration.ORIENTATION_LANDSCAPE:
+				return 1;
+			case Configuration.ORIENTATION_PORTRAIT:
+				return 2;
+			default:
+				return 0;
+		}
 	}
 
 	public void setOrientation(int _orientation) {
