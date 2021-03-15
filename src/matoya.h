@@ -38,6 +38,9 @@ typedef struct MTY_Audio MTY_Audio;
 MTY_EXPORT MTY_Audio *
 MTY_AudioCreate(uint32_t sampleRate, uint32_t minBuffer, uint32_t maxBuffer);
 
+MTY_EXPORT void
+MTY_AudioDestroy(MTY_Audio **audio);
+
 MTY_EXPORT uint32_t
 MTY_AudioGetQueuedMs(MTY_Audio *ctx);
 
@@ -46,9 +49,6 @@ MTY_AudioReset(MTY_Audio *ctx);
 
 MTY_EXPORT void
 MTY_AudioQueue(MTY_Audio *ctx, const int16_t *frames, uint32_t count);
-
-MTY_EXPORT void
-MTY_AudioDestroy(MTY_Audio **audio);
 
 
 //- module Image
@@ -125,6 +125,9 @@ MTY_RandomUInt(uint32_t minVal, uint32_t maxVal);
 MTY_EXPORT MTY_AESGCM *
 MTY_AESGCMCreate(const void *key);
 
+MTY_EXPORT void
+MTY_AESGCMDestroy(MTY_AESGCM **aesgcm);
+
 MTY_EXPORT bool
 MTY_AESGCMEncrypt(MTY_AESGCM *ctx, const void *nonce, const void *plainText, size_t size,
 	void *hash, void *cipherText);
@@ -132,9 +135,6 @@ MTY_AESGCMEncrypt(MTY_AESGCM *ctx, const void *nonce, const void *plainText, siz
 MTY_EXPORT bool
 MTY_AESGCMDecrypt(MTY_AESGCM *ctx, const void *nonce, const void *cipherText, size_t size,
 	const void *hash, void *plainText);
-
-MTY_EXPORT void
-MTY_AESGCMDestroy(MTY_AESGCM **aesgcm);
 
 
 //- module File
@@ -204,12 +204,6 @@ MTY_MoveFile(const char *src, const char *dst);
 MTY_EXPORT const char *
 MTY_GetDir(MTY_Dir dir);
 
-MTY_EXPORT MTY_LockFile *
-MTY_LockFileCreate(const char *path, MTY_FileMode mode);
-
-MTY_EXPORT void
-MTY_LockFileDestroy(MTY_LockFile **lock);
-
 MTY_EXPORT const char *
 MTY_GetFileName(const char *path, bool extension);
 
@@ -218,6 +212,12 @@ MTY_GetFileList(const char *path, const char *filter);
 
 MTY_EXPORT void
 MTY_FreeFileList(MTY_FileList **fileList);
+
+MTY_EXPORT MTY_LockFile *
+MTY_LockFileCreate(const char *path, MTY_FileMode mode);
+
+MTY_EXPORT void
+MTY_LockFileDestroy(MTY_LockFile **lock);
 
 
 //- module JSON
@@ -228,29 +228,29 @@ typedef struct MTY_JSON MTY_JSON;
 MTY_EXPORT MTY_JSON *
 MTY_JSONParse(const char *input);
 
-MTY_EXPORT char *
-MTY_JSONStringify(const MTY_JSON *json);
-
 MTY_EXPORT MTY_JSON *
 MTY_JSONReadFile(const char *path);
 
-MTY_EXPORT bool
-MTY_JSONWriteFile(const char *path, const MTY_JSON *json);
-
 MTY_EXPORT MTY_JSON *
 MTY_JSONDuplicate(const MTY_JSON *json);
-
-MTY_EXPORT uint32_t
-MTY_JSONLength(const MTY_JSON *json);
-
-MTY_EXPORT void
-MTY_JSONDestroy(MTY_JSON **json);
 
 MTY_EXPORT MTY_JSON *
 MTY_JSONObj(void);
 
 MTY_EXPORT MTY_JSON *
 MTY_JSONArray(void);
+
+MTY_EXPORT void
+MTY_JSONDestroy(MTY_JSON **json);
+
+MTY_EXPORT char *
+MTY_JSONStringify(const MTY_JSON *json);
+
+MTY_EXPORT bool
+MTY_JSONWriteFile(const char *path, const MTY_JSON *json);
+
+MTY_EXPORT uint32_t
+MTY_JSONLength(const MTY_JSON *json);
 
 MTY_EXPORT bool
 MTY_JSONObjKeyExists(const MTY_JSON *json, const char *key);
@@ -672,6 +672,9 @@ typedef struct {
 MTY_EXPORT MTY_Renderer *
 MTY_RendererCreate(void);
 
+MTY_EXPORT void
+MTY_RendererDestroy(MTY_Renderer **renderer);
+
 MTY_EXPORT bool
 MTY_RendererDrawQuad(MTY_Renderer *ctx, MTY_GFX api, MTY_Device *device,
 	MTY_Context *context, const void *image, const MTY_RenderDesc *desc,
@@ -687,9 +690,6 @@ MTY_RendererSetUITexture(MTY_Renderer *ctx, MTY_GFX api, MTY_Device *device,
 
 MTY_EXPORT void *
 MTY_RendererGetUITexture(MTY_Renderer *ctx, uint32_t id);
-
-MTY_EXPORT void
-MTY_RendererDestroy(MTY_Renderer **renderer);
 
 MTY_EXPORT uint32_t
 MTY_GetAvailableGFX(MTY_GFX *apis);
@@ -723,6 +723,9 @@ typedef struct MTY_ListNode {
 MTY_EXPORT MTY_Hash *
 MTY_HashCreate(uint32_t numBuckets);
 
+MTY_EXPORT void
+MTY_HashDestroy(MTY_Hash **hash, MTY_FreeFunc freeFunc);
+
 MTY_EXPORT void *
 MTY_HashGet(MTY_Hash *ctx, const char *key);
 
@@ -747,11 +750,11 @@ MTY_HashNextKey(MTY_Hash *ctx, uint64_t *iter, const char **key);
 MTY_EXPORT bool
 MTY_HashNextKeyInt(MTY_Hash *ctx, uint64_t *iter, int64_t *key);
 
-MTY_EXPORT void
-MTY_HashDestroy(MTY_Hash **hash, MTY_FreeFunc freeFunc);
-
 MTY_EXPORT MTY_Queue *
 MTY_QueueCreate(uint32_t len, size_t bufSize);
+
+MTY_EXPORT void
+MTY_QueueDestroy(MTY_Queue **queue);
 
 MTY_EXPORT uint32_t
 MTY_QueueLength(MTY_Queue *ctx);
@@ -780,11 +783,11 @@ MTY_QueuePopPtr(MTY_Queue *ctx, int32_t timeout, void **opaque, size_t *size);
 MTY_EXPORT void
 MTY_QueueFlush(MTY_Queue *ctx, MTY_FreeFunc freeFunc);
 
-MTY_EXPORT void
-MTY_QueueDestroy(MTY_Queue **queue);
-
 MTY_EXPORT MTY_List *
 MTY_ListCreate(void);
+
+MTY_EXPORT void
+MTY_ListDestroy(MTY_List **list, MTY_FreeFunc freeFunc);
 
 MTY_EXPORT MTY_ListNode *
 MTY_ListFirst(MTY_List *ctx);
@@ -794,9 +797,6 @@ MTY_ListAppend(MTY_List *ctx, void *value);
 
 MTY_EXPORT void *
 MTY_ListRemove(MTY_List *ctx, MTY_ListNode *node);
-
-MTY_EXPORT void
-MTY_ListDestroy(MTY_List **list, MTY_FreeFunc freeFunc);
 
 
 //- module Thread
@@ -831,17 +831,20 @@ typedef struct {
 MTY_EXPORT MTY_Thread *
 MTY_ThreadCreate(MTY_ThreadFunc func, void *opaque);
 
+MTY_EXPORT void *
+MTY_ThreadDestroy(MTY_Thread **thread);
+
 MTY_EXPORT void
 MTY_ThreadDetach(MTY_ThreadFunc func, void *opaque);
 
 MTY_EXPORT int64_t
 MTY_ThreadGetID(MTY_Thread *ctx);
 
-MTY_EXPORT void *
-MTY_ThreadDestroy(MTY_Thread **thread);
-
 MTY_EXPORT MTY_Mutex *
 MTY_MutexCreate(void);
+
+MTY_EXPORT void
+MTY_MutexDestroy(MTY_Mutex **mutex);
 
 MTY_EXPORT void
 MTY_MutexLock(MTY_Mutex *ctx);
@@ -852,11 +855,11 @@ MTY_MutexTryLock(MTY_Mutex *ctx);
 MTY_EXPORT void
 MTY_MutexUnlock(MTY_Mutex *ctx);
 
-MTY_EXPORT void
-MTY_MutexDestroy(MTY_Mutex **mutex);
-
 MTY_EXPORT MTY_Cond *
 MTY_CondCreate(void);
+
+MTY_EXPORT void
+MTY_CondDestroy(MTY_Cond **cond);
 
 MTY_EXPORT bool
 MTY_CondWait(MTY_Cond *ctx, MTY_Mutex *mutex, int32_t timeout);
@@ -870,6 +873,9 @@ MTY_CondWakeAll(MTY_Cond *ctx);
 MTY_EXPORT MTY_RWLock *
 MTY_RWLockCreate(void);
 
+MTY_EXPORT void
+MTY_RWLockDestroy(MTY_RWLock **rwlock);
+
 MTY_EXPORT bool
 MTY_RWTryLockReader(MTY_RWLock *ctx);
 
@@ -882,14 +888,11 @@ MTY_RWLockWriter(MTY_RWLock *ctx);
 MTY_EXPORT void
 MTY_RWLockUnlock(MTY_RWLock *ctx);
 
-MTY_EXPORT void
-MTY_RWLockDestroy(MTY_RWLock **rwlock);
-
-MTY_EXPORT void
-MTY_CondDestroy(MTY_Cond **cond);
-
 MTY_EXPORT MTY_Sync *
 MTY_SyncCreate(void);
+
+MTY_EXPORT void
+MTY_SyncDestroy(MTY_Sync **sync);
 
 MTY_EXPORT bool
 MTY_SyncWait(MTY_Sync *ctx, int32_t timeout);
@@ -897,11 +900,11 @@ MTY_SyncWait(MTY_Sync *ctx, int32_t timeout);
 MTY_EXPORT void
 MTY_SyncWake(MTY_Sync *ctx);
 
-MTY_EXPORT void
-MTY_SyncDestroy(MTY_Sync **sync);
-
 MTY_EXPORT MTY_ThreadPool *
 MTY_ThreadPoolCreate(uint32_t maxThreads);
+
+MTY_EXPORT void
+MTY_ThreadPoolDestroy(MTY_ThreadPool **pool, MTY_AnonFunc detach);
 
 MTY_EXPORT uint32_t
 MTY_ThreadPoolStart(MTY_ThreadPool *ctx, MTY_AnonFunc func, void *opaque);
@@ -911,9 +914,6 @@ MTY_ThreadPoolDetach(MTY_ThreadPool *ctx, uint32_t index, MTY_AnonFunc detach);
 
 MTY_EXPORT MTY_ThreadState
 MTY_ThreadPoolState(MTY_ThreadPool *ctx, uint32_t index, void **opaque);
-
-MTY_EXPORT void
-MTY_ThreadPoolDestroy(MTY_ThreadPool **pool, MTY_AnonFunc detach);
 
 MTY_EXPORT void
 MTY_Atomic32Set(MTY_Atomic32 *atomic, int32_t value);
@@ -1659,10 +1659,10 @@ MTY_EXPORT MTY_Cert *
 MTY_CertCreate(void);
 
 MTY_EXPORT void
-MTY_CertGetFingerprint(MTY_Cert *ctx, char *fingerprint, size_t size);
+MTY_CertDestroy(MTY_Cert **cert);
 
 MTY_EXPORT void
-MTY_CertDestroy(MTY_Cert **cert);
+MTY_CertGetFingerprint(MTY_Cert *ctx, char *fingerprint, size_t size);
 
 MTY_EXPORT MTY_TLS *
 MTY_TLSCreate(MTY_TLSType type, MTY_Cert *cert, const char *host, const char *peerFingerprint, uint32_t mtu);
