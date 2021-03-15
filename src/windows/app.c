@@ -1952,6 +1952,11 @@ MTY_GFXState MTY_WindowGFXState(MTY_App *app, MTY_Window window)
 	return MTY_GFX_STATE_NORMAL;
 }
 
+MTY_Input MTY_AppGetInputMode(MTY_App *ctx)
+{
+	return MTY_INPUT_UNSPECIFIED;
+}
+
 void MTY_AppSetInputMode(MTY_App *ctx, MTY_Input mode)
 {
 }

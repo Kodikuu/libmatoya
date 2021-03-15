@@ -973,6 +973,11 @@ MTY_Detach MTY_AppGetDetached(MTY_App *app)
 	return app->should_detach ? app->detach : MTY_DETACH_NONE;
 }
 
+MTY_Input MTY_AppGetInputMode(MTY_App *ctx)
+{
+	return ctx->input;
+}
+
 void MTY_AppSetInputMode(MTY_App *ctx, MTY_Input mode)
 {
 	ctx->input = mode;

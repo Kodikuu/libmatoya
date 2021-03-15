@@ -1480,6 +1480,9 @@ MTY_AppPenIsEnabled(MTY_App *ctx);
 MTY_EXPORT void
 MTY_AppEnablePen(MTY_App *ctx, bool enable);
 
+MTY_EXPORT MTY_Input
+MTY_AppGetInputMode(MTY_App *ctx);
+
 MTY_EXPORT void
 MTY_AppSetInputMode(MTY_App *ctx, MTY_Input mode);
 
