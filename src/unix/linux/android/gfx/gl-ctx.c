@@ -35,15 +35,6 @@ static struct gl_ctx {
 
 // JNI
 
-JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_gfx_1dims(JNIEnv *env, jobject obj,
-	jint w, jint h)
-{
-	CTX.width = w;
-	CTX.height = h;
-
-	MTY_Atomic32Set(&CTX.state_ctr, 2);
-}
-
 JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_gfx_1set_1surface(JNIEnv *env, jobject obj,
 	jobject surface)
 {
@@ -88,6 +79,14 @@ void mty_gfx_global_destroy(void)
 	MTY_MutexDestroy(&CTX.mutex);
 
 	memset(&CTX, 0, sizeof(struct gl_ctx));
+}
+
+void mty_gfx_set_dims(uint32_t width, uint32_t height)
+{
+	CTX.width = width;
+	CTX.height = height;
+
+	MTY_Atomic32Set(&CTX.state_ctr, 2);
 }
 
 bool mty_gfx_is_ready(void)

@@ -321,6 +321,20 @@ JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1stop(JNIEnv *env, jobject 
 }
 
 
+// JNI surface events
+
+JNIEXPORT void JNICALL Java_group_matoya_lib_MTY_app_1resize(JNIEnv *env, jobject obj,
+	jint w, jint h)
+{
+	mty_gfx_set_dims(w, h);
+
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_SIZE;
+
+	app_push_event(&CTX, &evt);
+}
+
+
 // JNI keyboard events
 
 JNIEXPORT jboolean JNICALL Java_group_matoya_lib_MTY_app_1key(JNIEnv *env, jobject obj,

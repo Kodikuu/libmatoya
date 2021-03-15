@@ -58,7 +58,6 @@ public class MTY extends SurfaceView implements
 	float displayDensity;
 	int scrollY;
 
-	native void gfx_dims(int w, int h);
 	native void gfx_set_surface(Surface surface);
 	native void gfx_unset_surface();
 
@@ -67,6 +66,7 @@ public class MTY extends SurfaceView implements
 
 	native boolean app_key(boolean pressed, int code, String text, int mods, boolean soft);
 	native boolean app_long_press(float x, float y);
+	native void app_resize(int width, int height);
 	native void app_unplug(int deviceId);
 	native void app_single_tap_up(float x, float y);
 	native void app_scroll(float absX, float absY, float x, float y, int fingers);
@@ -133,7 +133,7 @@ public class MTY extends SurfaceView implements
 
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
-		gfx_dims(w, h);
+		app_resize(w, h);
 	}
 
 	@Override

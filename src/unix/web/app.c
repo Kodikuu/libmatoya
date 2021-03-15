@@ -50,6 +50,22 @@ static void window_mouse_motion(MTY_App *ctx, bool relative, int32_t x, int32_t 
 	ctx->event_func(&evt, ctx->opaque);
 }
 
+static void window_resize(MTY_App *ctx)
+{
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_SIZE;
+
+	ctx->event_func(&evt, ctx->opaque);
+}
+
+static void window_move(MTY_App *ctx)
+{
+	MTY_Event evt = {0};
+	evt.type = MTY_EVENT_MOVE;
+
+	ctx->event_func(&evt, ctx->opaque);
+}
+
 static void window_mouse_button(MTY_App *ctx, bool pressed, int32_t button, int32_t x, int32_t y)
 {
 	MTY_Event evt = {0};
@@ -356,7 +372,8 @@ MTY_App *MTY_AppCreate(MTY_AppFunc appFunc, MTY_EventFunc eventFunc, void *opaqu
 	ctx->opaque = opaque;
 
 	web_attach_events(ctx, window_mouse_motion, window_mouse_button,
-		window_mouse_scroll, window_keyboard, window_focus, window_drop);
+		window_mouse_scroll, window_keyboard, window_focus, window_drop,
+		window_resize);
 
 	ctx->hotkey = MTY_HashCreate(0);
 
@@ -380,7 +397,7 @@ void MTY_AppDestroy(MTY_App **app)
 
 void MTY_AppRun(MTY_App *ctx)
 {
-	web_raf(ctx, ctx->app_func, window_controller, ctx->opaque);
+	web_raf(ctx, ctx->app_func, window_controller, window_move, ctx->opaque);
 }
 
 void MTY_AppEnableScreenSaver(MTY_App *app, bool enable)

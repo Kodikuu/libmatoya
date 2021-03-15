@@ -433,6 +433,8 @@ const _MTY = {
 	synthesizeEsc: true,
 	relative: false,
 	action: null,
+	lastX: 0,
+	lastY: 0,
 };
 
 let CLIPBOARD;
@@ -865,7 +867,7 @@ const MTY_WEB_API = {
 	web_get_pixel_ratio: function () {
 		return window.devicePixelRatio;
 	},
-	web_attach_events: function (app, mouse_motion, mouse_button, mouse_wheel, keyboard, focus, drop) {
+	web_attach_events: function (app, mouse_motion, mouse_button, mouse_wheel, keyboard, focus, drop, resize) {
 		GL.canvas.addEventListener('mousemove', (ev) => {
 			let x = scaled(ev.clientX);
 			let y = scaled(ev.clientY);
@@ -947,6 +949,10 @@ const MTY_WEB_API = {
 			MTY_CFunc(focus)(app, true);
 		});
 
+		window.addEventListener('resize', (ev) => {
+			MTY_CFunc(resize)(app);
+		});
+
 		GL.canvas.addEventListener('drop', (ev) => {
 			ev.preventDefault();
 
@@ -973,16 +979,30 @@ const MTY_WEB_API = {
 			}
 		});
 	},
-	web_raf: function (app, func, controller, opaque) {
+	web_raf: function (app, func, controller, move, opaque) {
+		// Init position
+		_MTY.lastX = window.screenX;
+		_MTY.lastY = window.screenY;
+
 		const step = () => {
+			// Poll gamepads
 			if (document.hasFocus())
 				poll_gamepads(app, controller);
 
+			// Poll position changes
+			if (_MTY.lastX != window.screenX || _MTY.lastY != window.screenY) {
+				_MTY.lastX = window.screenX;
+				_MTY.lastY = window.screenY;
+				MTY_CFunc(move)(app);
+			}
+
+			// Poll size changes and resize the canvas
 			const rect = GL.canvas.getBoundingClientRect();
 
 			GL.canvas.width = scaled(rect.width);
 			GL.canvas.height = scaled(rect.height);
 
+			// Keep looping recursively or end based on AppFunc return value
 			if (MTY_CFunc(func)(opaque)) {
 				window.requestAnimationFrame(step);
 
