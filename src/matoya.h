@@ -1511,7 +1511,7 @@ MTY_EXPORT bool
 MTY_WindowIsFullscreen(MTY_App *app, MTY_Window window);
 
 MTY_EXPORT void
-MTY_WindowEnableFullscreen(MTY_App *app, MTY_Window window, bool fullscreen);
+MTY_WindowSetFullscreen(MTY_App *app, MTY_Window window, bool fullscreen);
 
 MTY_EXPORT void
 MTY_WindowWarpCursor(MTY_App *app, MTY_Window window, uint32_t x, uint32_t y);

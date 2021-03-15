@@ -971,7 +971,7 @@ MTY_Window MTY_WindowCreate(MTY_App *app, const char *title, const MTY_WindowDes
 	return 0;
 }
 
-void MTY_WindowEnableFullscreen(MTY_App *app, MTY_Window window, bool fullscreen)
+void MTY_WindowSetFullscreen(MTY_App *app, MTY_Window window, bool fullscreen)
 {
 	app_void_method(app, "enableFullscreen", "(Z)V", fullscreen);
 }

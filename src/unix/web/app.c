@@ -452,7 +452,7 @@ bool MTY_WindowIsActive(MTY_App *app, MTY_Window window)
 	return web_has_focus();
 }
 
-void MTY_WindowEnableFullscreen(MTY_App *app, MTY_Window window, bool fullscreen)
+void MTY_WindowSetFullscreen(MTY_App *app, MTY_Window window, bool fullscreen)
 {
 	web_set_fullscreen(fullscreen);
 }

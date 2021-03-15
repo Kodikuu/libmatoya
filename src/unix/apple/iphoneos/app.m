@@ -124,7 +124,7 @@ float MTY_WindowGetScale(MTY_App *app, MTY_Window window)
 	return 1.0f;
 }
 
-void MTY_WindowEnableFullscreen(MTY_App *app, MTY_Window window, bool fullscreen)
+void MTY_WindowSetFullscreen(MTY_App *app, MTY_Window window, bool fullscreen)
 {
 }
 

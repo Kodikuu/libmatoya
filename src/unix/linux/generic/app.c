@@ -1131,7 +1131,7 @@ float MTY_WindowGetScale(MTY_App *app, MTY_Window window)
 	return app->scale;
 }
 
-void MTY_WindowEnableFullscreen(MTY_App *app, MTY_Window window, bool fullscreen)
+void MTY_WindowSetFullscreen(MTY_App *app, MTY_Window window, bool fullscreen)
 {
 	struct window *ctx = app_get_window(app, window);
 	if (!ctx)
