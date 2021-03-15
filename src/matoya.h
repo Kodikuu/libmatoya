@@ -1408,8 +1408,14 @@ MTY_AppGetClipboard(MTY_App *ctx);
 MTY_EXPORT void
 MTY_AppSetClipboard(MTY_App *ctx, const char *text);
 
+MTY_EXPORT bool
+MTY_AppKeyboardIsGrabbed(MTY_App *ctx);
+
 MTY_EXPORT void
 MTY_AppGrabKeyboard(MTY_App *ctx, bool grab);
+
+MTY_EXPORT bool
+MTY_AppMouseIsGrabbed(MTY_App *ctx);
 
 MTY_EXPORT void
 MTY_AppGrabMouse(MTY_App *ctx, bool grab);
@@ -1461,6 +1467,9 @@ MTY_AppSetOrientation(MTY_App *ctx, MTY_Orientation orientation);
 
 MTY_EXPORT void
 MTY_AppControllerRumble(MTY_App *ctx, uint32_t id, uint16_t low, uint16_t high);
+
+MTY_EXPORT bool
+MTY_AppPenIsEnabled(MTY_App *ctx);
 
 MTY_EXPORT void
 MTY_AppEnablePen(MTY_App *ctx, bool enable);

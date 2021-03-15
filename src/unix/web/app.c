@@ -381,6 +381,11 @@ void MTY_AppEnableScreenSaver(MTY_App *app, bool enable)
 	web_wake_lock(enable);
 }
 
+bool MTY_AppKeyboardIsGrabbed(MTY_App *ctx)
+{
+	return ctx->kb_grab;
+}
+
 void MTY_AppGrabKeyboard(MTY_App *app, bool grab)
 {
 	app->kb_grab = grab;
@@ -525,6 +530,11 @@ void MTY_WindowWarpCursor(MTY_App *app, MTY_Window window, uint32_t x, uint32_t 
 {
 }
 
+bool MTY_AppMouseIsGrabbed(MTY_App *ctx)
+{
+	return false;
+}
+
 void MTY_AppGrabMouse(MTY_App *app, bool grab)
 {
 }
@@ -574,6 +584,11 @@ void MTY_AppSetOrientation(MTY_App *app, MTY_Orientation orientation)
 
 void MTY_AppEnableGlobalHotkeys(MTY_App *app, bool enable)
 {
+}
+
+bool MTY_AppPenIsEnabled(MTY_App *ctx)
+{
+	return false;
 }
 
 void MTY_AppEnablePen(MTY_App *ctx, bool enable)

@@ -897,12 +897,22 @@ void MTY_AppEnableScreenSaver(MTY_App *app, bool enable)
 	app->suspend_ss = !enable;
 }
 
+bool MTY_AppKeyboardIsGrabbed(MTY_App *ctx)
+{
+	return ctx->kbgrab;
+}
+
 void MTY_AppGrabKeyboard(MTY_App *app, bool grab)
 {
 	if (app->kbgrab != grab) {
 		app->kbgrab = grab;
 		app->state++;
 	}
+}
+
+bool MTY_AppMouseIsGrabbed(MTY_App *ctx)
+{
+	return ctx->mgrab;
 }
 
 void MTY_AppGrabMouse(MTY_App *app, bool grab)
@@ -1338,6 +1348,11 @@ void MTY_AppSetOrientation(MTY_App *app, MTY_Orientation orientation)
 
 void MTY_AppEnableGlobalHotkeys(MTY_App *app, bool enable)
 {
+}
+
+bool MTY_AppPenIsEnabled(MTY_App *ctx)
+{
+	return false;
 }
 
 void MTY_AppEnablePen(MTY_App *ctx, bool enable)

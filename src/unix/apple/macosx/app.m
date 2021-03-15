@@ -1193,6 +1193,13 @@ void MTY_AppEnableScreenSaver(MTY_App *app, bool enable)
 	}
 }
 
+bool MTY_AppMouseIsGrabbed(MTY_App *app)
+{
+	App *ctx = (__bridge App *) app;
+
+	return ctx.grab_mouse;
+}
+
 void MTY_AppGrabMouse(MTY_App *app, bool grab)
 {
 	App *ctx = (__bridge App *) app;
@@ -1237,6 +1244,13 @@ void MTY_AppControllerRumble(MTY_App *app, uint32_t id, uint16_t low, uint16_t h
 	App *ctx = (__bridge App *) app;
 
 	mty_hid_driver_rumble(ctx.hid, id, low, high);
+}
+
+bool MTY_AppPenIsEnabled(MTY_App *app)
+{
+	App *ctx = (__bridge App *) app;
+
+	return ctx.pen_enabled;
 }
 
 void MTY_AppEnablePen(MTY_App *app, bool enable)
@@ -1557,6 +1571,11 @@ void MTY_AppSetOrientation(MTY_App *app, MTY_Orientation orientation)
 
 void MTY_AppEnableGlobalHotkeys(MTY_App *app, bool enable)
 {
+}
+
+bool MTY_AppKeyboardIsGrabbed(MTY_App *app)
+{
+	return false;
 }
 
 void MTY_AppGrabKeyboard(MTY_App *app, bool grab)

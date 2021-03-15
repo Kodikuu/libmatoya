@@ -1073,6 +1073,11 @@ void MTY_AppControllerRumble(MTY_App *app, uint32_t id, uint16_t low, uint16_t h
 {
 }
 
+bool MTY_AppKeyboardIsGrabbed(MTY_App *ctx)
+{
+	return false;
+}
+
 void MTY_AppGrabKeyboard(MTY_App *app, bool grab)
 {
 }
@@ -1091,6 +1096,11 @@ void MTY_WindowActivate(MTY_App *app, MTY_Window window, bool active)
 
 void MTY_WindowWarpCursor(MTY_App *app, MTY_Window window, uint32_t x, uint32_t y)
 {
+}
+
+bool MTY_AppMouseIsGrabbed(MTY_App *ctx)
+{
+	return false;
 }
 
 void MTY_AppGrabMouse(MTY_App *app, bool grab)
@@ -1120,6 +1130,11 @@ void MTY_AppNotification(MTY_App *app, const char *title, const char *msg)
 
 void MTY_AppEnableGlobalHotkeys(MTY_App *app, bool enable)
 {
+}
+
+bool MTY_AppPenIsEnabled(MTY_App *ctx)
+{
+	return false;
 }
 
 void MTY_AppEnablePen(MTY_App *ctx, bool enable)

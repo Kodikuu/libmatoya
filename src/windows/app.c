@@ -1446,12 +1446,22 @@ void MTY_AppEnableScreenSaver(MTY_App *app, bool enable)
 		MTY_Log("'SetThreadExecutionState' failed");
 }
 
+bool MTY_AppKeyboardIsGrabbed(MTY_App *ctx)
+{
+	return ctx->kbgrab;
+}
+
 void MTY_AppGrabKeyboard(MTY_App *app, bool grab)
 {
 	if (app->kbgrab != grab) {
 		app->kbgrab = grab;
 		app->state++;
 	}
+}
+
+bool MTY_AppMouseIsGrabbed(MTY_App *ctx)
+{
+	return ctx->mgrab;
 }
 
 void MTY_AppGrabMouse(MTY_App *app, bool grab)
@@ -1518,6 +1528,11 @@ void MTY_AppControllerRumble(MTY_App *app, uint32_t id, uint16_t low, uint16_t h
 	} else {
 		mty_hid_driver_rumble(app->hid, id, low, high);
 	}
+}
+
+bool MTY_AppPenIsEnabled(MTY_App *ctx)
+{
+	return ctx->pen_enabled;
 }
 
 void MTY_AppEnablePen(MTY_App *ctx, bool enable)
